@@ -1,0 +1,3 @@
+[submodule "substitute"]
+	path = substitute
+	url = https://github.com/comex/substitute.git
