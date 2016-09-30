@@ -10,10 +10,7 @@ typedef struct {
   int nbuckets;
   SceUID lock;
   tai_map_func_t *map_func;
-  tai_patch_t *buckets[];
-} tai_map_t;
-
-typedef tai_map_t tai_proc_map_t;
-typedef tai_map_t tai_range_map_t;
+  tai_proc_t *buckets[];
+} tai_proc_map_t;
 
 #endif // TAI_PATCHES_MAP_HEADER

@@ -36,4 +36,11 @@ struct _tai_patch {
   tai_patch_t *free_next;
 };
 
+typedef struct _tai_proc tai_proc_t;
+
+struct _tai_proc {
+  SceUID pid;
+  tai_patch_t *head;
+};
+
 #endif

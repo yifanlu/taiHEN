@@ -10,22 +10,9 @@
 
 /**
  * @file patches_map.c
- * @brief      A hashmap-linkedlist hybrid structure for storing patches.
- *
- *             The goal of this structure is to provide: 1. Fast lookup by
- *             memory range to answer membership queries. 2. Fast lookup by
- *             associated PID to return a set by PID
- *
- *             To do this, we store the same underlying data in two map
- *             structures. `tai_proc_map_t` is a hashmap ordered by PID. It
- *             allows one to quickly remove a entire set of entries by PID,
- *             which is returned in a linked list. `tai_range_map_t` has a
- *             linked list for each PID sorted by the address of the patch. This
- *             allows an insertion to quickly return an existing patch for a
- *             given address.
- *
- *             The user can use one of the two maps if desired. If both maps are
- *             used, the user is responsible to keeping track of both maps.
+ * @brief      Patches are grouped by PID and stored in a linked list ordered by
+ *             the address being patched. The groups are stored in a hash map
+ *             where the hash function is just the PID.
  */
 
 /** Size of the heap pool for storing the map in bytes. */
@@ -41,7 +28,7 @@ static SceUID g_map_pool;
  *
  * @return     Zero on success or memory allocation error code.
  */
-int map_init(void) {
+int proc_map_init(void) {
   g_map_pool = sceKernelMemPoolCreate("tai_maps", MAP_POOL_SIZE, NULL);
   if (g_map_pool < 0) {
     return g_map_pool;
@@ -55,7 +42,7 @@ int map_init(void) {
  *
  *             Should be called before exit.
  */
-void map_deinit(void) {
+void proc_map_deinit(void) {
   sceKernelMemPoolDestroy(g_map_pool);
   g_map_pool = 0;
 }
@@ -63,19 +50,15 @@ void map_deinit(void) {
 /**
  * @brief      Allocates a new map
  *
- *             The user determines what kind of map this will be used for. Do
- *             not interchange map types once it's been decided. The user must
- *             call `map_free` to clean up the map when done.
- *
- * @param[in]  nbuckets  The number of buckets for the hash map.
+ * @param[in]  nbuckets  The number of buckets for the map.
  *
  * @return     Pointer to an allocated map structure on success. Null on
  *             failure.
  */
-tai_map_t *map_alloc(int nbuckets) {
-  tai_map_t *map;
+tai_proc_map_t *proc_map_alloc(int nbuckets) {
+  tai_proc_map_t *map;
 
-  map = sceKernelMemPoolAlloc(g_map_pool, sizeof(tai_map_t) + sizeof(tai_patch_t *) * nbuckets);
+  map = sceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_map_t) + sizeof(tai_proc_t *) * nbuckets);
   if (map == NULL) {
     return NULL;
   }
@@ -92,41 +75,14 @@ tai_map_t *map_alloc(int nbuckets) {
  *
  * @param      map   The map
  */
-void map_free(tai_map_t *map) {
+void proc_map_free(tai_map_t *map) {
   sceKernelDestroyMutexForKernel(map->lock);
   sceKernelMemPoolFree(g_map_pool, map);
 }
 
 /**
- * @brief      Inserts into a proc map
- *
- * @param      map    The proc map
- * @param      patch  The patch to return
- *
- * @return     Always 1 for success
- */
-int map_proc_insert(tai_proc_map_t *map, tai_patch_t *patch) {
-  int idx;
-  tai_patch_t **cur;
-
-  idx = patch->pid % map->nbuckets;
-  // we group the patches by NID in sorted order
-  sceKernelLockMutexForKernel(map->lock, 1, NULL);
-  cur = &map->buckets[i];
-  while (*cur != NULL && (*cur)->pid < patch->pid) {
-    cur = &(*cur)->proc_next;
-  }
-  patch->proc_next = *cur;
-  *cur = patch;
-  patch->free_next = NULL; // clear this pointer
-  sceKernelUnlockMutexForKernel(map->lock, 1);
-
-  return 1;
-}
-
-/**
- * @brief      Inserts into a range map if no overlap or get patch that
- *             completely overlaps
+ * @brief      Inserts into the map if no overlap or get patch that completely
+ *             overlaps
  *
  *             If there is no overlap with any other element for a given PID,
  *             then insert the patch into the map. If there is overlap, the
@@ -134,7 +90,7 @@ int map_proc_insert(tai_proc_map_t *map, tai_patch_t *patch) {
  *             overlap is complete (same address and size), then this will
  *             return a pointer to the overlapping patch also.
  *
- * @param      map       The range map
+ * @param      map       The map
  * @param[in]  patch     The patch to attempt insert
  * @param[out] existing  If and only if there exists a patch with the same
  *                       address and size, then the function returns zero and
@@ -144,23 +100,43 @@ int map_proc_insert(tai_proc_map_t *map, tai_patch_t *patch) {
  * @return     One if patch has been inserted successfully. Zero if there is
  *             overlap and is not inserted.
  */
-int map_range_try_insert(tai_range_map_t *map, tai_patch_t *patch, tai_patch_t **existing) {
+int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **existing) {
   int idx;
   int overlap;
+  tai_proc_t **item, *proc;
   tai_patch_t **cur, *tmp;
 
   idx = patch->pid % map->nbuckets;
   *existing = NULL;
-  // we group the patches by NID in sorted order
+
+  // get proc structure if found
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
-  cur = &map->buckets[i];
+  item = &map->buckets[idx];
+  while (*item != NULL && (*item)->pid < patch->pid) {
+    item = &(*item)->proc_next;
+  }
+  if (*item != NULL && (*item)->pid == patch->pid) {
+    // existing block
+    proc = *item;
+  } else {
+    // new block
+    proc = sceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_t));
+    proc->pid = patch->pid;
+    proc->head = NULL;
+    *item = proc;
+  }
+  sceKernelUnlockMutexForKernel(map->lock, 1);
+
+  // now insert into range if needed
+  sceKernelLockMutexForKernel(map->lock, 1, NULL);
+  cur = &proc->head;
   overlap = 0;
   while (*cur != NULL) {
     tmp = *cur;
     if (tmp->addr < patch->addr) {
       if (tmp->addr + tmp->len <= patch->addr) {
         // cur block is completely before our block
-        cur = &(*cur)->range_next;
+        cur = &(*cur)->next;
         continue;
       } else {
         // cur block's end overlaps with our block's start
@@ -183,76 +159,79 @@ int map_range_try_insert(tai_range_map_t *map, tai_patch_t *patch, tai_patch_t *
     break;
   }
   if (!overlap) {
-    patch->range_next = *cur;
+    patch->next = *cur;
     *cur = patch;
-    patch->free_next = NULL; // clear this pointer
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
   return !overlap;
 }
 
 /**
- * @brief      Removes every patch associated with a given pid from a proc map
+ * @brief      Removes every patch associated with a given pid from the map
  *
  *             Returned is a new linked list containing every patch that has
- *             been removed from the proc map. Use the `free_next` pointer to
+ *             been removed from the proc map. Use the `next` pointer to
  *             iterate this linked list.
  *
- * @param      map      The proc map
- * @param[in]  pid      The pid to remove
- * @param[out] removed  The head of the linked list contained items removed
+ * @param      map   The map
+ * @param[in]  pid   The pid to remove
+ * @param[out] head  The head of the linked list contained items removed
  *
  * @return     One if any item has been removed.
  */
-int map_proc_remove_all_proc(tai_proc_map_t *map, SceUID pid, tai_patch_t **removed) {
+int map_proc_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head) {
   int idx;
   int overlap;
-  tai_patch_t **start, **end, *tmp;
+  tai_proc_t **cur, *tmp;
 
-  idx = patch->pid % map->nbuckets;
+  idx = pid % map->nbuckets;
+  *head = NULL;
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
-  start = &map->buckets[i];
-  while (*start != NULL && (*start)->pid < patch->pid) {
-    start = &(*start)->proc_next;
+  cur = &map->buckets[idx];
+  while (*cur != NULL && (*cur)->pid < pid) {
+    cur = &(*cur)->proc_next;
   }
-  end = start;
-  while (*end != NULL && (*end)->pid == patch->pid) {
-    (*end)->free_next = (*end)->proc_next; // save a second linked list of things to free
-    end = &(*end)->proc_next;
+  if (*cur != NULL && (*cur)->pid == pid) {
+    tmp = *cur;
+    *cur = tmp->next;
+    *head = tmp->head;
+    sceKernelMemPoolFree(g_map_pool, tmp);
   }
-  *removed = *start;
-  *start = *end;
   sceKernelUnlockMutexForKernel(map->lock, 1);
-  return *removed != NULL;
+  return *head != NULL;
 }
 
 /**
- * @brief      Remove a single patch from the range map
+ * @brief      Remove a single patch from the map
  *
- * @param      map    The range map
+ * @param      map    The map
  * @param      patch  The patch to remove
  *
  * @return     One if the patch was removed from the map and zero
  *             otherwise.
  */ 
-int map_range_remove(tai_range_map_t *map, tai_patch_t *patch) {
+int map_proc_remove(tai_range_map_t *map, tai_patch_t *patch) {
   int idx;
   int found;
-  tai_patch_t **cur;
+  tai_proc_t *proc;
+  tar_patch_t **cur;
 
   idx = patch->pid % map->nbuckets;
   // we group the patches by NID in sorted order
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
-  cur = &map->buckets[i];
-  found = 1;
-  while (*cur != NULL && *cur != patch) {
-    cur = &(*cur)->range_next;
+  proc = map->buckets[idx];
+  while (proc != NULL && proc->pid < patch->pid) {
+    proc = proc->next;
   }
-  if (*cur != NULL) {
-    *cur = patch->range_next;
-  } else {
-    // a very serious error... better ignore it.
-    found = 0;
+  if (proc != NULL && proc->pid == patch->pid) {
+    cur = &proc->head;
+    while (*cur != NULL && *cur != patch) {
+      cur = &(*cur)->next;
+    }
+    if (*cur != NULL) {
+      *cur = patch->next;
+      found = 1;
+    }
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
   return found;
