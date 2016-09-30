@@ -1,4 +1,4 @@
-/* patches_map.c -- map structure for efficient patch storage
+/* proc_map.c -- map structure for organizing patches
  *
  * Copyright (C) 2016 Yifan Lu
  *
@@ -7,9 +7,10 @@
  */
 #include <psp2/types.h>
 #include "taihen_internal.h"
+#include "proc_map.h"
 
 /**
- * @file patches_map.c
+ * @file proc_map.c
  * @brief      Patches are grouped by PID and stored in a linked list ordered by
  *             the address being patched. The groups are stored in a hash map
  *             where the hash function is just the PID.
@@ -179,7 +180,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
  *
  * @return     One if any item has been removed.
  */
-int map_proc_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head) {
+int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head) {
   int idx;
   int overlap;
   tai_proc_t **cur, *tmp;
@@ -210,7 +211,7 @@ int map_proc_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
  * @return     One if the patch was removed from the map and zero
  *             otherwise.
  */ 
-int map_proc_remove(tai_range_map_t *map, tai_patch_t *patch) {
+int proc_map_remove(tai_range_map_t *map, tai_patch_t *patch) {
   int idx;
   int found;
   tai_proc_t *proc;
