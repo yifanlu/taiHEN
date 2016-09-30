@@ -14,16 +14,16 @@ struct _tai_inject {
 
 struct _tai_hook_list {
   SceUID lock;
-  void *target;
   void origcode[FUNC_SAVE_SIZE];
   size_t origlen;
-  tai_hook_t *head; // init with head = &tail;
+  tai_hook_t *head;
   tai_hook_t tail;
 };
 
 struct _tai_hook {
   tai_hook_t *next;
   void *func;
+  tai_patch_t *patch;
 };
 
 typedef struct _tai_hook_list tai_hook_list_t;
@@ -36,9 +36,8 @@ struct _tai_patch {
     tai_hook_list_t hooks;
   } data;
   SceUID pid;
-  uint32_t module_nid;
   uintptr_t addr;
-  size_t len;
+  size_t size;
   tai_patch_t *next;
 };
 

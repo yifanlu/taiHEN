@@ -135,7 +135,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
   while (*cur != NULL) {
     tmp = *cur;
     if (tmp->addr < patch->addr) {
-      if (tmp->addr + tmp->len <= patch->addr) {
+      if (tmp->addr + tmp->size <= patch->addr) {
         // cur block is completely before our block
         cur = &(*cur)->next;
         continue;
@@ -144,14 +144,14 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
         overlap = 1;
       }
     } else if (patch->addr < tmp->addr) {
-      if (patch->addr + patch->len > tmp->addr) {
+      if (patch->addr + patch->size > tmp->addr) {
         // cur block's start over overlaps with our block's end
         overlap = 1;
       } else {
         // cur block is completely after our block, this is where we insert
       }
     } else { // tmp->addr == patch->addr
-      if (patch->len == tmp->len) {
+      if (patch->size == tmp->size) {
         // completely overlap
         overlap = 1;
         *existing = tmp;
@@ -211,14 +211,13 @@ int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
  * @return     One if the patch was removed from the map and zero
  *             otherwise.
  */ 
-int proc_map_remove(tai_range_map_t *map, tai_patch_t *patch) {
+int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
   int idx;
   int found;
   tai_proc_t *proc;
   tar_patch_t **cur;
 
   idx = patch->pid % map->nbuckets;
-  // we group the patches by NID in sorted order
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
   proc = map->buckets[idx];
   while (proc != NULL && proc->pid < patch->pid) {
@@ -233,6 +232,9 @@ int proc_map_remove(tai_range_map_t *map, tai_patch_t *patch) {
       *cur = patch->next;
       found = 1;
     }
+  }
+  if (proc->head == NULL) { // it's now empty
+    sceKernelMemPoolFree(g_map_pool, proc);
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
   return found;
