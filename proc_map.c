@@ -5,7 +5,9 @@
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
  */
-#include <psp2/types.h>
+#include <psp2kern/types.h>
+#include <psp2kern/kernel/sysmem.h>
+#include <psp2kern/kernel/threadmgr.h>
 #include "taihen_internal.h"
 #include "proc_map.h"
 
@@ -64,7 +66,7 @@ tai_proc_map_t *proc_map_alloc(int nbuckets) {
     return NULL;
   }
   map->nbuckets = nbuckets;
-  map->lock = sceKernelCreateMutexForKernel("tai_map", SCE_KERNEL_MUTEX_ATTR_TH_FIFO | SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
+  map->lock = sceKernelCreateMutexForKernel("tai_map", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
   for (int i = 0; i < nbuckets; i++) {
     map->buckets[i] = NULL;
   }

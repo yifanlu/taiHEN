@@ -47,9 +47,9 @@ typedef struct {
  */
 typedef struct _tai_hook tai_hook_t;
 
-int taiHookFunctionExport(tai_hook_t **p_hook, SceUID pid, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
-int taiHookFunctionImport(tai_hook_t **p_hook, SceUID pid, uint32_t target_library_nid, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
-int taiHookFunctionOffset(tai_hook_t **p_hook, SceUID pid, uint32_t module_nid, int segidx, uint32_t offset, int thumb, const void *hook_func);
+int taiHookFunctionExport(tai_hook_t **p_hook, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
+int taiHookFunctionImport(tai_hook_t **p_hook, uint32_t target_library_nid, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
+int taiHookFunctionOffset(tai_hook_t **p_hook, uint32_t module_nid, int segidx, uint32_t offset, int thumb, const void *hook_func);
 int taiHookContinue(tai_hook_t *hook, ...);
 int taiHookRelease(tai_hook_t *hook);
 

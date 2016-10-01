@@ -5,7 +5,9 @@
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
  */
-#include <psp2/types.h>
+#include <psp2kern/types.h>
+#include <psp2kern/kernel/sysmem.h>
+#include <psp2kern/kernel/threadmgr.h>
 #include "taihen_internal.h"
 #include "proc_map.h"
 
@@ -70,12 +72,13 @@ void patches_deinit(void) {
 /**
  * @brief      Adds a hook to a function using libsubstitute
  *
+ * @param[in]  pid          The target process
  * @param      target_func  The target function
  * @param[in]  src_func     The source function
  *
  * @return     libsubstitute return value
  */
-static int tai_hook_function(void *target_func, const void *src_func) {
+static int tai_hook_function(SceUID pid, void *target_func, const void *src_func) {
   if (target_func == src_func) {
     return 0; // no need for hook
   }
@@ -88,13 +91,14 @@ static int tai_hook_function(void *target_func, const void *src_func) {
  *             It works even if `dst` is read only. All levels of caches will be
  *             flushed.
  *
- * @param      dst   The destination
+ * @param[in]  pid   The target progress
+ * @param      dst   The target address
  * @param[in]  src   The source
  * @param[in]  size  The size
  *
  * @return     Zero on success, < 0 on error
  */
-static int tai_force_memcpy(void *dst, const void *src, size_t size) {
+static int tai_force_memcpy(SceUID pid, void *dst, const void *src, size_t size) {
 
 }
 
@@ -147,11 +151,11 @@ static int hooks_remove_hook(tai_hook_head_t *hooks, tai_hook_t *item) {
   sceKernelLockMutexForKernel(hooks->lock, 1, NULL);
   if (hooks->head == item) { // first hook for this list
     // we must remove the patch
-    tai_force_memcpy((void *)FUNC_TO_UINTPTR_T(hooks->tail.func), hooks->origcode, hooks->origlen);
+    tai_force_memcpy(hooks->pid, (void *)FUNC_TO_UINTPTR_T(hooks->tail.func), hooks->origcode, hooks->origlen);
     // set head to the next item
     hooks->head = (item->next == &hooks->tail) ? NULL : item->next;
     // add a patch to the new head
-    ret = tai_hook_function(hooks->tail.func, item->next->func);
+    ret = tai_hook_function(hooks->pid, hooks->tail.func, item->next->func);
   } else {
     cur = &hooks->head;
     ret = -1;
@@ -196,7 +200,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   patch->pid = pid;
   patch->addr = FUNC_TO_UINTPTR_T(dest_func);
   patch->size = FUNC_SAVE_SIZE;
-  patch->data.hooks.lock = sceKernelCreateMutexForKernel("tai_hooks", SCE_KERNEL_MUTEX_ATTR_TH_FIFO | SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
+  patch->data.hooks.lock = sceKernelCreateMutexForKernel("tai_hooks", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
   patch->data.hooks.head = NULL;
   patch->data.hooks.tail.next = NULL;
   patch->data.hooks.tail.func = dest_func;
@@ -220,7 +224,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   p_hook = *hook;
 
   sceKernelLockMutexForKernel(patch->data.hooks.lock, 1, NULL);
-  ret = hooks_add_hook(&patch->data.hooks, hook);
+  ret = hooks_add_hook(pid, &patch->data.hooks, hook);
   cleanup = 0;
   if (patch->data.hooks.head == NULL) {
     proc_map_remove(g_map, patch);
