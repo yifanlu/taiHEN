@@ -1,11 +1,16 @@
 CC=gcc
-CFLAGS=-I.
+LD=gcc
+CFLAGS=
+INCS=-Iinclude
 LIBS=-lpthread
 
-%.o: %.c $(DEPS)
+%.o: %.c
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-test_proc_map: compat.o test_proc_map.o
+%.to: ../%.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+
+test_proc_map: compat.o test_proc_map.o proc_map.to
 	$(LD) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: all clean

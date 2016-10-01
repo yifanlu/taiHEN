@@ -78,8 +78,8 @@ tai_proc_map_t *proc_map_alloc(int nbuckets) {
  *
  * @param      map   The map
  */
-void proc_map_free(tai_map_t *map) {
-  sceKernelDestroyMutexForKernel(map->lock);
+void proc_map_free(tai_proc_map_t *map) {
+  sceKernelDeleteMutexForKernel(map->lock);
   sceKernelMemPoolFree(g_map_pool, map);
 }
 
@@ -116,7 +116,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
   item = &map->buckets[idx];
   while (*item != NULL && (*item)->pid < patch->pid) {
-    item = &(*item)->proc_next;
+    item = &(*item)->next;
   }
   if (*item != NULL && (*item)->pid == patch->pid) {
     // existing block
@@ -192,7 +192,7 @@ int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
   cur = &map->buckets[idx];
   while (*cur != NULL && (*cur)->pid < pid) {
-    cur = &(*cur)->proc_next;
+    cur = &(*cur)->next;
   }
   if (*cur != NULL && (*cur)->pid == pid) {
     tmp = *cur;
@@ -217,7 +217,7 @@ int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
   int idx;
   int found;
   tai_proc_t *proc;
-  tar_patch_t **cur;
+  tai_patch_t **cur;
 
   idx = patch->pid % map->nbuckets;
   sceKernelLockMutexForKernel(map->lock, 1, NULL);

@@ -4,10 +4,12 @@
 #ifndef TAI_PROC_MAP_HEADER
 #define TAI_PROC_MAP_HEADER
 
+#include <psp2kern/types.h>
+#include "taihen_internal.h"
+
 typedef struct {
   int nbuckets;
   SceUID lock;
-  tai_map_func_t *map_func;
   tai_proc_t *buckets[];
 } tai_proc_map_t;
 
@@ -19,10 +21,10 @@ typedef struct {
 int proc_map_init(void);
 void proc_map_deinit(void);
 tai_proc_map_t *proc_map_alloc(int nbuckets);
-void proc_map_free(tai_map_t *map);
+void proc_map_free(tai_proc_map_t *map);
 int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **existing);
 int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head);
-int proc_map_remove(tai_range_map_t *map, tai_patch_t *patch);
+int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch);
 
 /** @} */
 

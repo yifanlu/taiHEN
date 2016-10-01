@@ -10,9 +10,11 @@
 #include <pthread.h>
 #include <assert.h>
 
+#include "../taihen.h"
+#include "../taihen_internal.h"
 #include "../proc_map.h"
 
-#define TEST_MSG(fmt, args...) printf("[%s] " fmt "\n", name, args)
+#define TEST_MSG(fmt, ...) printf("[%s] " fmt "\n", name, ##__VA_ARGS__)
 
 /**
  * @brief      Helper function that allocates a patch
@@ -43,10 +45,10 @@ tai_patch_t *create_patch(SceUID pid, uintptr_t addr, size_t size) {
  * @param[in]  count     The count (MUST BE PRIME)
  */
 static inline void shuffle_choices(int *ordering, int count) {
-  order[0] = rand() % count;
-  if (order[0] == 0) order[0]++;
+  ordering[0] = rand() % count;
+  if (ordering[0] == 0) ordering[0]++;
   for (int i = 1; i < count; i++) {
-    order[i] = (order[i-1] + order[0]) % count;
+    ordering[i] = (ordering[i-1] + ordering[0]) % count;
   }
 }
 
@@ -71,13 +73,13 @@ int test_scenario_1(const char *name, tai_proc_map_t *map, SceUID pid) {
   int ordering[TEST_1_NUM_BLOCKS];
   int ret;
 
-  shuffle_choices(orderings, TEST_1_NUM_BLOCKS);
+  shuffle_choices(ordering, TEST_1_NUM_BLOCKS);
   for (int i = 0; i < TEST_1_NUM_BLOCKS; i++) {
-    possible = create_patch(pid, orderings[i] * 0x100, 0x100);
-    TEST_MSG("Inserting for %d addr:%x, size:%x", pid, possible->addr, possible->size);
+    possible = create_patch(pid, ordering[i] * 0x100, 0x100);
+    TEST_MSG("Inserting for %d addr:%lx, size:%zx", pid, possible->addr, possible->size);
     if (proc_map_try_insert(map, possible, &actual) != 1) {
       assert(actual);
-      TEST_MSG("Already exist:%x, size:%x", actual->addr, actual->size);
+      TEST_MSG("Already exist:%lx, size:%zx", actual->addr, actual->size);
       assert(actual->pid == possible->pid);
       assert(actual->addr == possible->addr);
       assert(actual->size == possible->size);
@@ -125,6 +127,7 @@ int test_scenario_1(const char *name, tai_proc_map_t *map, SceUID pid) {
 int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
   tai_patch_t *fixed[TEST_2_NUM_FIXED];
   tai_patch_t *scramble[TEST_2_NUM_SCRAMBLE];
+  tai_patch_t *current;
   tai_patch_t *actual;
   int ordering[TEST_2_NUM_SCRAMBLE];
   int success;
@@ -136,9 +139,9 @@ int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
   scramble[2] = create_patch(pid, 0x120, 0x20); // complete overlap
   scramble[3] = create_patch(pid, 0x160, 0x20); // overlap head <-> tail
   scramble[4] = create_patch(pid, 0x90, 0x200); // overlap two blocks
-  shuffle_choices(orderings, TEST_2_NUM_SCRAMBLE);
+  shuffle_choices(ordering, TEST_2_NUM_SCRAMBLE);
   for (int i = 0; i < TEST_2_NUM_FIXED; i++) {
-    TEST_MSG("Adding fixed block %d: addr:%x, size:%x", i, fixed[i]->addr, fixed[i]->size);
+    TEST_MSG("Adding fixed block %d: addr:%lx, size:%zx", i, fixed[i]->addr, fixed[i]->size);
     success = proc_map_try_insert(map, fixed[i], &actual);
     if (!success) {
       assert(actual);
@@ -148,23 +151,25 @@ int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
     }
   }
   for (int i = 0; i < TEST_2_NUM_SCRAMBLE; i++) {
-    TEST_MSG("Adding block %d: addr:%x, size:%x", i, scramble[i]->addr, scramble[i]->size);
-    if (proc_map_try_insert(map, scramble[i], &actual) != 1) {
+    current = scramble[ordering[i]];
+    TEST_MSG("Adding block %d: addr:%lx, size:%zx", i, current->addr, current->size);
+    if (proc_map_try_insert(map, current, &actual) != 1) {
       assert(!actual);
       TEST_MSG("Block %d failed to insert.", i);
-      free(scramble[i]);
-      scramble[i] = NULL;
+      free(current);
+      scramble[ordering[i]] = NULL;
     } else {
       TEST_MSG("Block %d inserted successfully.", i);
     }
   }
   for (int i = 0; i < TEST_2_NUM_SCRAMBLE; i++) {
-    if (scramble[i]) {
+    current = scramble[ordering[i]];
+    if (current) {
       TEST_MSG("Removing block %d", i);
-      success = proc_map_remove(map, scramble[i]);
+      success = proc_map_remove(map, current);
       assert(success);
-      free(scramble[i]);
-      scramble[i] = NULL;
+      free(current);
+      scramble[ordering[i]] = NULL;
     }
   }
   for (int i = 0; i < TEST_2_NUM_FIXED; i++) {
@@ -187,7 +192,7 @@ struct thread_args {
   tai_proc_map_t *map;
   SceUID pid;
   int index;
-}
+};
 
 /**
  * @brief      Pthreads start for a test
@@ -200,7 +205,7 @@ void *start_test(void *arg) {
   struct thread_args *targs = (struct thread_args *)arg;
   char name[256];
   snprintf(name, 256, "thread-%d", targs->index);
-  test(name, targs->map, targs->pid);
+  targs->test(name, targs->map, targs->pid);
   return NULL;
 }
 

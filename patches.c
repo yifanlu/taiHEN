@@ -207,7 +207,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   memcpy(patch->data.hooks.origcode, patch->addr, FUNC_SAVE_SIZE);
   patch->data.hooks.origlen = FUNC_SAVE_SIZE;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
-    sceKernelDestroyMutexForKernel(patch->data.hooks.lock);
+    sceKernelDeleteMutexForKernel(patch->data.hooks.lock);
     sceKernelMemPoolFree(g_patch_pool, patch);
     if (tmp == NULL) {
       // error
