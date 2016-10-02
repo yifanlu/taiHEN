@@ -15,6 +15,11 @@ typedef struct _tai_patch tai_patch_t;
 
 typedef struct _tai_proc tai_proc_t;
 
+typedef enum {
+  HOOKS,
+  INJECTION
+} tai_patch_type_t;
+
 struct _tai_hook {
   tai_hook_t *next;
   void *func;
@@ -22,7 +27,9 @@ struct _tai_hook {
 };
 
 struct _tai_inject {
-
+  void *saved;
+  size_t size;
+  tai_patch_t *patch;
 };
 
 struct _tai_hook_list {
@@ -38,6 +45,7 @@ struct _tai_patch {
     tai_inject_t inject;
     tai_hook_list_t hooks;
   } data;
+  tai_patch_type_t type;
   SceUID pid;
   uintptr_t addr;
   size_t size;

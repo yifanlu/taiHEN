@@ -63,7 +63,7 @@ int patches_init(void) {
  * Should be called before exit.
  */
 void patches_deinit(void) {
-  sceKernelMemPoolDestroy(g_map_pool);
+  sceKernelMemPoolDestroy(g_patch_pool);
   proc_map_free(g_map);
   g_map = NULL;
   g_patch_pool = 0;
@@ -82,24 +82,39 @@ static int tai_hook_function(SceUID pid, void *target_func, const void *src_func
   if (target_func == src_func) {
     return 0; // no need for hook
   }
+  return 0;
 }
 
 /**
- * @brief      Memcpy without the pesky permissions
+ * @brief      Memcpy within process without the pesky permissions
  *
  *             This function will write raw data from `src` to `dst` for `size`.
  *             It works even if `dst` is read only. All levels of caches will be
  *             flushed.
  *
- * @param[in]  pid   The target progress
- * @param      dst   The target address
- * @param[in]  src   The source
- * @param[in]  size  The size
+ * @param[in]  dst_pid  The target process
+ * @param      dst      The target address
+ * @param[in]  src      The source
+ * @param[in]  size     The size
  *
  * @return     Zero on success, < 0 on error
  */
-static int tai_force_memcpy(SceUID pid, void *dst, const void *src, size_t size) {
+static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t size) {
+  return 0;
+}
 
+/**
+ * @brief      Memcpy from a process to kernel
+ *
+ * @param[in]  src_pid  The source process (can be kernel)
+ * @param      dst      The target address
+ * @param[in]  src      The source
+ * @param[in]  size     The size
+ *
+ * @return     Zero on success, < 0 on error
+ */
+static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size_t size) {
+  return 0;
 }
 
 /**
@@ -112,14 +127,14 @@ static int tai_force_memcpy(SceUID pid, void *dst, const void *src, size_t size)
  *
  * @return     Zero on success, < 0 on error
  */
-static int hooks_add_hook(tai_hook_head_t *hooks, tai_hook_t *item) {
+static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   int ret;
 
   sceKernelLockMutexForKernel(hooks->lock, 1, NULL);
   if (hooks->head == NULL) { // first hook for this list
     hooks->head = item;
     item->next = &hooks->tail;
-    ret = tai_hook_function(hooks->tail.func, item->func);
+    ret = tai_hook_function(item->patch->pid, hooks->tail.func, item->func);
   } else {
     item->next = hooks->head->next;
     hooks->head->next = item->next;
@@ -144,18 +159,18 @@ static int hooks_add_hook(tai_hook_head_t *hooks, tai_hook_t *item) {
  *
  * @return     Zero on success, < 0 on error or if item is not found
  */
-static int hooks_remove_hook(tai_hook_head_t *hooks, tai_hook_t *item) {
+static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   tai_hook_t **cur;
   int ret;
 
   sceKernelLockMutexForKernel(hooks->lock, 1, NULL);
   if (hooks->head == item) { // first hook for this list
     // we must remove the patch
-    tai_force_memcpy(hooks->pid, (void *)FUNC_TO_UINTPTR_T(hooks->tail.func), hooks->origcode, hooks->origlen);
+    tai_force_memcpy(item->patch->pid, (void *)FUNC_TO_UINTPTR_T(hooks->tail.func), hooks->origcode, hooks->origlen);
     // set head to the next item
     hooks->head = (item->next == &hooks->tail) ? NULL : item->next;
     // add a patch to the new head
-    ret = tai_hook_function(hooks->pid, hooks->tail.func, item->next->func);
+    ret = tai_hook_function(item->patch->pid, hooks->tail.func, item->next->func);
   } else {
     cur = &hooks->head;
     ret = -1;
@@ -176,7 +191,7 @@ static int hooks_remove_hook(tai_hook_head_t *hooks, tai_hook_t *item) {
 }
 
 /**
- * @brief      Inserts a hook given an absolute address of the function
+ * @brief      Inserts a hook given an absolute address and PID of the function
  *
  * @param[out] p_hook     Outputs the hook if inserted
  * @param[in]  pid        PID of the address space to hook
@@ -197,19 +212,21 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
     return -1;
   }
 
+  patch->type = HOOKS;
   patch->pid = pid;
   patch->addr = FUNC_TO_UINTPTR_T(dest_func);
   patch->size = FUNC_SAVE_SIZE;
+  patch->next = NULL;
   patch->data.hooks.lock = sceKernelCreateMutexForKernel("tai_hooks", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
   patch->data.hooks.head = NULL;
   patch->data.hooks.tail.next = NULL;
   patch->data.hooks.tail.func = dest_func;
-  memcpy(patch->data.hooks.origcode, patch->addr, FUNC_SAVE_SIZE);
+  tai_memcpy_to_kernel(pid, patch->data.hooks.origcode, (void *)patch->addr, FUNC_SAVE_SIZE);
   patch->data.hooks.origlen = FUNC_SAVE_SIZE;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
     sceKernelDeleteMutexForKernel(patch->data.hooks.lock);
     sceKernelMemPoolFree(g_patch_pool, patch);
-    if (tmp == NULL) {
+    if (tmp == NULL || tmp->type != HOOKS) {
       // error
       sceKernelMemPoolFree(g_patch_pool, hook);
       return -2;
@@ -221,10 +238,10 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
 
   hook->func = (void *)hook_func;
   hook->patch = patch;
-  p_hook = *hook;
+  *p_hook = hook;
 
   sceKernelLockMutexForKernel(patch->data.hooks.lock, 1, NULL);
-  ret = hooks_add_hook(pid, &patch->data.hooks, hook);
+  ret = hooks_add_hook(&patch->data.hooks, hook);
   cleanup = 0;
   if (patch->data.hooks.head == NULL) {
     proc_map_remove(g_map, patch);
@@ -234,7 +251,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
 
   // we removed from the map
   if (cleanup) {
-    sceKernelDestroyMutexForKernel(patch->data.hooks.lock);
+    sceKernelDeleteMutexForKernel(patch->data.hooks.lock);
     sceKernelMemPoolFree(g_patch_pool, patch);
   }
 
@@ -254,7 +271,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
  * @return     Zero on success, < 0 on error
  */
 int taiHookRelease(tai_hook_t *hook) {
-  tai_proc_t *patch;
+  tai_patch_t *patch;
   int ret;
   int cleanup;
 
@@ -270,11 +287,96 @@ int taiHookRelease(tai_hook_t *hook) {
 
   // we removed from the map
   if (cleanup) {
-    sceKernelDestroyMutexForKernel(patch->data.hooks.lock);
+    sceKernelDeleteMutexForKernel(patch->data.hooks.lock);
     sceKernelMemPoolFree(g_patch_pool, patch);
   }
 
   sceKernelMemPoolFree(g_patch_pool, hook);
+
+  return ret;
+}
+
+/**
+ * @brief      Inserts a raw data injection given an absolute address and PID of
+ *             the address space
+ *
+ * @param[out] p_inject  Control data for user to keep
+ * @param[in]  pid       The pid of the src and dest pointers address space
+ * @param      dest      The destination
+ * @param[in]  src       The source
+ * @param[in]  size      The size
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiInjectAbs(tai_inject_t **p_inject, SceUID pid, void *dest, const void *src, size_t size) {
+  tai_patch_t *patch, *tmp;
+  void *saved;
+  int ret;
+  int cleanup;
+
+  patch = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_patch_t));
+  saved = sceKernelMemPoolAlloc(g_patch_pool, size);
+  if (patch == NULL || saved == NULL) {
+    return -1;
+  }
+
+  // try to save old data
+  if (tai_memcpy_to_kernel(pid, saved, dest, size) < 0) {
+    sceKernelMemPoolFree(g_patch_pool, patch);
+    sceKernelMemPoolFree(g_patch_pool, saved);
+    return -3;
+  }
+
+  patch->type = INJECTION;
+  patch->pid = pid;
+  patch->addr = (uintptr_t)dest;
+  patch->size = size;
+  patch->next = NULL;
+  patch->data.inject.saved = saved;
+  patch->data.inject.size = size;
+  patch->data.inject.patch = patch;
+  if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
+    sceKernelMemPoolFree(g_patch_pool, patch);
+    sceKernelMemPoolFree(g_patch_pool, saved);
+    return -2;
+  }
+
+  *p_inject = &patch->data.inject;
+  ret = tai_force_memcpy(pid, dest, src, size);
+  if (ret < 0) {
+    taiInjectRelease(*p_inject);
+    *p_inject = NULL;
+  }
+
+  return ret;
+}
+
+/**
+ * @brief      Removes an injection and restores the original data
+ *
+ * @param      inject  The injection
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiInjectRelease(tai_inject_t *inject) {
+  tai_patch_t *patch;
+  void *saved;
+  void *dest;
+  size_t size;
+  int ret;
+  SceUID pid;
+
+  patch = inject->patch;
+  pid = patch->pid;
+  dest = (void *)patch->addr;
+  saved = inject->saved;
+  size = inject->size;
+  if (!proc_map_remove(g_map, patch)) {
+    return -1;
+  } else {
+    ret = tai_force_memcpy(pid, dest, saved, size);
+    sceKernelMemPoolFree(g_patch_pool, saved);
+  }
 
   return ret;
 }

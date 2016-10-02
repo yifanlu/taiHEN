@@ -8,6 +8,7 @@
 extern "C" {
 #endif
 
+#include <psp2kern/types.h>
 #include <stdint.h>
 
 /**
@@ -47,6 +48,7 @@ typedef struct {
  */
 typedef struct _tai_hook tai_hook_t;
 
+int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const void *hook_func);
 int taiHookFunctionExport(tai_hook_t **p_hook, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
 int taiHookFunctionImport(tai_hook_t **p_hook, uint32_t target_library_nid, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
 int taiHookFunctionOffset(tai_hook_t **p_hook, uint32_t module_nid, int segidx, uint32_t offset, int thumb, const void *hook_func);
@@ -86,8 +88,9 @@ int taiHookRelease(tai_hook_t *hook);
  */
 typedef struct _tai_inject tai_inject_t;
 
-int taiInjectData(tai_inject_t *p_inject, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t len);
-int taiInjectRelease(tai_inject_t *p_inject);
+int taiInjectAbs(tai_inject_t **p_inject, SceUID pid, void *dest, const void *src, size_t size);
+int taiInjectData(tai_inject_t **p_inject, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t len);
+int taiInjectRelease(tai_inject_t *inject);
 
 /** @} */
 

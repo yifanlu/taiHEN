@@ -126,12 +126,11 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
     proc = sceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_t));
     proc->pid = patch->pid;
     proc->head = NULL;
+    proc->next = *item;
     *item = proc;
   }
-  sceKernelUnlockMutexForKernel(map->lock, 1);
 
   // now insert into range if needed
-  sceKernelLockMutexForKernel(map->lock, 1, NULL);
   cur = &proc->head;
   overlap = 0;
   while (*cur != NULL) {
@@ -166,7 +165,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
     *cur = patch;
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
-  return !overlap;
+  return !overlap; // TODO: what happens if we remove the proc before this point
 }
 
 /**
@@ -184,7 +183,6 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
  */
 int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head) {
   int idx;
-  int overlap;
   tai_proc_t **cur, *tmp;
 
   idx = pid % map->nbuckets;
@@ -216,17 +214,18 @@ int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
 int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
   int idx;
   int found;
-  tai_proc_t *proc;
+  tai_proc_t **proc, *next;
   tai_patch_t **cur;
 
   idx = patch->pid % map->nbuckets;
+  found = 0;
   sceKernelLockMutexForKernel(map->lock, 1, NULL);
-  proc = map->buckets[idx];
-  while (proc != NULL && proc->pid < patch->pid) {
-    proc = proc->next;
+  proc = &map->buckets[idx];
+  while (*proc != NULL && (*proc)->pid < patch->pid) {
+    proc = &(*proc)->next;
   }
-  if (proc != NULL && proc->pid == patch->pid) {
-    cur = &proc->head;
+  if (*proc != NULL && (*proc)->pid == patch->pid) {
+    cur = &(*proc)->head;
     while (*cur != NULL && *cur != patch) {
       cur = &(*cur)->next;
     }
@@ -235,8 +234,10 @@ int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
       found = 1;
     }
   }
-  if (proc->head == NULL) { // it's now empty
-    sceKernelMemPoolFree(g_map_pool, proc);
+  if (*proc != NULL && (*proc)->head == NULL) { // it's now empty
+    next = (*proc)->next;
+    sceKernelMemPoolFree(g_map_pool, *proc);
+    *proc = next;
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
   return found;

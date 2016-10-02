@@ -10,10 +10,15 @@
 #include <pthread.h>
 #include <assert.h>
 
+#include <psp2kern/kernel/threadmgr.h>
 #include "../taihen.h"
 #include "../taihen_internal.h"
 #include "../proc_map.h"
 
+/** Set to 1 to print the status of the map after each operation */
+#define VERBOSE 0
+
+/** Macro for printing test messages with an identifier */
 #define TEST_MSG(fmt, ...) printf("[%s] " fmt "\n", name, ##__VA_ARGS__)
 
 /**
@@ -32,6 +37,8 @@ tai_patch_t *create_patch(SceUID pid, uintptr_t addr, size_t size) {
   patch->pid = pid;
   patch->addr = addr;
   patch->size = size;
+  patch->next = NULL;
+  patch->type = HOOKS;
   return patch;
 }
 
@@ -50,6 +57,30 @@ static inline void shuffle_choices(int *ordering, int count) {
   for (int i = 1; i < count; i++) {
     ordering[i] = (ordering[i-1] + ordering[0]) % count;
   }
+}
+
+/**
+ * @brief      Print out the current proc map
+ *
+ * @param      map   The map
+ * @param[in]  lock  If 1, then lock the map before dumping
+ */
+void proc_map_dump(const char *name, tai_proc_map_t *map, int lock) {
+  tai_proc_t *proc;
+  tai_patch_t *patch;
+
+  TEST_MSG("Dumping map...");
+  if (lock) sceKernelLockMutexForKernel(map->lock, 1, NULL);
+  for (int i = 0; i < map->nbuckets; i++) {
+    for (proc = map->buckets[i]; proc != NULL; proc = proc->next) {
+      TEST_MSG("Proc Item: pid = %d", proc->pid);
+      for (patch = proc->head; patch != NULL; patch = patch->next) {
+        TEST_MSG("    Patch: pid = %d, addr = %lx, size = %zx", patch->pid, patch->addr, patch->size);
+      }
+    }
+  }
+  TEST_MSG("Finished dumping map.");
+  if (lock) sceKernelUnlockMutexForKernel(map->lock, 1);
 }
 
 /** Number of blocks to insert. Must be prime. */
@@ -85,22 +116,24 @@ int test_scenario_1(const char *name, tai_proc_map_t *map, SceUID pid) {
       assert(actual->size == possible->size);
       free(possible);
     }
+    if (VERBOSE) proc_map_dump(name, map, 1);
   }
   TEST_MSG("Remove all for pid %d", pid);
   ret = proc_map_remove_all_pid(map, pid, &actual);
   TEST_MSG("Result: %d", ret);
+  if (VERBOSE) proc_map_dump(name, map, 1);
   if (ret) { // only ONE thread should return 1
     tai_patch_t *next;
-    for (int i = 0; i < TEST_1_NUM_BLOCKS; i++) { // check ordering
-      assert(actual->next);
-      next = actual->next;
-      assert(actual->addr == i * 0x100);
+    uintptr_t last_addr = 0;
+    while (actual != NULL) {
+      TEST_MSG("Removed block: addr:%lx, size:%zx", actual->addr, actual->size);
+      assert(last_addr <= actual->addr);
       assert(actual->size == 0x100);
       assert(actual->pid == pid);
+      next = actual->next;
       free(actual);
       actual = next;
     }
-    assert(next == NULL);
   }
   return 0;
 }
@@ -135,32 +168,33 @@ int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
   fixed[0] = create_patch(pid, 0x100, 0x50); // block 1
   fixed[1] = create_patch(pid, 0x200, 0x50); // block 2
   scramble[0] = create_patch(pid, 0x50, 0x20); // no overlap before
-  scramble[1] = create_patch(pid, 0x90, 0x20); // overlap tail <-> head
+  scramble[1] = create_patch(pid, 0xf0, 0x20); // overlap tail <-> head
   scramble[2] = create_patch(pid, 0x120, 0x20); // complete overlap
-  scramble[3] = create_patch(pid, 0x160, 0x20); // overlap head <-> tail
+  scramble[3] = create_patch(pid, 0x140, 0x20); // overlap head <-> tail
   scramble[4] = create_patch(pid, 0x90, 0x200); // overlap two blocks
   shuffle_choices(ordering, TEST_2_NUM_SCRAMBLE);
   for (int i = 0; i < TEST_2_NUM_FIXED; i++) {
     TEST_MSG("Adding fixed block %d: addr:%lx, size:%zx", i, fixed[i]->addr, fixed[i]->size);
     success = proc_map_try_insert(map, fixed[i], &actual);
     if (!success) {
-      assert(actual);
       TEST_MSG("Fixed block %d already exists.", i);
       free(fixed[i]);
       fixed[i] = NULL;
     }
+    if (VERBOSE) proc_map_dump(name, map, 1);
   }
   for (int i = 0; i < TEST_2_NUM_SCRAMBLE; i++) {
     current = scramble[ordering[i]];
     TEST_MSG("Adding block %d: addr:%lx, size:%zx", i, current->addr, current->size);
     if (proc_map_try_insert(map, current, &actual) != 1) {
-      assert(!actual);
+      assert(!actual || actual->pid == current->pid);
       TEST_MSG("Block %d failed to insert.", i);
       free(current);
       scramble[ordering[i]] = NULL;
     } else {
       TEST_MSG("Block %d inserted successfully.", i);
     }
+    if (VERBOSE) proc_map_dump(name, map, 1);
   }
   for (int i = 0; i < TEST_2_NUM_SCRAMBLE; i++) {
     current = scramble[ordering[i]];
@@ -170,6 +204,7 @@ int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
       assert(success);
       free(current);
       scramble[ordering[i]] = NULL;
+      if (VERBOSE) proc_map_dump(name, map, 1);
     }
   }
   for (int i = 0; i < TEST_2_NUM_FIXED; i++) {
@@ -179,6 +214,7 @@ int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
       assert(success);
       free(fixed[i]);
       fixed[i] = NULL;
+      if (VERBOSE) proc_map_dump(name, map, 1);
     }
   }
   return 0;
@@ -217,17 +253,29 @@ void *start_test(void *arg) {
 
 int main(int argc, const char *argv[]) {
   const char *name = "INIT";
+  int seed;
   tai_proc_map_t *map;
   pthread_t threads[TEST_NUM_THREADS];
   struct thread_args args[TEST_NUM_THREADS];
+  
+  if (argc > 1) {
+    seed = atoi(argv[1]);
+    TEST_MSG("Seeding PRNG: %d", seed);
+    srand(seed);
+  }
 
+  for (seed = 0; seed < 0x100000; seed++) {
+  TEST_MSG("Seeding PRNG: %d", seed);
+  srand(seed);
   TEST_MSG("Setup maps");
   proc_map_init();
   map = proc_map_alloc(TEST_NUM_BUCKETS);
 
   TEST_MSG("Phase 1: Single threaded");
   test_scenario_1("single_thread", map, 0);
+  proc_map_dump("single_thread", map, 1);
   test_scenario_2("single_thread", map, 0);
+  proc_map_dump("single_thread", map, 1);
 
   TEST_MSG("Phase 2: Multi threaded");
   TEST_MSG("scenario 1");
@@ -242,6 +290,7 @@ int main(int argc, const char *argv[]) {
   for (int i = 0; i < TEST_NUM_THREADS; i++) {
     pthread_join(threads[i], NULL);
   }
+  proc_map_dump("multi-threads-1", map, 1);
   TEST_MSG("scenario 2");
   for (int i = 0; i < TEST_NUM_THREADS; i++) {
     args[i].test = test_scenario_2;
@@ -254,9 +303,11 @@ int main(int argc, const char *argv[]) {
   for (int i = 0; i < TEST_NUM_THREADS; i++) {
     pthread_join(threads[i], NULL);
   }
+  proc_map_dump("multi-threads-2", map, 1);
 
   TEST_MSG("Cleanup maps");
   proc_map_free(map);
   proc_map_deinit();
+  }
   return 0;
 }

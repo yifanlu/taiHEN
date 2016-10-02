@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <pthread.h>
 
-#define MAX_LOCKS 16
+#define MAX_LOCKS 64
 
 int locks_used[MAX_LOCKS] = {0};
 pthread_mutex_t mutex[MAX_LOCKS];
@@ -54,6 +54,8 @@ SceUID sceKernelCreateMutexForKernel(const char *name, SceUInt attr, int initCou
   }
   if (id >= 0) {
     pthread_mutex_init(&mutex[id], ((attr & SCE_KERNEL_MUTEX_ATTR_RECURSIVE) == SCE_KERNEL_MUTEX_ATTR_RECURSIVE) ? &recattr : NULL);
+  } else {
+    fprintf(stderr, "sceKernelCreateMutexForKernel: failed for %s\n", name);
   }
   pthread_mutex_unlock(&lock_lock);
   return id;
@@ -62,6 +64,7 @@ SceUID sceKernelCreateMutexForKernel(const char *name, SceUInt attr, int initCou
 int sceKernelDeleteMutexForKernel(SceUID mutexid) {
   pthread_mutex_lock(&lock_lock);
   pthread_mutex_destroy(&mutex[mutexid]);
+  locks_used[mutexid] = 0;
   pthread_mutex_unlock(&lock_lock);
   return 0;
 }
