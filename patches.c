@@ -218,8 +218,12 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   int ret;
 
   patch = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_patch_t));
+  if (patch == NULL) {
+    return -1;
+  }
   hook = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_hook_t));
-  if (hook == NULL || patch == NULL) {
+  if (hook == NULL) {
+    sceKernelMemPoolFree(g_patch_pool, patch);
     return -1;
   }
 
@@ -252,9 +256,8 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
 
   ret = hooks_add_hook(&patch->data.hooks, hook);
   if (ret < 0 && patch->data.hooks.head == NULL) {
-    if (proc_map_remove(g_map, patch)) {
-      sceKernelMemPoolFree(g_patch_pool, patch);
-    }
+    proc_map_remove(g_map, patch);
+    sceKernelMemPoolFree(g_patch_pool, patch);
   }
 
 err:
@@ -263,6 +266,7 @@ err:
   // error adding hook
   if (ret < 0) {
     sceKernelMemPoolFree(g_patch_pool, hook);
+    *p_hook = NULL;
   }
 
   return ret;
@@ -283,9 +287,8 @@ int taiHookRelease(tai_hook_t *hook) {
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   ret = hooks_remove_hook(&patch->data.hooks, hook);
   if (patch->data.hooks.head == NULL) {
-    if (proc_map_remove(g_map, patch)) {
-      sceKernelMemPoolFree(g_patch_pool, patch);
-    }
+    proc_map_remove(g_map, patch);
+    sceKernelMemPoolFree(g_patch_pool, patch);
   }
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
@@ -312,8 +315,12 @@ int taiInjectAbs(tai_inject_t **p_inject, SceUID pid, void *dest, const void *sr
   int ret;
 
   patch = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_patch_t));
+  if (patch == NULL) {
+    return -1;
+  }
   saved = sceKernelMemPoolAlloc(g_patch_pool, size);
-  if (patch == NULL || saved == NULL) {
+  if (saved == NULL) {
+    sceKernelMemPoolFree(g_patch_pool, patch);
     return -1;
   }
 
@@ -334,16 +341,16 @@ int taiInjectAbs(tai_inject_t **p_inject, SceUID pid, void *dest, const void *sr
   patch->data.inject.size = size;
   patch->data.inject.patch = patch;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
-    sceKernelMemPoolFree(g_patch_pool, patch);
-    sceKernelMemPoolFree(g_patch_pool, saved);
     ret = -2;
   } else {
     *p_inject = &patch->data.inject;
     ret = tai_force_memcpy(pid, dest, src, size);
-    if (ret < 0) {
-      taiInjectRelease(*p_inject);
-      *p_inject = NULL;
-    }
+  }
+
+  if (ret < 0) {
+    sceKernelMemPoolFree(g_patch_pool, patch);
+    sceKernelMemPoolFree(g_patch_pool, saved);
+    *p_inject = NULL;
   }
 
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
