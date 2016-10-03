@@ -21,4 +21,4 @@ test_patches: compat.o test_patches.o patches.to proc_map.to
 	$(LD) -o $@ $^ $(CFLAGS) $(LIBS)
 
 clean:
-	rm -f *.o *~ test_proc_map test_patches
+	rm -f *.o *.to *~ test_proc_map test_patches

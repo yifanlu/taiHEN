@@ -15,27 +15,30 @@
 #include "../patches.h"
 
 /** Macro for printing test messages with an identifier */
+#ifndef NO_TEST_OUTPUT
 #define TEST_MSG(fmt, ...) printf("[%s] " fmt "\n", name, ##__VA_ARGS__)
+#else
+#define TEST_MSG(fmt, ...)
+#endif
 
 /**
- * @brief      Creates a random shuffling of integers 0..count
+ * @brief      Creates a random permutation of integers 0..limit-2
  *
- *             count MUST BE PRIME! This works because any number (except 0) is
- *             an additive generator modulo a prime. Number theory!
+ *             `limit` MUST BE PRIME! `ordering` is an array of size limit-1.
  *
- * @param[out] ordering  The ordering
- * @param[in]  count     The count (MUST BE PRIME)
+ * @param[in]  limit     The limit (MUST BE PRIME). Technically another 
+ *                       constraint is limit > 0 but 0 is not prime ;)
+ * @param[out] ordering  An array of permutated indexes uniformly distributed
  */
-static inline void shuffle_choices(int *ordering, int count) {
-  ordering[0] = rand() % count;
-  if (ordering[0] == 0) ordering[0]++;
-  for (int i = 1; i < count; i++) {
-    ordering[i] = (ordering[i-1] + ordering[0]) % count;
+static inline void permute_index(int limit, int ordering[limit-1]) {
+  ordering[0] = rand() % (limit-1);
+  for (int i = 1; i < limit-1; i++) {
+    ordering[i] = (ordering[i-1] + ordering[0] + 1) % limit;
   }
 }
 
 /** Number of random hooks */
-#define TEST_1_NUM_HOOKS      31
+#define TEST_1_NUM_HOOKS      30
 
 /**
  * @brief      Test random hooks
@@ -50,7 +53,7 @@ int test_scenario_1(const char *name, int flavor) {
   int start[TEST_1_NUM_HOOKS];
   int ret;
 
-  shuffle_choices(start, TEST_1_NUM_HOOKS);
+  permute_index(TEST_1_NUM_HOOKS+1, start);
 
   for (int i = 0; i < TEST_1_NUM_HOOKS; i++) {
     uintptr_t addr;
@@ -80,7 +83,7 @@ int test_scenario_1(const char *name, int flavor) {
 
 
 /** Number of random injections */
-#define TEST_2_NUM_INJECT      31
+#define TEST_2_NUM_INJECT      30
 
 /**
  * @brief      Test random injections
@@ -97,9 +100,9 @@ int test_scenario_2(const char *name, int flavor) {
   int sz[TEST_2_NUM_INJECT];
   int ret;
 
-  shuffle_choices(start, TEST_2_NUM_INJECT);
-  shuffle_choices(off, TEST_2_NUM_INJECT);
-  shuffle_choices(sz, TEST_2_NUM_INJECT);
+  permute_index(TEST_2_NUM_INJECT+1, start);
+  permute_index(TEST_2_NUM_INJECT+1, off);
+  permute_index(TEST_2_NUM_INJECT+1, sz);
 
   for (int i = 0; i < TEST_2_NUM_INJECT; i++) {
     uintptr_t addr;

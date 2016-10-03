@@ -8,6 +8,7 @@
 #include <psp2kern/types.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <psp2kern/kernel/threadmgr.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -50,18 +51,25 @@ SceUID sceKernelCreateMutexForKernel(const char *name, SceUInt attr, int initCou
     if (!locks_used[i]) {
       locks_used[i] = 1;
       id = i;
+      break;
     }
   }
   if (id >= 0) {
     pthread_mutex_init(&mutex[id], ((attr & SCE_KERNEL_MUTEX_ATTR_RECURSIVE) == SCE_KERNEL_MUTEX_ATTR_RECURSIVE) ? &recattr : NULL);
   } else {
     fprintf(stderr, "sceKernelCreateMutexForKernel: failed for %s\n", name);
+    assert(0);
   }
   pthread_mutex_unlock(&lock_lock);
   return id;
 }
 
 int sceKernelDeleteMutexForKernel(SceUID mutexid) {
+  if (mutexid < 0) {
+    fprintf(stderr, "sceKernelDeleteMutexForKernel: invalid mutex\n");
+    assert(0);
+    return -1;
+  }
   pthread_mutex_lock(&lock_lock);
   pthread_mutex_destroy(&mutex[mutexid]);
   locks_used[mutexid] = 0;

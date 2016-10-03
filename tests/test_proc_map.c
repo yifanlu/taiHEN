@@ -19,7 +19,11 @@
 #define VERBOSE 0
 
 /** Macro for printing test messages with an identifier */
+#ifndef NO_TEST_OUTPUT
 #define TEST_MSG(fmt, ...) printf("[%s] " fmt "\n", name, ##__VA_ARGS__)
+#else
+#define TEST_MSG(fmt, ...)
+#endif
 
 /**
  * @brief      Helper function that allocates a patch
@@ -43,19 +47,18 @@ tai_patch_t *create_patch(SceUID pid, uintptr_t addr, size_t size) {
 }
 
 /**
- * @brief      Creates a random shuffling of integers 0..count
+ * @brief      Creates a random permutation of integers 0..limit-2
  *
- *             count MUST BE PRIME! This works because any number (except 0) is
- *             an additive generator modulo a prime. Number theory!
+ *             `limit` MUST BE PRIME! `ordering` is an array of size limit-1.
  *
- * @param[out] ordering  The ordering
- * @param[in]  count     The count (MUST BE PRIME)
+ * @param[in]  limit     The limit (MUST BE PRIME). Technically another 
+ *                       constraint is limit > 0 but 0 is not prime ;)
+ * @param[out] ordering  An array of permutated indexes uniformly distributed
  */
-static inline void shuffle_choices(int *ordering, int count) {
-  ordering[0] = rand() % count;
-  if (ordering[0] == 0) ordering[0]++;
-  for (int i = 1; i < count; i++) {
-    ordering[i] = (ordering[i-1] + ordering[0]) % count;
+static inline void permute_index(int limit, int ordering[limit-1]) {
+  ordering[0] = rand() % (limit-1);
+  for (int i = 1; i < limit-1; i++) {
+    ordering[i] = (ordering[i-1] + ordering[0] + 1) % limit;
   }
 }
 
@@ -84,7 +87,7 @@ void proc_map_dump(const char *name, tai_proc_map_t *map, int lock) {
 }
 
 /** Number of blocks to insert. Must be prime. */
-#define TEST_1_NUM_BLOCKS     5
+#define TEST_1_NUM_BLOCKS     6
 
 /**
  * @brief      Scenario 1
@@ -104,7 +107,7 @@ int test_scenario_1(const char *name, tai_proc_map_t *map, SceUID pid) {
   int ordering[TEST_1_NUM_BLOCKS];
   int ret;
 
-  shuffle_choices(ordering, TEST_1_NUM_BLOCKS);
+  permute_index(TEST_1_NUM_BLOCKS+1, ordering);
   for (int i = 0; i < TEST_1_NUM_BLOCKS; i++) {
     possible = create_patch(pid, ordering[i] * 0x100, 0x100);
     TEST_MSG("Inserting for %d addr:%lx, size:%zx", pid, possible->addr, possible->size);
@@ -142,7 +145,7 @@ int test_scenario_1(const char *name, tai_proc_map_t *map, SceUID pid) {
 #define TEST_2_NUM_FIXED      2
 
 /** Number of blocks with random ordering in test. Must be prime. */
-#define TEST_2_NUM_SCRAMBLE   5
+#define TEST_2_NUM_SCRAMBLE   6
 
 /**
  * @brief      Scenario 2
@@ -172,7 +175,8 @@ int test_scenario_2(const char *name, tai_proc_map_t *map, SceUID pid) {
   scramble[2] = create_patch(pid, 0x120, 0x20); // complete overlap
   scramble[3] = create_patch(pid, 0x140, 0x20); // overlap head <-> tail
   scramble[4] = create_patch(pid, 0x90, 0x200); // overlap two blocks
-  shuffle_choices(ordering, TEST_2_NUM_SCRAMBLE);
+  scramble[5] = create_patch(pid, 0x300, 0x100); // at the end
+  permute_index(TEST_2_NUM_SCRAMBLE+1, ordering);
   for (int i = 0; i < TEST_2_NUM_FIXED; i++) {
     TEST_MSG("Adding fixed block %d: addr:%lx, size:%zx", i, fixed[i]->addr, fixed[i]->size);
     success = proc_map_try_insert(map, fixed[i], &actual);
@@ -264,9 +268,6 @@ int main(int argc, const char *argv[]) {
     srand(seed);
   }
 
-  for (seed = 0; seed < 0x100000; seed++) {
-  TEST_MSG("Seeding PRNG: %d", seed);
-  srand(seed);
   TEST_MSG("Setup maps");
   proc_map_init();
   map = proc_map_alloc(TEST_NUM_BUCKETS);
@@ -308,6 +309,5 @@ int main(int argc, const char *argv[]) {
   TEST_MSG("Cleanup maps");
   proc_map_free(map);
   proc_map_deinit();
-  }
   return 0;
 }

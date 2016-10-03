@@ -172,8 +172,12 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
  * @brief      Removes every patch associated with a given pid from the map
  *
  *             Returned is a new linked list containing every patch that has
- *             been removed from the proc map. Use the `next` pointer to
- *             iterate this linked list.
+ *             been removed from the proc map. Use the `next` pointer to iterate
+ *             this linked list.
+ *
+ *             Since this invalidates all references for a PID, it should ONLY
+ *             be called on the shutdown of a process. In other words, after
+ *             calling this, any pointer reference for that process is invalid!
  *
  * @param      map   The map
  * @param[in]  pid   The pid to remove
