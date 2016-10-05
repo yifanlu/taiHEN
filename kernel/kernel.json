@@ -1,0 +1,103 @@
+{
+    "SceStdio": {
+        "nid": 1998222272, 
+        "modules": {
+            "SceStdio": {
+                "kernel": false, 
+                "nid": 2289403233, 
+                "variables": {
+                    "sceKernelStderr": 904822005,
+                    "sceKernelStdin": 1411609607,
+                    "sceKernelStdout": 2419321277
+                }, 
+                "functions": {}
+            },
+            "SceDebugForDriver": {
+                "kernel": false, 
+                "nid": 2289403233, 
+                "variables": {}, 
+                "functions": {
+                    "printf": 958100663
+                }
+            }
+        }
+    },
+    "SceKernelThreadMgr": {
+        "nid": 2694642268,
+        "modules": {
+            "SceThreadmgrForKernel": {
+                "kernel": false,
+                "nid": 2831814397,
+                "variables": {},
+                "functions": {
+                    "sceKernelCreateMutexForKernel": 4222222958,
+                    "sceKernelDeleteMutexForKernel": 177283904, 
+                    "sceKernelLockMutexForKernel": 380403909, 
+                    "sceKernelUnlockMutexForKernel": 511894992,
+                    "sceKernelRunExclusive": 3847214918
+                }
+            }
+        }
+    },
+    "SceSysmem": {
+        "nid": 3107541190,
+        "modules": {
+            "SceSysmemForDriver": {
+                "kernel": false,
+                "nid": 1864753546,
+                "variables": {},
+                "functions": {
+                    "sceKernelMemcpyKernelToUser": 1837690762,
+                    "sceKernelMemcpyUserToKernel": 3164170874,
+                    "sceKernelStrncpyKernelToUser": 2159898603,
+                    "sceKernelStrncpyUserToKernel": 3678323268,
+                    "sceKernelStrlenUser": 3022640153,
+                    "sceKernelGetPaddr": 2367032933,
+                    "sceKernelGetPaddrList": 3867930301,
+                    "sceKernelGetMemBlockBaseForDriver": 2822893018,
+                    "sceKernelFindMemBlockByAddrForDriver": 2316780278,
+                    "sceKernelRemapBlock": 3756181707,
+                    "sceKernelMemPoolCreate": 2468929768,
+                    "sceKernelMemPoolDestroy": 3594745399,
+                    "sceKernelMemPoolAlloc": 2068624906,
+                    "sceKernelMemPoolFree": 1052566339,
+                    "sceKernelMapUserBlock": 2102365023,
+                    "sceKernelSwitchVmaForPid": 1865076142,
+                    "sceKernelRoMemcpyKernelToUserForPid": 1461528377,
+                    "sceKernelRxMemcpyKernelToUserForPid": 814945650,
+                    "sceKernelFindIntUserForPid": 2201240911,
+                    "sceKernelStrnlenUserForPid": 2569661191,
+                    "sceKernelStrncpyUserForPid": 1974137208,
+                    "sceKernelMemcpyKernelToUserForPidUnchecked": 4275580717,
+                    "sceKernelMemcpyKernelToUserForPid": 1803703417,
+                    "sceKernelMemcpyUserToKernelForPid": 1616016888,
+                    "sceKernelMemcpyUserToUserForPid": 2382916659
+                }
+            },
+            "SceSysclibForDriver": {
+                "kernel": false,
+                "nid": 2128892817,
+                "variables": {},
+                "functions": {
+                    "__aeabi_uidiv": 2852065797,
+                    "__aeabi_uidivmod": 2758588382,
+                    "memcpy": 1086882582,
+                    "memset": 179945308,
+                    "strchr": 944125785,
+                    "strncmp": 315549257,
+                    "strcmp": 187939907,
+                    "strstr": 319071901,
+                    "rshift": 495580864,
+                    "strrchr": 2131626037,
+                    "strncat": 2714878764,
+                    "strtol": 2876753322,
+                    "snprintf": 2927266177,
+                    "sceKernelStackCheckFail": 3113699645,
+                    "strnlen": 3444299908,
+                    "strlen": 3485903276,
+                    "memcmp": 4181321789
+                }
+            }
+        }
+    }
+}

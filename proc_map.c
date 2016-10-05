@@ -165,7 +165,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
     *cur = patch;
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
-  return !overlap; // TODO: what happens if we remove the proc before this point
+  return !overlap;
 }
 
 /**

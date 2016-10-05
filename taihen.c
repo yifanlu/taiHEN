@@ -19,7 +19,7 @@
  * @return     Actual number of characters read.
  */
 static size_t read_line(char line[MAX_LINE_LEN]) {
-
+  return 0;
 }
 
 /**
@@ -48,7 +48,7 @@ static size_t read_line(char line[MAX_LINE_LEN]) {
  * @return     Zero for success SCE_KERNEL_ERROR code on IO error
  */
 static int load_config(const char *path) {
-
+  return 0;
 }
 
 /**
@@ -64,7 +64,7 @@ static int load_config(const char *path) {
  * @return     Success always
  */
 int module_start(SceSize argc, const void *args) {
-
+  return 0;
 }
 
 /**
@@ -81,7 +81,7 @@ int module_start(SceSize argc, const void *args) {
  * @return     Success always
  */
 int module_stop(SceSize argc, const void *args) {
-
+  return 0;
 }
 
 /**
