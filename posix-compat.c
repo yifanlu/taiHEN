@@ -11,30 +11,7 @@
 #include <string.h>
 
 /** The size of the pool used for general `malloc`s */
-#define MISC_POOL_SIZE 0x1000
-
-/** Default heap pool */
-static SceUID g_compat_pool;
-
-/**
- * @brief      Sets up the default malloc pool
- *
- * @return     Zero if success, < 0 on error
- */
-int posix_compat_init(void) {
-  g_compat_pool = sceKernelMemPoolCreate("tai_misc", MISC_POOL_SIZE, NULL);
-  return (g_compat_pool >= 0);
-}
-
-/**
- * @brief      Destroys default malloc pool
- *
- * @return     Success always
- */
-int posix_compat_deinit(void) {
-  sceKernelMemPoolDestroy(g_compat_pool);
-  return 0;
-}
+#define MISC_POOL_UID 0x1000B
 
 /**
  * @brief      Allocates heap memory from default pool
@@ -45,7 +22,7 @@ int posix_compat_deinit(void) {
  */
 void *malloc(size_t size) {
   void *ptr;
-  ptr = sceKernelMemPoolAlloc(g_compat_pool, size + sizeof(size_t));
+  ptr = sceKernelMemPoolAlloc(MISC_POOL_UID, size + sizeof(size_t));
   if (ptr) {
     *(size_t *)ptr = size;
     ptr = (char *)ptr + sizeof(size_t);
@@ -59,7 +36,7 @@ void *malloc(size_t size) {
  * @param      ptr   The pointer
  */
 void free(void *ptr) {
-  sceKernelMemPoolFree(g_compat_pool, (char *)ptr - sizeof(size_t));
+  sceKernelMemPoolFree(MISC_POOL_UID, (char *)ptr - sizeof(size_t));
 }
 
 /**

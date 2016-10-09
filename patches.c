@@ -30,6 +30,15 @@
 /** Helper macro to make function pointer to data pointer. */
 #define FUNC_TO_UINTPTR_T(x) (((uintptr_t)(x))&0xFFFFFFFE)
 
+/** Address range for public (shared) memory. */
+#define MEM_SHARED_START ((void*)0xE0000000)
+
+/** PID for kernel process */
+#define KERNEL_PID 0x10005
+
+/** Fake PID indicating memory is shared across all user processes. */
+#define SHARED_PID 0x0
+
 /** Patches pool resource id */
 static SceUID g_patch_pool;
 
@@ -129,15 +138,22 @@ static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size
 
 /**
  * @brief      Adds a hook to a chain, patching the original function if needed
- * 
- * If this is the first hook in a chain, the original function will be patched.
+ *
+ *             If this is the first hook in a chain, the original function will
+ *             be patched. If this hook (same source same destination) is
+ *             already in the chain, increment the reference count instead of
+ *             adding it.
  *
  * @param      hooks  The chain of hooks to add to
  * @param      item   The hook to add
+ * @param      exist  The existing hook (reference counted). Will be same as
+ *                    `item` if return 0.
  *
- * @return     Zero on success, < 0 on error
+ * @return     Zero if new hook added, 1 hook not added because it exists, < 0
+ *             on error
  */
-static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
+static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item, tai_hook_t **exist) {
+  tai_hook_t *cur;
   int ret;
 
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
@@ -146,9 +162,21 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
     item->next = &hooks->tail;
     ret = tai_hook_function(item->patch->pid, hooks->tail.func, item->func);
   } else {
-    item->next = hooks->head->next;
-    hooks->head->next = item;
-    ret = 0;
+    for (cur = hooks->head; cur->next != NULL; cur = cur->next) {
+      if (cur->patch == item->patch && cur->func == item->func) {
+        break;
+      }
+    }
+    if (!(cur->patch == item->patch && cur->func == item->func)) {
+      item->next = cur->next;
+      cur->next = item;
+      cur = item;
+      ret = 1;
+    } else {
+      ret = 0;
+    }
+    cur->refcnt++;
+    *exist = cur;
   }
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
@@ -187,7 +215,10 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
     while (1) {
       if (*cur) {
         if (*cur == item) {
-          *cur = item->next;
+          item->refcnt--;
+          if (item->refcnt == 0) {
+            *cur = item->next; // remove from list
+          }
           ret = 0;
           break;
         } else {
@@ -217,6 +248,14 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   tai_hook_t *hook;
   int ret;
 
+  if (hook_func >= MEM_SHARED_START) {
+    if (pid == KERNEL_PID) {
+      return -4; // invalid hook address
+    } else {
+      pid = SHARED_PID;
+    }
+  }
+
   patch = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_patch_t));
   if (patch == NULL) {
     return -1;
@@ -226,6 +265,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
     sceKernelMemPoolFree(g_patch_pool, patch);
     return -1;
   }
+  hook->refcnt = 0;
 
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   patch->type = HOOKS;
@@ -236,6 +276,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   patch->data.hooks.head = NULL;
   patch->data.hooks.tail.next = NULL;
   patch->data.hooks.tail.func = dest_func;
+  patch->data.hooks.tail.refcnt = 0;
   tai_memcpy_to_kernel(pid, patch->data.hooks.origcode, (void *)patch->addr, FUNC_SAVE_SIZE);
   patch->data.hooks.origlen = FUNC_SAVE_SIZE;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
@@ -252,22 +293,21 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
 
   hook->func = (void *)hook_func;
   hook->patch = patch;
-  *p_hook = hook;
 
-  ret = hooks_add_hook(&patch->data.hooks, hook);
+  ret = hooks_add_hook(&patch->data.hooks, hook, p_hook);
   if (ret < 0 && patch->data.hooks.head == NULL) {
+    *p_hook = NULL;
     proc_map_remove(g_map, patch);
     sceKernelMemPoolFree(g_patch_pool, patch);
   }
 
 err:
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
-
-  // error adding hook
-  if (ret < 0) {
+  // either hook already exists (refcnt not incremented) or an error
+  if (!hook->refcnt) {
     sceKernelMemPoolFree(g_patch_pool, hook);
-    *p_hook = NULL;
   }
+
+  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
   return ret;
 }
@@ -290,9 +330,10 @@ int taiHookRelease(tai_hook_t *hook) {
     proc_map_remove(g_map, patch);
     sceKernelMemPoolFree(g_patch_pool, patch);
   }
+  if (hook->refcnt == 0) {
+    sceKernelMemPoolFree(g_patch_pool, hook);
+  }
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
-
-  sceKernelMemPoolFree(g_patch_pool, hook);
 
   return ret;
 }
@@ -389,4 +430,47 @@ int taiInjectRelease(tai_inject_t *inject) {
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
   return ret;
+}
+
+/**
+ * @brief      Called on process exist to force remove private hooks
+ *
+ *             It is the caller's responsibilty to clean up before it
+ *             terminates! However in the case where that doesn't happen, we try
+ *             to salvage the situation by manually freeing all patches for a
+ *             PID. This is a dirty free that does not attempt to write back the
+ *             original data, so it should only be used at process termination.
+ *             THIS NOT NOTE FREE PUBLIC HOOKS! There is no free way of keeping
+ *             track of which PIDs have handles to a public hook internally, so
+ *             we assume that public hooks stay resident forever unless the
+ *             release call is made by the caller.
+ *
+ * @param[in]  pid   The pid
+ *
+ * @return     Zero always
+ */
+int taiTryCleanupProcess(SceUID pid) {
+  tai_patch_t *patch, *next;
+  tai_hook_t *hook, *nexthook;
+  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  if (proc_map_remove_all_pid(g_map, pid, &patch) > 0) {
+    while (patch != NULL) {
+      next = patch->next;
+      if (patch->type == HOOKS) {
+        hook = patch->data.hooks.head;
+        while (hook != &patch->data.hooks.tail && hook != NULL) {
+          nexthook = hook->next;
+          hook->refcnt--;
+          if (hook->refcnt == 0) {
+            sceKernelMemPoolFree(g_patch_pool, hook);
+          }
+          hook = nexthook;
+        }
+      }
+      sceKernelMemPoolFree(g_patch_pool, patch);
+      patch = next;
+    }
+  }
+  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  return 0;
 }

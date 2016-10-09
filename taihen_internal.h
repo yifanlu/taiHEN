@@ -15,6 +15,8 @@ typedef struct _tai_patch tai_patch_t;
 
 typedef struct _tai_proc tai_proc_t;
 
+typedef struct _tai_substitute_args tai_substitute_args_t;
+
 typedef enum {
   HOOKS,
   INJECTION
@@ -24,6 +26,7 @@ struct _tai_hook {
   tai_hook_t *next;
   void *func;
   tai_patch_t *patch;
+  int refcnt;
 };
 
 struct _tai_inject {
@@ -33,7 +36,6 @@ struct _tai_inject {
 };
 
 struct _tai_hook_list {
-  SceUID lock;
   uint8_t origcode[FUNC_SAVE_SIZE];
   size_t origlen;
   tai_hook_t *head;
@@ -56,6 +58,10 @@ struct _tai_proc {
   SceUID pid;
   tai_patch_t *head;
   tai_proc_t *next;
+};
+
+struct _tai_substitute_args {
+  SceUID pid;
 };
 
 #endif // TAI_INTERNAL_HEADER
