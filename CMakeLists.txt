@@ -38,13 +38,13 @@ add_executable(taihen.elf
 	proc_map.c
 	taihen.c
 	posix-compat.c
+	slab.c
 	substitute/lib/hook-functions.c
 	substitute/lib/jump-dis.c
 	substitute/lib/strerror.c
 	substitute/lib/transform-dis.c
 	substitute/lib/cbit/vec.c
 	substitute/lib/vita/execmem.c
-	substitute/lib/vita/slab.c
 )
 
 target_link_libraries(taihen.elf

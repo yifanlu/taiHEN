@@ -10,8 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/** The size of the pool used for general `malloc`s */
-#define MISC_POOL_UID 0x1000B
+/** From `patches.c`. Assumes it is initialized before first `malloc` call! */
+extern SceUID g_patch_pool;
 
 /**
  * @brief      Allocates heap memory from default pool
@@ -22,7 +22,7 @@
  */
 void *malloc(size_t size) {
   void *ptr;
-  ptr = sceKernelMemPoolAlloc(MISC_POOL_UID, size + sizeof(size_t));
+  ptr = sceKernelMemPoolAlloc(g_patch_pool, size + sizeof(size_t));
   if (ptr) {
     *(size_t *)ptr = size;
     ptr = (char *)ptr + sizeof(size_t);
@@ -36,7 +36,7 @@ void *malloc(size_t size) {
  * @param      ptr   The pointer
  */
 void free(void *ptr) {
-  sceKernelMemPoolFree(MISC_POOL_UID, (char *)ptr - sizeof(size_t));
+  sceKernelMemPoolFree(g_patch_pool, (char *)ptr - sizeof(size_t));
 }
 
 /**

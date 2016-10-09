@@ -10,6 +10,7 @@
 #include <psp2kern/kernel/threadmgr.h>
 #include "taihen_internal.h"
 #include "proc_map.h"
+#include "slab.h"
 
 /**
  * @file patches.c
@@ -37,10 +38,10 @@
 #define KERNEL_PID 0x10005
 
 /** Fake PID indicating memory is shared across all user processes. */
-#define SHARED_PID 0x0
+#define SHARED_PID 0x1
 
-/** Patches pool resource id */
-static SceUID g_patch_pool;
+/** Patches pool resource id. Also used in posix-compat.c */
+SceUID g_patch_pool;
 
 /** The map of processes to list of patches */
 static tai_proc_map_t *g_map;
@@ -260,12 +261,6 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   if (patch == NULL) {
     return -1;
   }
-  hook = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_hook_t));
-  if (hook == NULL) {
-    sceKernelMemPoolFree(g_patch_pool, patch);
-    return -1;
-  }
-  hook->refcnt = 0;
 
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   patch->type = HOOKS;
@@ -291,6 +286,12 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
     }
   }
 
+  hook = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_hook_t));
+  if (hook == NULL) {
+    sceKernelMemPoolFree(g_patch_pool, patch);
+    return -1;
+  }
+  hook->refcnt = 0;
   hook->func = (void *)hook_func;
   hook->patch = patch;
 

@@ -6,6 +6,7 @@
 
 #include <psp2kern/types.h>
 #include "taihen.h"
+#include "slab.h"
 
 #define FUNC_SAVE_SIZE 16
 
@@ -52,12 +53,14 @@ struct _tai_patch {
   uintptr_t addr;
   size_t size;
   tai_patch_t *next;
+  struct slab_chain *slab;
 };
 
 struct _tai_proc {
   SceUID pid;
   tai_patch_t *head;
   tai_proc_t *next;
+  struct slab_chain slab;
 };
 
 struct _tai_substitute_args {

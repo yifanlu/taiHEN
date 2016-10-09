@@ -10,6 +10,7 @@
 #include <psp2kern/kernel/threadmgr.h>
 #include "taihen_internal.h"
 #include "proc_map.h"
+#include "slab.h"
 
 /**
  * @file proc_map.c
@@ -20,6 +21,9 @@
 
 /** Size of the heap pool for storing the map in bytes. */
 #define MAP_POOL_SIZE 1024
+
+/** Found in substitute/lib/vita/execmem.c **/
+extern const size_t g_exe_slab_item_size;
 
 /** Resource pointer for the heap pool */
 static SceUID g_map_pool;
@@ -127,6 +131,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
     proc->pid = patch->pid;
     proc->head = NULL;
     proc->next = *item;
+    slab_init(&proc->slab, g_exe_slab_item_size, patch->pid);
     *item = proc;
   }
 
@@ -162,6 +167,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
   }
   if (!overlap) {
     patch->next = *cur;
+    patch->slab = &proc->slab;
     *cur = patch;
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
@@ -178,6 +184,10 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
  *             Since this invalidates all references for a PID, it should ONLY
  *             be called on the shutdown of a process. In other words, after
  *             calling this, any pointer reference for that process is invalid!
+ *
+ *             Also note that for optimization, all pointers to slab in the list
+ *             are considered invalid! Maybe we should null the pointers out in
+ *             the future.
  *
  * @param      map   The map
  * @param[in]  pid   The pid to remove
@@ -200,6 +210,7 @@ int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
     tmp = *cur;
     *cur = tmp->next;
     *head = tmp->head;
+    slab_destroy(&tmp->slab);
     sceKernelMemPoolFree(g_map_pool, tmp);
   }
   sceKernelUnlockMutexForKernel(map->lock, 1);
@@ -239,7 +250,9 @@ int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
     }
   }
   if (*proc != NULL && (*proc)->head == NULL) { // it's now empty
+    patch->slab = NULL; // remove reference
     next = (*proc)->next;
+    slab_destroy(&(*proc)->slab);
     sceKernelMemPoolFree(g_map_pool, *proc);
     *proc = next;
   }
