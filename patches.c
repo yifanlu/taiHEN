@@ -248,6 +248,8 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
   tai_patch_t *patch, *tmp;
   tai_hook_t *hook;
   int ret;
+  struct slab_chain *slab;
+  uintptr_t exe_addr;
 
   if (hook_func >= MEM_SHARED_START) {
     if (pid == KERNEL_PID) {
@@ -257,6 +259,7 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
     }
   }
 
+  hook = NULL;
   patch = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_patch_t));
   if (patch == NULL) {
     return -1;
@@ -286,10 +289,11 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
     }
   }
 
-  hook = sceKernelMemPoolAlloc(g_patch_pool, sizeof(tai_hook_t));
+  slab = patch->slab;
+  hook = slab_alloc(slab, &exe_addr);
   if (hook == NULL) {
-    sceKernelMemPoolFree(g_patch_pool, patch);
-    return -1;
+    ret = -1;
+    goto err;
   }
   hook->refcnt = 0;
   hook->func = (void *)hook_func;
@@ -304,8 +308,8 @@ int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const v
 
 err:
   // either hook already exists (refcnt not incremented) or an error
-  if (!hook->refcnt) {
-    sceKernelMemPoolFree(g_patch_pool, hook);
+  if (hook && !hook->refcnt) {
+    slab_free(slab, hook);
   }
 
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
@@ -322,17 +326,19 @@ err:
  */
 int taiHookRelease(tai_hook_t *hook) {
   tai_patch_t *patch;
+  struct slab_chain *slab;
   int ret;
 
   patch = hook->patch;
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   ret = hooks_remove_hook(&patch->data.hooks, hook);
+  slab = patch->slab;
   if (patch->data.hooks.head == NULL) {
     proc_map_remove(g_map, patch);
     sceKernelMemPoolFree(g_patch_pool, patch);
   }
   if (hook->refcnt == 0) {
-    sceKernelMemPoolFree(g_patch_pool, hook);
+    slab_free(slab, hook);
   }
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
@@ -463,7 +469,7 @@ int taiTryCleanupProcess(SceUID pid) {
           nexthook = hook->next;
           hook->refcnt--;
           if (hook->refcnt == 0) {
-            sceKernelMemPoolFree(g_patch_pool, hook);
+            slab_free(patch->slab, hook);
           }
           hook = nexthook;
         }
