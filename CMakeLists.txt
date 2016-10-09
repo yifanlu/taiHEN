@@ -44,6 +44,7 @@ add_executable(taihen.elf
 	substitute/lib/transform-dis.c
 	substitute/lib/cbit/vec.c
 	substitute/lib/vita/execmem.c
+	substitute/lib/vita/slab.c
 )
 
 target_link_libraries(taihen.elf
