@@ -34,12 +34,6 @@
 /** Address range for public (shared) memory. */
 #define MEM_SHARED_START ((void*)0xE0000000)
 
-/** PID for kernel process */
-#define KERNEL_PID 0x10005
-
-/** Fake PID indicating memory is shared across all user processes. */
-#define SHARED_PID 0x1
-
 /** Patches pool resource id. Also used in posix-compat.c */
 SceUID g_patch_pool;
 
@@ -237,14 +231,14 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
 /**
  * @brief      Inserts a hook given an absolute address and PID of the function
  *
- * @param[out] p_hook     Outputs the hook if inserted
+ * @param[out] p_hook     Outputs a reference object if successful
  * @param[in]  pid        PID of the address space to hook
  * @param      dest_func  The destination function
  * @param[in]  hook_func  The hook function
  *
- * @return     Zero on success, < 0 on error
+ * @return     TAI_SUCCESS on success, < 0 on error
  */
-int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const void *hook_func) {
+SceUID taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const void *hook_func) {
   tai_patch_t *patch, *tmp;
   tai_hook_t *hook;
   int ret;

@@ -52,6 +52,7 @@ target_link_libraries(taihen.elf
 	SceStdioTMP_KERNEL_stub
 	SceKernelThreadMgrTMP_KERNEL_stub
 	SceSysmemTMP_KERNEL_stub
+	SceKernelModulemgrTMP_KERNEL_stub
 )
 add_dependencies(taihen.elf kernel)
 

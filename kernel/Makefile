@@ -1,4 +1,4 @@
-TARGET_LIBS=libSceStdioTMP_KERNEL_stub.a libSceKernelThreadMgrTMP_KERNEL_stub.a libSceSysmemTMP_KERNEL_stub.a
+TARGET_LIBS=libSceStdioTMP_KERNEL_stub.a libSceKernelThreadMgrTMP_KERNEL_stub.a libSceSysmemTMP_KERNEL_stub.a libSceKernelModulemgrTMP_KERNEL_stub.a
 
 all: $(TARGET_LIBS)
 

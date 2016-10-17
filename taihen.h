@@ -18,6 +18,12 @@ extern "C" {
  */
 /** @{ */
 
+/** PID for kernel process */
+#define KERNEL_PID 0x10005
+
+/** Fake PID indicating memory is shared across all user processes. */
+#define SHARED_PID 0x1
+
 /**
  * @brief      Plugin start arguments
  *
@@ -48,12 +54,24 @@ typedef struct {
  */
 typedef struct _tai_hook tai_hook_t;
 
-int taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const void *hook_func);
-int taiHookFunctionExport(tai_hook_t **p_hook, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
-int taiHookFunctionImport(tai_hook_t **p_hook, uint32_t target_library_nid, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
-int taiHookFunctionOffset(tai_hook_t **p_hook, uint32_t module_nid, int segidx, uint32_t offset, int thumb, const void *hook_func);
-int taiHookContinue(tai_hook_t *hook, ...);
+SceUID taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const void *hook_func);
+SceUID taiHookFunctionExport(tai_hook_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
+SceUID taiHookFunctionImport(tai_hook_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
+SceUID taiHookFunctionOffset(tai_hook_t **p_hook, const char *module, uint32_t module_nid, int segidx, uint32_t offset, int thumb, const void *hook_func);
 int taiHookRelease(tai_hook_t *hook);
+
+/**
+ * @brief      Calls the next function in the chain
+ *
+ * @param      type  Return type
+ * @param      hook  The hook continuing the call
+ * @param      args  The arguments to the call
+ *
+ * @return     Return value from the hook chain
+ */
+static inline int taiHookContinue(tai_hook_t *hook, ...) {
+  return 0;
+}
 
 /**
  * @brief      Convenience function for calling `taiHookContinue`

@@ -39,6 +39,28 @@
             }
         }
     },
+    "SceKernelModulemgr": {
+        "nid": 1919706677,
+        "modules": {
+            "SceModulemgrForKernel": {
+                "kernel": false,
+                "nid": 3292920419,
+                "variables": {},
+                "functions": {
+                    "sceKernelGetModuleListForKernel": 2546957134,
+                    "sceKernelGetModuleInternal": 4264573027
+                }
+            }, 
+            "SceModulemgrForDriver": {
+                "kernel": false,
+                "nid": 3567651410,
+                "variables": {},
+                "functions": {
+                    "sceKernelGetSystemSwVersion": 1367532050
+                }
+            }
+        }
+    },
     "SceSysmem": {
         "nid": 3107541190,
         "modules": {
@@ -96,6 +118,24 @@
                     "strnlen": 3444299908,
                     "strlen": 3485903276,
                     "memcmp": 4181321789
+                }
+            },
+            "SceCpuForKernel": {
+                "kernel": false,
+                "nid": 1421814699,
+                "variables": {},
+                "functions": {
+                    "sceKernelCpuSaveContext": 555452890,
+                    "sceKernelCpuRestoreContext": 172953529
+                }
+            },
+            "SceCpuForDriver": {
+                "kernel": false,
+                "nid": 1089264398,
+                "variables": {},
+                "functions": {
+                    "sceKernelCpuDisableInterrupts": 2183119086,
+                    "sceKernelCpuEnableInterrupts": 4122661947
                 }
             }
         }

@@ -122,6 +122,8 @@ int sceKernelMemPoolDestroy(SceUID pool);
 void *sceKernelMemPoolAlloc(SceUID pool, SceSize size);
 void sceKernelMemPoolFree(SceUID pool, void *ptr);
 
+int sceKernelMemcpyUserToKernelForPid(SceUID pid, void *dst, uintptr_t src, size_t len);
+
 #ifdef __cplusplus
 }
 #endif
