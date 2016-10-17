@@ -68,14 +68,14 @@ typedef struct {
  * of. The client is responsible for cleanup by passing the reference back to
  * taiHEN when needed.
  */
-typedef struct _tai_hook tai_hook_t;
+typedef uintptr_t tai_hook_ref_t;
 
-SceUID taiHookFunctionAbs(tai_hook_t **p_hook, SceUID pid, void *dest_func, const void *hook_func);
-SceUID taiHookFunctionExport(tai_hook_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
-SceUID taiHookFunctionImport(tai_hook_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
-SceUID taiHookFunctionOffset(tai_hook_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
+SceUID taiHookFunctionAbs(tai_hook_ref_t **p_hook, SceUID pid, void *dest_func, const void *hook_func);
+SceUID taiHookFunctionExport(tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
+SceUID taiHookFunctionImport(tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
+SceUID taiHookFunctionOffset(tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
 int taiGetModuleInfo(const char *module, tai_module_info_t *info);
-int taiHookRelease(tai_hook_t *hook);
+int taiRelease(SceUID tai_uid);
 
 /**
  * @brief      Calls the next function in the chain
@@ -86,7 +86,7 @@ int taiHookRelease(tai_hook_t *hook);
  *
  * @return     Return value from the hook chain
  */
-static inline int taiHookContinue(tai_hook_t *hook, ...) {
+static inline int taiHookContinue(tai_hook_ref_t *hook, ...) {
   return 0;
 }
 
@@ -123,9 +123,8 @@ static inline int taiHookContinue(tai_hook_t *hook, ...) {
  */
 typedef struct _tai_inject tai_inject_t;
 
-int taiInjectAbs(tai_inject_t **p_inject, SceUID pid, void *dest, const void *src, size_t size);
-int taiInjectData(tai_inject_t **p_inject, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t len);
-int taiInjectRelease(tai_inject_t *inject);
+SceUID taiInjectAbs(SceUID pid, void *dest, const void *src, size_t size);
+SceUID taiInjectData(SceUID pid, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t len);
 
 /** @} */
 

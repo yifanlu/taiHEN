@@ -14,6 +14,8 @@
 
 typedef struct _tai_hook_list tai_hook_list_t;
 
+typedef struct _tai_hook tai_hook_t;
+
 typedef struct _tai_patch tai_patch_t;
 
 typedef struct _tai_proc tai_proc_t;
@@ -51,6 +53,7 @@ struct _tai_patch {
     tai_hook_list_t hooks;
   } data;
   tai_patch_type_t type;
+  SceUID uid;
   SceUID pid;
   uintptr_t addr;
   size_t size;

@@ -88,14 +88,28 @@
                     "sceKernelSwitchVmaForPid": 1865076142,
                     "sceKernelRoMemcpyKernelToUserForPid": 1461528377,
                     "sceKernelRxMemcpyKernelToUserForPid": 814945650,
-                    "sceKernelFindIntUserForPid": 2201240911,
+                    "sceKernelFirstDifferentIntUserForPid": 2201240911,
                     "sceKernelStrnlenUserForPid": 2569661191,
                     "sceKernelStrncpyUserForPid": 1974137208,
                     "sceKernelMemcpyKernelToUserForPidUnchecked": 4275580717,
                     "sceKernelMemcpyKernelToUserForPid": 1803703417,
                     "sceKernelMemcpyUserToKernelForPid": 1616016888,
                     "sceKernelMemcpyUserToUserForPid": 2382916659,
-                    "sceKernelKernelUidForUserUid": 1171400087
+                    "sceKernelKernelUidForUserUid": 1171400087,
+                    "sceKernelCreateUserUid": 3206584409,
+                    "sceKernelGetObjForUid": 15559700,
+                    "sceKernelGetUidClass": 2234739228,
+                    "sceKernelCreateClass": 1630630146, 
+                    "sceKernelDeleteUid": 75313906,
+                    "sceKernelDeleteUserUid": 2225385310
+                }
+            },
+            "SceSysmemForKernel": {
+                "kernel": false,
+                "nid": 1671764453,
+                "variables": {},
+                "functions": {
+                    "sceKernelCreateUidObj": 3741485271
                 }
             },
             "SceSysclibForDriver": {

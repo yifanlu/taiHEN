@@ -123,7 +123,20 @@ void *sceKernelMemPoolAlloc(SceUID pool, SceSize size);
 void sceKernelMemPoolFree(SceUID pool, void *ptr);
 
 int sceKernelMemcpyUserToKernelForPid(SceUID pid, void *dst, uintptr_t src, size_t len);
+
+typedef struct {
+  char data[0x2C];
+} SceClass;
+
 SceUID sceKernelKernelUidForUserUid(SceUID pid, SceUID user_uid);
+SceUID sceKernelCreateUserUid(SceUID pid, SceUID kern_uid);
+SceUID sceKernelCreateUidObj(SceClass *cls, const char *name, void *opt, void **obj);
+int sceKernelGetObjForUid(SceUID pid, SceClass *cls, void **obj);
+SceClass *sceKernelGetUidClass(void);
+typedef int (*SceClassCallback)(void *item);
+int sceKernelCreateClass(SceClass *cls, const char *name, void *uidclass, size_t itemsize, SceClassCallback create, SceClassCallback destroy);
+int sceKernelDeleteUserUid(SceUID pid, SceUID user_uid);
+int sceKernelDeleteUid(SceUID uid);
 
 #ifdef __cplusplus
 }
