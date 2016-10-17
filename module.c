@@ -1,4 +1,4 @@
-/* module.c -- nid lookup
+/* module.c -- nid lookup utilities
  *
  * Copyright (C) 2016 Yifan Lu
  *
@@ -11,40 +11,6 @@
 #include <psp2kern/kernel/modulemgr.h>
 #include <string.h>
 #include "taihen_internal.h"
-
-#define LOG(...)
-
-/** TODO: Move these structures to psp2sdk */
-
-typedef struct sce_segment_info {
-  uint32_t size;
-  uint32_t perms;
-  uintptr_t vaddr;
-  uint32_t memsz;
-  uint32_t flags;
-  uint32_t res;
-} sce_segment_info_t;
-
-typedef struct sce_mod_loaded {
-  uint32_t size;
-  SceUID uid;
-  uint32_t mod_attr;
-  char name[28];
-  uint32_t unk0;
-  void *module_start;
-  void *module_init;
-  void *module_stop;
-  void *exidx_start;
-  void *exidx_end;
-  void *addr5;
-  void *addr6;
-  void *module_top;
-  void *addr8;
-  void *addr9;
-  char filepath[0x100];
-  sce_segment_info_t segments[4];
-  uint32_t unk2;
-} sce_mod_loaded_t;
 
 struct sce_module_imports_1 {
   uint16_t size;               // size of this structure; 0x34
@@ -121,16 +87,6 @@ typedef struct sce_module_info {
   uint32_t extab_end;     // 58
 } sce_module_info_t; // 5c?
 
-typedef struct tai_module_info {
-  SceUID modid;
-  uint32_t module_nid;
-  const char *name;
-  uintptr_t exports_start;
-  uintptr_t exports_end;
-  uintptr_t imports_start;
-  uintptr_t imports_end;
-} tai_module_info_t;
-
 #define MOD_LIST_SIZE 0x80
 
 /** Fallback if the current running fw version cannot be detected. */
@@ -145,12 +101,13 @@ static uint32_t fw_version = 0;
  *             This is needed since the internal SceKernelModulemgr structures
  *             change in different firmware versions.
  *
+ * @param[in]  pid      The pid
  * @param[in]  sceinfo  Return from `sceKernelGetModuleInternal`
  * @param[out] taiinfo  Output data structure
  *
  * @return     Zero on success, < 0 on error
  */
-static int sce_to_tai_module_info(void *sceinfo, tai_module_info_t *taiinfo) {
+static int sce_to_tai_module_info(SceUID pid, void *sceinfo, tai_module_info_t *taiinfo) {
   uint32_t fwinfo[10];
   char *info;
 
@@ -163,9 +120,18 @@ static int sce_to_tai_module_info(void *sceinfo, tai_module_info_t *taiinfo) {
     }
   }
 
+  if (taiinfo->size < sizeof(tai_module_info_t)) {
+    LOG("Structure size too small: %d", taiinfo->size);
+    return -1;
+  }
+
   info = (char *)sceinfo;
   if (fw_version >= 0x3600000) {
-    taiinfo->modid = *(SceUID *)(info + 0xC);
+    if (pid == KERNEL_PID) {
+      taiinfo->modid = *(SceUID *)(info + 0xC);
+    } else {
+      taiinfo->modid = *(SceUID *)(info + 0x10);
+    }
     taiinfo->module_nid = *(uint32_t *)(info + 0x30);
     taiinfo->name = *(const char **)(info + 0x1C);
     taiinfo->exports_start = *(uintptr_t *)(info + 0x20);
@@ -173,7 +139,11 @@ static int sce_to_tai_module_info(void *sceinfo, tai_module_info_t *taiinfo) {
     taiinfo->imports_start = *(uintptr_t *)(info + 0x28);
     taiinfo->imports_end = *(uintptr_t *)(info + 0x2C);
   } else if (fw_version >= 0x1692000) {
-    taiinfo->modid = *(SceUID *)(info + 0x0);
+    if (pid == KERNEL_PID) {
+      taiinfo->modid = *(SceUID *)(info + 0x0);
+    } else {
+      taiinfo->modid = *(SceUID *)(info + 0x4);
+    }
     taiinfo->module_nid = *(uint32_t *)(info + 0x3C);
     taiinfo->name = (const char *)(info + 0xC);
     taiinfo->exports_start = *(uintptr_t *)(info + 0x2C);
@@ -241,10 +211,10 @@ static size_t find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size
  *
  * @param[in]  pid   The pid
  * @param[in]  name  The name to lookup. Can be NULL.
- * @param[in]  nid   The nid to lookup. Can be NULL.
+ * @param[in]  nid   The nid to lookup.
  * @param[out]      info  The information
  *
- * @return     { description_of_the_return_value }
+ * @return     Zero on success, < 0 on error
  */
 int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_module_info_t *info) {
   SceUID modlist[MOD_LIST_SIZE];
@@ -262,7 +232,7 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
       LOG("Error getting info for mod: %d", modlist[i]);
       continue;
     }
-    if (sce_to_tai_module_info(sceinfo, info) < 0) {
+    if (sce_to_tai_module_info(pid, sceinfo, info) < 0) {
       continue;
     }
     if (name != NULL && strncmp(name, info->name, 27) == 0) {
@@ -275,6 +245,47 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
   }
 
   return -1;
+}
+
+/**
+ * @brief      Gets an offset from a segment in a module
+ *
+ * @param[in]  pid     The pid of caller
+ * @param[in]  modid   The module to offset from
+ * @param[in]  segidx  Segment in module to offset from
+ * @param[in]  offset  Offset from segment
+ * @param[out] addr    Output final address
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr) {
+  SceKernelModuleInfo sceinfo;
+  size_t count;
+  int ret;
+
+  if (segidx > 3) {
+    LOG("Invalid segment index: %d", segidx);
+    return -4;
+  }
+  if (pid != KERNEL_PID) {
+    modid = sceKernelKernelUidForUserUid(pid, modid);
+    if (modid < 0) {
+      LOG("Cannot find kernel object for user object.");
+      return -5;
+    }
+  }
+  sceinfo.size = sizeof(sceinfo);
+  ret = sceKernelGetModuleInfoForKernel(pid, modid, &sceinfo);
+  if (ret < 0) {
+    LOG("Error getting segment info for %s", name);
+    return ret;
+  }
+  if (offset > sceinfo.segments[segidx].size) {
+    LOG("Offset %x overflows segment size %x", offset, sceinfo.segments[segidx].size);
+  }
+  *addr = (uintptr_t)sceinfo.segments[segidx].vaddr + offset;
+
+  return 0;
 }
 
 /**
@@ -303,7 +314,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
 
   for (cur = info.exports_start; cur < info.exports_end; ) {
     if (pid == KERNEL_PID) {
-      export = (sce_module_exports_t *)info.exports_start;
+      export = (sce_module_exports_t *)cur;
     } else {
       sceKernelMemcpyUserToKernelForPid(pid, &local, cur, sizeof(local));
       export = &local;
@@ -326,6 +337,85 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
       }
     }
     cur += export->size;
+  }
+
+  return 0;
+}
+
+/**
+ * @brief      Gets an imported function stub address
+ *
+ * @param[in]  pid            The pid
+ * @param[in]  modname        The name of the module importing the function
+ * @param[in]  target_libnid  The target's library NID
+ * @param[in]  funcnid        The target's function NID
+ * @param[out] stub           Output address to stub calling the imported
+ *                            function
+ *
+ * @return     One on success, zero if not found, < 0 on error
+ */
+int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libnid, uint32_t funcnid, uintptr_t *stub) {
+  sce_module_imports_t local;
+  tai_module_info_t info;
+  sce_module_imports_t *import;
+  uintptr_t cur;
+  size_t found;
+  int i;
+
+  if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
+    LOG("Failed to find module: %s", modname);
+    return -1;
+  }
+
+  for (cur = info.imports_start; cur < info.imports_end; ) {
+    if (pid == KERNEL_PID) {
+      import = (sce_module_imports_t *)cur;
+    } else {
+      sceKernelMemcpyUserToKernelForPid(pid, &local.size, cur, sizeof(local.size));
+      if (local.size <= sizeof(local)) {
+        sceKernelMemcpyUserToKernelForPid(pid, &local, cur, local.size);
+      }
+      import = &local;
+    }
+
+    if (import->size == sizeof(struct sce_module_imports_1)) {
+      if (target_libnid == 0 || import->type1.lib_nid == target_libnid) {
+        if (pid == KERNEL_PID) {
+          for (i = 0; i < import->type1.num_functions; i++) {
+            if (import->type1.func_nid_table[i] == funcnid) {
+              *stub = (uintptr_t)import->type1.func_entry_table[i];
+              return 1;
+            }
+          }
+        } else {
+          found = find_int_for_user(pid, (uintptr_t)import->type1.func_nid_table, funcnid, import->type1.num_functions * 4);
+          if (found) {
+            sceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type1.func_entry_table + found, 4);
+            return 1;
+          }
+        }
+      }
+    } else if (import->size == sizeof(struct sce_module_imports_2)) {
+      if (target_libnid == 0 || import->type2.lib_nid == target_libnid) {
+        if (pid == KERNEL_PID) {
+          for (i = 0; i < import->type2.num_functions; i++) {
+            if (import->type2.func_nid_table[i] == funcnid) {
+              *stub = (uintptr_t)import->type2.func_entry_table[i];
+              return 1;
+            }
+          }
+        } else {
+          found = find_int_for_user(pid, (uintptr_t)import->type2.func_nid_table, funcnid, import->type2.num_functions * 4);
+          if (found) {
+            sceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type2.func_entry_table + found, 4);
+            return 1;
+          }
+        }
+      }
+    } else {
+      LOG("Invalid import size: %d", import->size);
+    }
+    cur += import->size;
   }
 
   return 0;

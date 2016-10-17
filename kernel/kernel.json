@@ -48,7 +48,8 @@
                 "variables": {},
                 "functions": {
                     "sceKernelGetModuleListForKernel": 2546957134,
-                    "sceKernelGetModuleInternal": 4264573027
+                    "sceKernelGetModuleInternal": 4264573027,
+                    "sceKernelGetModuleInfoForKernel": 3530160405
                 }
             }, 
             "SceModulemgrForDriver": {
@@ -93,7 +94,8 @@
                     "sceKernelMemcpyKernelToUserForPidUnchecked": 4275580717,
                     "sceKernelMemcpyKernelToUserForPid": 1803703417,
                     "sceKernelMemcpyUserToKernelForPid": 1616016888,
-                    "sceKernelMemcpyUserToUserForPid": 2382916659
+                    "sceKernelMemcpyUserToUserForPid": 2382916659,
+                    "sceKernelKernelUidForUserUid": 1171400087
                 }
             },
             "SceSysclibForDriver": {

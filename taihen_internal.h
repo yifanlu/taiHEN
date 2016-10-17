@@ -8,6 +8,8 @@
 #include "taihen.h"
 #include "slab.h"
 
+#define LOG(...)
+
 #define FUNC_SAVE_SIZE 16
 
 typedef struct _tai_hook_list tai_hook_list_t;

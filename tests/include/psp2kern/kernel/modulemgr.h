@@ -67,8 +67,9 @@ int sceKernelUnloadModule(SceUID modid, int flags, SceKernelULMOption *option);
 SceUID sceKernelLoadStartModule(char *path, SceSize args, void *argp, int flags, SceKernelLMOption *option, int *status);
 int sceKernelStopUnloadModule(SceUID modid, SceSize args, void *argp, int flags, SceKernelULMOption *option, int *status);
 
-int sceKernelGetModuleListForKernel(SceUID pid, int flags1, int flags2, SceUID *list, size_t *count);
-int sceKernelGetModuleInternal(SceUID pid, void **module);
+int sceKernelGetModuleListForKernel(SceUID pid, int flags1, int flags2, SceUID *modids, size_t *num);
+int sceKernelGetModuleInfoForKernel(SceUID pid, SceUID modid, SceKernelModuleInfo *info);
+int sceKernelGetModuleInternal(SceUID modid, void **module);
 int sceKernelGetSystemSwVersion(uint32_t *data);
 
 #ifdef __cplusplus
