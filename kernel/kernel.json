@@ -101,7 +101,10 @@
                     "sceKernelGetUidClass": 2234739228,
                     "sceKernelCreateClass": 1630630146, 
                     "sceKernelDeleteUid": 75313906,
-                    "sceKernelDeleteUserUid": 2225385310
+                    "sceKernelDeleteUserUid": 2225385310,
+                    "sceKernelAllocMemBlockForKernel": 3376959689,
+                    "sceKernelGetMemBlockBaseForKernel": 2822893018,
+                    "sceKernelFreeMemBlockForKernel": 10361953
                 }
             },
             "SceSysmemForKernel": {

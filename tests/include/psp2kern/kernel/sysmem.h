@@ -25,23 +25,45 @@ enum {
   SCE_KERNEL_MEMBLOCK_TYPE_USER_RW_UNCACHE  = 0x0c208060,
   SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_RW = 0x0c80d060,
   SCE_KERNEL_MEMBLOCK_TYPE_USER_MAIN_PHYCONT_NC_RW  = 0x0d808060,
-  SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW  = 0x09408060
+  SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW  = 0x09408060,
+  SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RX = 0x1020D005,
+  SCE_KERNEL_MEMBLOCK_TYPE_SHARED_RX = 0x3A0D050,
+  SCE_KERNEL_MEMBLOCK_TYPE_USER_RX = 0xE20D050,
+  SCE_KERNEL_MEMBLOCK_TYPE_RW_UNK0 = 0x6020D006
 };
 
-typedef struct SceKernelAllocMemBlockOpt {
+// specific to 3.60
+typedef struct SceKernelAllocMemBlockKernelOpt {
   SceSize size;
+  SceUInt32 field_4;
   SceUInt32 attr;
+  SceUInt32 field_C;
+  SceUInt32 paddr;
   SceSize alignment;
-  SceUInt32 uidBaseBlock;
-  const char *strBaseBlockName;
-  int flags; //! Unknown flags 0x10 or 0x30 for sceKernelOpenMemBlock
-  int reserved[10];
-} SceKernelAllocMemBlockOpt;
+  SceUInt32 field_18;
+  SceUInt32 field_1C;
+  SceUInt32 mirror_blkid;
+  SceUID pid;
+  SceUInt32 field_28;
+  SceUInt32 field_2C;
+  SceUInt32 field_30;
+  SceUInt32 field_34;
+  SceUInt32 field_38;
+  SceUInt32 field_3C;
+  SceUInt32 field_40;
+  SceUInt32 field_44;
+  SceUInt32 field_48;
+  SceUInt32 field_4C;
+  SceUInt32 field_50;
+  SceUInt32 field_54;
+} SceKernelAllocMemBlockKernelOpt;
 
 enum {
   SCE_KERNEL_MODEL_VITA = 0x10000,
   SCE_KERNEL_MODEL_VITATV = 0x20000
 };
+
+#define SCE_KERNEL_ALLOC_MEMBLOCK_ATTR_HAS_ALIGNMENT    0x00000004U
 
 /***
  * Allocates a new memoy block
@@ -53,7 +75,7 @@ enum {
  *
  * @return SceUID of the memory block on success, < 0 on error.
 */
-SceUID sceKernelAllocMemBlock(const char *name, SceKernelMemBlockType type, int size, SceKernelAllocMemBlockOpt *optp);
+SceUID sceKernelAllocMemBlockForKernel(const char *name, SceKernelMemBlockType type, int size, SceKernelAllocMemBlockKernelOpt *optp);
 
 /***
  * Frees new memoy block
@@ -62,7 +84,7 @@ SceUID sceKernelAllocMemBlock(const char *name, SceKernelMemBlockType type, int 
  *
  * @return 0 on success, < 0 on error.
 */
-int sceKernelFreeMemBlock(SceUID uid);
+int sceKernelFreeMemBlockForKernel(SceUID uid);
 
 /***
  * Gets the base address of a memoy block
@@ -72,7 +94,7 @@ int sceKernelFreeMemBlock(SceUID uid);
  *
  * @return 0 on success, < 0 on error.
 */
-int sceKernelGetMemBlockBase(SceUID uid, void **basep);
+int sceKernelGetMemBlockBaseForKernel(SceUID uid, void **basep);
 
 typedef struct SceKernelMemBlockInfo {
   SceSize size;

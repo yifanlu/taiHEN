@@ -22,7 +22,7 @@ extern "C" {
 #define KERNEL_PID 0x10005
 
 /** Fake PID indicating memory is shared across all user processes. */
-#define SHARED_PID 0x1
+#define SHARED_PID 0x80000000
 
 /**
  * @brief      Plugin start arguments

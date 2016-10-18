@@ -1,9 +1,12 @@
 /* ref: https://github.com/bbu/userland-slab-allocator */
 
 #include "slab.h"
+#include "taihen_internal.h"
+#include <psp2kern/kernel/sysmem.h>
 
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
 
 #define assert(x) // turn off asserts
 
@@ -40,14 +43,98 @@
 
 const size_t slab_pagesize = 0x1000;
 
+/**
+ * @brief      Allocates a raw chunk of memory
+ * 
+ * Returns a pointer that's kernel writable and another one that's executable.
+ *
+ * @param[in]  pid       PID to allocate memory for
+ * @param      ptr       A kernel writable pointer
+ * @param      exe_addr  Executable in the address spaces of PID process
+ * @param      exe_res   UID for the executable mapping
+ * @param[in]  align     Alignment
+ * @param[in]  size      Size
+ *
+ * @return     UID of writable memory on success, < 0 on error
+ */
 static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID *exe_res, size_t align, size_t size) {
-    return 0;
+    SceKernelAllocMemBlockKernelOpt opt;
+    SceKernelMemBlockType type;
+    SceUID res, blkid;
+
+    // allocate exe mem
+    memset(&opt, 0, sizeof(opt));
+    opt.size = sizeof(opt);
+    opt.attr = 0x400000;
+    opt.alignment = align;
+    if (align) {
+        opt.attr |= SCE_KERNEL_ALLOC_MEMBLOCK_ATTR_HAS_ALIGNMENT;
+    }
+    if (pid == KERNEL_PID) {
+        type = SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RX;
+    } else if (pid == SHARED_PID) {
+        type = SCE_KERNEL_MEMBLOCK_TYPE_SHARED_RX;
+    } else {
+        type = SCE_KERNEL_MEMBLOCK_TYPE_USER_RX;
+    }
+    *exe_res = sceKernelAllocMemBlockForKernel("taislab", type, size, &opt);
+    LOG("sceKernelAllocMemBlockForKernel(taislab): 0x%08X", *exe_res);
+    if (*exe_res < 0) {
+        return *exe_res;
+    }
+    res = sceKernelGetMemBlockBaseForKernel(*exe_res, (void **)exe_addr);
+    LOG("sceKernelGetMemBlockBaseForKernel(%x): 0x%08X, addr: 0x%08X", *exe_res, res, *exe_addr);
+    if (res < 0) {
+        goto err2;
+    }
+
+    // allocate mirror
+    memset(&opt, 0, sizeof(opt));
+    opt.size = sizeof(opt);
+    opt.attr = 0x1000040;
+    opt.mirror_blkid = *exe_res;
+    res = sceKernelAllocMemBlockForKernel("taimirror", SCE_KERNEL_MEMBLOCK_TYPE_RW_UNK0, 0, &opt);
+    LOG("sceKernelAllocMemBlockForKernel(taimirror): 0x%08X", res);
+    if (res < 0) {
+        goto err2;
+    }
+    blkid = res;
+    res = sceKernelGetMemBlockBaseForKernel(blkid, ptr);
+    LOG("sceKernelGetMemBlockBaseForKernel(%x): 0x%08X, addr: 0x%08X", blkid, res, *ptr);
+    if (res < 0) {
+        goto err1;
+    }
+
+    return blkid;
+
+err1:
+    sceKernelFreeMemBlockForKernel(blkid);
+err2:
+    sceKernelFreeMemBlockForKernel(*exe_res);
+    return res;
 }
 
+/**
+ * @brief      Free chunk of memory
+ *
+ * @param[in]  write_res  The writable UID
+ * @param[in]  exe_res    The executable UID
+ *
+ * @return     Zero
+ */
 static int sce_exe_free(SceUID write_res, SceUID exe_res) {
+    sceKernelFreeMemBlockForKernel(write_res);
+    sceKernelFreeMemBlockForKernel(exe_res);
     return 0;
 }
 
+/**
+ * @brief      Compute the next largest power of two. Limit 32 bits.
+ *
+ * @param[in]  v     Input number
+ *
+ * @return     Next power of 2.
+ */
 static inline uint32_t next_pow_2(uint32_t v) {
     v--;
     v |= v >> 1;
