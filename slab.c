@@ -88,6 +88,11 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
         goto err2;
     }
 
+    // map in every process if needed
+    if (pid == SHARED_PID) {
+        // FIXME: implement this
+    }
+
     // allocate mirror
     memset(&opt, 0, sizeof(opt));
     opt.size = sizeof(opt);

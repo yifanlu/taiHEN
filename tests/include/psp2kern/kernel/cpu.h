@@ -23,6 +23,11 @@ int sceKernelCpuRestoreContext(int context[3]);
 int sceKernelCpuDisableInterrupts(void);
 int sceKernelCpuEnableInterrupts(int flags);
 
+int sceKernelCpuDcacheAndL2Flush(void *ptr, size_t len);
+int sceKernelCpuIcacheAndL2Flush(void *ptr, size_t len);
+
+int sceKernelCpuUnrestrictedMemcpy(void *dst, const void *src, size_t len);
+
 #ifdef __cplusplus
 }
 #endif

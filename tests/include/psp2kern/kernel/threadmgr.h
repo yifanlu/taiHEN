@@ -1054,6 +1054,8 @@ void *sceKernelGetThreadTLSAddr(SceUID thid, int key);
  */
 void *sceKernelGetTLSAddr(int key);
 
+SceUID sceKernelGetProcessId(void);
+
 #ifdef __cplusplus
 }
 #endif

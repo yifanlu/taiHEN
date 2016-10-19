@@ -34,7 +34,8 @@
                     "sceKernelDeleteMutexForKernel": 177283904, 
                     "sceKernelLockMutexForKernel": 380403909, 
                     "sceKernelUnlockMutexForKernel": 511894992,
-                    "sceKernelRunExclusive": 3847214918
+                    "sceKernelRunExclusive": 3847214918,
+                    "sceKernelGetProcessId": 2647346042
                 }
             }
         }
@@ -145,7 +146,10 @@
                 "variables": {},
                 "functions": {
                     "sceKernelCpuSaveContext": 555452890,
-                    "sceKernelCpuRestoreContext": 172953529
+                    "sceKernelCpuRestoreContext": 172953529,
+                    "sceKernelCpuDcacheAndL2Flush": 272134821,
+                    "sceKernelCpuIcacheAndL2Flush": 435256272,
+                    "sceKernelCpuUnrestrictedMemcpy": 2355641836
                 }
             },
             "SceCpuForDriver": {

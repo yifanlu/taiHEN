@@ -145,6 +145,7 @@ void *sceKernelMemPoolAlloc(SceUID pool, SceSize size);
 void sceKernelMemPoolFree(SceUID pool, void *ptr);
 
 int sceKernelMemcpyUserToKernelForPid(SceUID pid, void *dst, uintptr_t src, size_t len);
+int sceKernelRxMemcpyKernelToUserForPid(SceUID pid, uintptr_t dst, const void *src, size_t len);
 
 typedef struct {
   char data[0x2C];
