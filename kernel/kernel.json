@@ -2,16 +2,6 @@
     "SceStdio": {
         "nid": 1998222272, 
         "modules": {
-            "SceStdio": {
-                "kernel": false, 
-                "nid": 2289403233, 
-                "variables": {
-                    "sceKernelStderr": 904822005,
-                    "sceKernelStdin": 1411609607,
-                    "sceKernelStdout": 2419321277
-                }, 
-                "functions": {}
-            },
             "SceDebugForDriver": {
                 "kernel": false, 
                 "nid": 2289403233, 

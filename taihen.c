@@ -92,3 +92,10 @@ int module_stop(SceSize argc, const void *args) {
 void module_exit(void) {
 
 }
+
+/**
+ * @brief      Temporary test function
+ */
+void _start(void) {
+  LOG("Welcome to taiHEN test!");
+}
