@@ -16,9 +16,9 @@ void patches_deinit(void);
 
 
 SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, const void *hook_func);
-int tai_hook_release(tai_hook_t *hook);
+int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref);
 SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size);
-int tai_inject_release(tai_inject_t *inject);
+int tai_inject_release(SceUID uid);
 int tai_try_cleanup_process(SceUID pid);
 
 /** @} */

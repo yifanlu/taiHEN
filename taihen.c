@@ -69,8 +69,8 @@ static int load_config(const char *path) {
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t **p_hook, void *dest_func, const void *hook_func) {
-  return TAI_SUCCESS;
+SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t *p_hook, void *dest_func, const void *hook_func) {
+  return tai_hook_func_abs((tai_hook_ref_t *)p_hook, pid, dest_func, hook_func);
 }
 
 /**
@@ -93,8 +93,16 @@ SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t **p_hook, void *dest_func, 
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
-  return TAI_SUCCESS;
+SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
+  int ret;
+  uintptr_t func;
+
+  ret = module_get_export_func(pid, module, library_nid, func_nid, &func);
+  if (ret < 0) {
+    LOG("Failed to find export for %s, NID:0x%08X: 0x%08X", module, func_nid, ret);
+    return ret;
+  }
+  return taiHookFunctionAbs(pid, p_hook, (void *)func, hook_func);
 }
 
 /**
@@ -116,8 +124,16 @@ SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
-  return TAI_SUCCESS;
+SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
+  int ret;
+  uintptr_t stub;
+
+  ret = module_get_import_func(pid, module, import_library_nid, import_func_nid, &stub);
+  if (ret < 0) {
+    LOG("Failed to find stub for %s, NID:0x%08X: 0x%08X", module, import_func_nid, ret);
+    return ret;
+  }
+  return taiHookFunctionAbs(pid, p_hook, (void *)stub, hook_func);
 }
 
 /**
@@ -139,8 +155,19 @@ SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
-  return TAI_SUCCESS;
+SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
+  int ret;
+  uintptr_t addr;
+
+  ret = module_get_offset(pid, modid, segidx, offset, &addr);
+  if (ret < 0) {
+    LOG("Failed to find offset for mod:%d, segidx:%d, offset:0x%08X: 0x%08X", modid, segidx, offset, ret);
+    return ret;
+  }
+  if (thumb) {
+    addr = addr | 1;
+  }
+  return taiHookFunctionAbs(pid, p_hook, (void *)addr, hook_func);
 }
 
 /**
@@ -163,15 +190,16 @@ int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t 
 }
 
 /**
- * @brief      Release a hook or injection
+ * @brief      Release a hook
  *
  * @param[in]  pid      The pid of the target
  * @param[in]  tai_uid  The tai patch reference to free
+ * @param[in]  hook     The hook to free
  *
  * @return     Zero on success, < 0 on error
  */
-int taiReleaseForKernel(SceUID pid, SceUID tai_uid) {
-  return 0;
+int taiHookReleaseForKernel(SceUID pid, SceUID tai_uid, tai_hook_ref_t hook) {
+  return tai_hook_release(tai_uid, hook);
 }
 
 /**
@@ -204,6 +232,18 @@ SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t siz
  */
 SceUID taiInjectDataForKernel(SceUID pid, const char *module, int segidx, uint32_t offset, const void *data, size_t size) {
   return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Release an injection
+ *
+ * @param[in]  pid      The pid of the target
+ * @param[in]  tai_uid  The tai patch reference to free
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiInjectReleaseForKernel(SceUID pid, SceUID tai_uid) {
+  return tai_inject_release(tai_uid);
 }
 
 /**

@@ -154,7 +154,7 @@ typedef struct {
 SceUID sceKernelKernelUidForUserUid(SceUID pid, SceUID user_uid);
 SceUID sceKernelCreateUserUid(SceUID pid, SceUID kern_uid);
 SceUID sceKernelCreateUidObj(SceClass *cls, const char *name, void *opt, void **obj);
-int sceKernelGetObjForUid(SceUID pid, SceClass *cls, void **obj);
+int sceKernelGetObjForUid(SceUID uid, SceClass *cls, void **obj);
 SceClass *sceKernelGetUidClass(void);
 typedef int (*SceClassCallback)(void *item);
 int sceKernelCreateClass(SceClass *cls, const char *name, void *uidclass, size_t itemsize, SceClassCallback create, SceClassCallback destroy);

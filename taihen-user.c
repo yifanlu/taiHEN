@@ -27,7 +27,7 @@
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionExport(tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
+SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -47,7 +47,7 @@ SceUID taiHookFunctionExport(tai_hook_ref_t **p_hook, const char *module, uint32
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionImport(tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
+SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -68,7 +68,7 @@ SceUID taiHookFunctionImport(tai_hook_ref_t **p_hook, const char *module, uint32
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiHookFunctionOffset(tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
+SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -87,15 +87,16 @@ int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
 }
 
 /**
- * @brief      Release a hook or injection for the calling process
+ * @brief      Release a hook for the calling process
  *
- * @see        taiReleaseForKernel
+ * @see        taiHookReleaseForKernel
  *
  * @param[in]  tai_uid  The tai patch reference to free
+ * @param[in]  hook     The hook to free
  *
  * @return     Zero on success, < 0 on error
  */
-int taiRelease(SceUID tai_uid) {
+int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -131,6 +132,19 @@ SceUID taiInjectAbs(void *dest, const void *src, size_t size) {
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
 SceUID taiInjectData(const char *module, int segidx, uint32_t offset, const void *data, size_t size) {
+  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+}
+
+/**
+ * @brief      Release an injection for the calling process
+ *
+ * @see        taiInjectReleaseForKernel
+ *
+ * @param[in]  tai_uid  The tai patch reference to free
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiInjectRelease(SceUID tai_uid) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
 }
 

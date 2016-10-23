@@ -71,18 +71,18 @@ typedef struct {
 typedef uintptr_t tai_hook_ref_t;
 
 #ifdef __VITA_KERNEL__
-SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t **p_hook, void *dest_func, const void *hook_func);
-SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
-SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
-SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
+SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t *p_hook, void *dest_func, const void *hook_func);
+SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
+SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
+SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
 int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t *info);
-int taiReleaseForKernel(SceUID pid, SceUID tai_uid);
+int taiHookReleaseForKernel(SceUID pid, SceUID tai_uid, tai_hook_ref_t hook);
 #else // !__VITA_KERNEL__
-SceUID taiHookFunctionExport(tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
-SceUID taiHookFunctionImport(tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
-SceUID taiHookFunctionOffset(tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
+SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
+SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
+SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
 int taiGetModuleInfo(const char *module, tai_module_info_t *info);
-int taiRelease(SceUID tai_uid);
+int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook);
 #endif // __VITA_KERNEL__
 
 /**
@@ -134,9 +134,11 @@ typedef struct _tai_inject tai_inject_t;
 #ifdef __VITA_KERNEL__
 SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t size);
 SceUID taiInjectDataForKernel(SceUID pid, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t size);
+int taiInjectReleaseForKernel(SceUID pid, SceUID tai_uid);
 #else // !__VITA_KERNEL__
 SceUID taiInjectAbs(void *dest, const void *src, size_t size);
 SceUID taiInjectData(const char *module, int segidx, uint32_t offset, const void *data, size_t size);
+int taiInjectRelease(SceUID tai_uid);
 #endif // __VITA_KERNEL__
 
 /** @} */

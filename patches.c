@@ -371,29 +371,44 @@ err:
 /**
  * @brief      Removes a hook and restores original function if chain is empty
  *
- * @param      hook  The hook
+ * @param[in]  uid       The uid reference
+ * @param[in]  hook_ref  The hook
  *
  * @return     Zero on success, < 0 on error
  */
-int tai_hook_release(tai_hook_t *hook) {
+int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
+  tai_hook_t *hook;
   tai_patch_t *patch;
   struct slab_chain *slab;
   int ret;
 
-  patch = hook->patch;
-  LOG("Releasing hook %p from patch %p", hook, patch);
+  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (void **)&patch);
+  LOG("sceKernelGetObjForUid(%d): 0x%08X", uid, ret);
+  if (ret < 0) {
+    return ret;
+  }
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
-  ret = hooks_remove_hook(&patch->data.hooks, hook);
   slab = patch->slab;
-  if (patch->data.hooks.head == NULL) {
-    LOG("patch is now empty, freeing it");
-    proc_map_remove(g_map, patch);
-    sceKernelDeleteUid(patch->uid);
+  for (hook = patch->data.hooks.head; hook != NULL && hook != &patch->data.hooks.tail; hook = hook->next) {
+    if (slab_getmirror(slab, hook) == hook_ref) {
+      LOG("Found hook %p for ref %p", hook, hook_ref);
+      ret = hooks_remove_hook(&patch->data.hooks, hook);
+      if (patch->data.hooks.head == NULL) {
+        LOG("patch is now empty, freeing it");
+        proc_map_remove(g_map, patch);
+        sceKernelDeleteUid(patch->uid);
+      }
+      if (hook->refcnt == 0) {
+        LOG("hook is no longer referenced, freeing it");
+        slab_free(slab, hook);
+      }
+      ret = TAI_SUCCESS;
+      goto end;
+    }
   }
-  if (hook->refcnt == 0) {
-    LOG("hook is no longer referenced, freeing it");
-    slab_free(slab, hook);
-  }
+  LOG("Cannot find hook for uid %d ref %p", uid, hook_ref);
+  ret = TAI_ERROR_NOT_FOUND;
+end:
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
   return ret;
@@ -473,7 +488,8 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
  *
  * @return     Zero on success, < 0 on error
  */
-int tai_inject_release(tai_inject_t *inject) {
+int tai_inject_release(SceUID uid) {
+  tai_inject_t *inject;
   tai_patch_t *patch;
   void *saved;
   void *dest;
@@ -481,7 +497,16 @@ int tai_inject_release(tai_inject_t *inject) {
   int ret;
   SceUID pid;
 
-  patch = inject->patch;
+  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (void **)&patch);
+  LOG("sceKernelGetObjForUid(%d): 0x%08X", uid, ret);
+  if (ret < 0) {
+    return ret;
+  }
+  if (patch->type != INJECTION || patch->uid != uid) {
+    LOG("internal error: trying to free an invalid injection");
+    return TAI_ERROR_SYSTEM;
+  }
+  inject = &patch->data.inject;
   LOG("Releasing injection %p for patch %p", inject, patch);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   pid = patch->pid;
