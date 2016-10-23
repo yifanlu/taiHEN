@@ -5,10 +5,12 @@
 #define TAI_INTERNAL_HEADER
 
 #include <psp2kern/types.h>
+#include <inttypes.h>
+#include <stdio.h>
 #include "taihen.h"
 #include "slab.h"
 
-#define LOG(...)
+#define LOG(fmt, ...) printf("[%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 #define FUNC_SAVE_SIZE 16
 

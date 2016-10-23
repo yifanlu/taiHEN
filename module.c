@@ -10,6 +10,7 @@
 #include <psp2kern/kernel/sysmem.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <string.h>
+#include "error.h"
 #include "taihen_internal.h"
 
 struct sce_module_imports_1 {
@@ -118,11 +119,12 @@ static int sce_to_tai_module_info(SceUID pid, void *sceinfo, tai_module_info_t *
     } else {
       fw_version = fwinfo[8];
     }
+    LOG("sceKernelGetSystemSwVersion: 0x%08X", fw_version);
   }
 
   if (taiinfo->size < sizeof(tai_module_info_t)) {
     LOG("Structure size too small: %d", taiinfo->size);
-    return -1;
+    return TAI_ERROR_SYSTEM;
   }
 
   info = (char *)sceinfo;
@@ -152,9 +154,9 @@ static int sce_to_tai_module_info(SceUID pid, void *sceinfo, tai_module_info_t *
     taiinfo->imports_end = *(uintptr_t *)(info + 0x38);
   } else {
     LOG("Unsupported FW 0x%08X", fw_version);
-    return -1;
+    return TAI_ERROR_SYSTEM;
   }
-  return 0;
+  return TAI_SUCCESS;
 }
 
 /**
@@ -223,11 +225,13 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
   int ret;
 
   ret = sceKernelGetModuleListForKernel(pid, 1, 1, modlist, &count);
+  LOG("sceKernelGetModuleListForKernel(%d): 0x%08X", pid, ret);
   if (ret < 0) {
     return ret;
   }
   for (int i = 0; i < count; i++) {
     ret = sceKernelGetModuleInternal(modlist[i], &sceinfo);
+    LOG("sceKernelGetModuleInternal(%d): 0x%08X", modlist[i], ret);
     if (ret < 0) {
       LOG("Error getting info for mod: %d", modlist[i]);
       continue;
@@ -237,14 +241,16 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
     }
     if (name != NULL && strncmp(name, info->name, 27) == 0) {
       if (nid == 0 || info->modid == nid) {
-        return 0;
+        LOG("Found module %s, NID:0x%08X", name, info->modid);
+        return TAI_SUCCESS;
       }
     } else if (name == NULL && info->modid == nid) {
-      return 0;
+      LOG("Found module %s, NID:0x%08X", info->name, info->modid);
+      return TAI_SUCCESS;
     }
   }
 
-  return -1;
+  return TAI_ERROR_NOT_FOUND;
 }
 
 /**
@@ -265,27 +271,32 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
 
   if (segidx > 3) {
     LOG("Invalid segment index: %d", segidx);
-    return -4;
+    return TAI_ERROR_INVALID_ARGS;
   }
+  LOG("Getting offset for pid:%d, modid:%d, segidx:%d, offset:%x", pid, modid, segidx, offset);
   if (pid != KERNEL_PID) {
     modid = sceKernelKernelUidForUserUid(pid, modid);
+    LOG("sceKernelKernelUidForUserUid(%d): 0x%08X", pid, modid);
     if (modid < 0) {
       LOG("Cannot find kernel object for user object.");
-      return -5;
+      return TAI_ERROR_NOT_FOUND;
     }
   }
   sceinfo.size = sizeof(sceinfo);
   ret = sceKernelGetModuleInfoForKernel(pid, modid, &sceinfo);
+  LOG("sceKernelGetModuleInfoForKernel(%d, %d): 0x%08X", pid, modid, ret);
   if (ret < 0) {
-    LOG("Error getting segment info for %s", name);
+    LOG("Error getting segment info for %d", modid);
     return ret;
   }
   if (offset > sceinfo.segments[segidx].size) {
     LOG("Offset %x overflows segment size %x", offset, sceinfo.segments[segidx].size);
+    return TAI_ERROR_INVALID_ARGS;
   }
   *addr = (uintptr_t)sceinfo.segments[segidx].vaddr + offset;
+  LOG("found address: 0x%08X", *addr);
 
-  return 0;
+  return TAI_SUCCESS;
 }
 
 /**
@@ -297,7 +308,7 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
  * @param[in]  funcnid  NID of the exported function
  * @param[out] func     Output address of the function
  *
- * @return     One on success, zero if not found, < 0 on error
+ * @return     Zero on success, < 0 on error
  */
 int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func) {
   sce_module_exports_t local;
@@ -307,9 +318,10 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
   size_t found;
   int i;
 
+  LOG("Getting export for pid:%d, modname:%s, libnid:%d, funcnid:%x", pid, modname, libnid, funcnid);
   if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
     LOG("Failed to find module: %s", modname);
-    return -1;
+    return TAI_ERROR_NOT_FOUND;
   }
 
   for (cur = info.exports_start; cur < info.exports_end; ) {
@@ -325,21 +337,23 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
         for (i = 0; i < export->num_functions; i++) {
           if (export->nid_table[i] == funcnid) {
             *func = (uintptr_t)export->entry_table[i];
-            return 1;
+            LOG("found kernel address: 0x%08X", *func);
+            return TAI_SUCCESS;
           }
         }
       } else {
         found = find_int_for_user(pid, (uintptr_t)export->nid_table, funcnid, export->num_functions * 4);
         if (found) {
           sceKernelMemcpyUserToKernelForPid(pid, func, (uintptr_t)export->entry_table + found, 4);
-          return 1;
+          LOG("found user address: 0x%08X", *func);
+          return TAI_SUCCESS;
         }
       }
     }
     cur += export->size;
   }
 
-  return 0;
+  return TAI_ERROR_NOT_FOUND;
 }
 
 /**
@@ -352,7 +366,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
  * @param[out] stub           Output address to stub calling the imported
  *                            function
  *
- * @return     One on success, zero if not found, < 0 on error
+ * @return     Zero on success, < 0 on error
  */
 int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libnid, uint32_t funcnid, uintptr_t *stub) {
   sce_module_imports_t local;
@@ -362,9 +376,10 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
   size_t found;
   int i;
 
+  LOG("Getting import for pid:%d, modname:%s, target_libnid:%d, funcnid:%x", pid, modname, target_libnid, funcnid);
   if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
     LOG("Failed to find module: %s", modname);
-    return -1;
+    return TAI_ERROR_NOT_FOUND;
   }
 
   for (cur = info.imports_start; cur < info.imports_end; ) {
@@ -378,20 +393,23 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
       import = &local;
     }
 
+    LOG("import size is 0x%04X", import->size);
     if (import->size == sizeof(struct sce_module_imports_1)) {
       if (target_libnid == 0 || import->type1.lib_nid == target_libnid) {
         if (pid == KERNEL_PID) {
           for (i = 0; i < import->type1.num_functions; i++) {
             if (import->type1.func_nid_table[i] == funcnid) {
               *stub = (uintptr_t)import->type1.func_entry_table[i];
-              return 1;
+              LOG("found kernel address: 0x%08X", *stub);
+              return TAI_SUCCESS;
             }
           }
         } else {
           found = find_int_for_user(pid, (uintptr_t)import->type1.func_nid_table, funcnid, import->type1.num_functions * 4);
           if (found) {
             sceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type1.func_entry_table + found, 4);
-            return 1;
+            LOG("found user address: 0x%08X", *stub);
+            return TAI_SUCCESS;
           }
         }
       }
@@ -401,14 +419,16 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
           for (i = 0; i < import->type2.num_functions; i++) {
             if (import->type2.func_nid_table[i] == funcnid) {
               *stub = (uintptr_t)import->type2.func_entry_table[i];
-              return 1;
+              LOG("found kernel address: 0x%08X", *stub);
+              return TAI_SUCCESS;
             }
           }
         } else {
           found = find_int_for_user(pid, (uintptr_t)import->type2.func_nid_table, funcnid, import->type2.num_functions * 4);
           if (found) {
             sceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type2.func_entry_table + found, 4);
-            return 1;
+            LOG("found user address: 0x%08X", *stub);
+            return TAI_SUCCESS;
           }
         }
       }
@@ -418,5 +438,5 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
     cur += import->size;
   }
 
-  return 0;
+  return TAI_ERROR_NOT_FOUND;
 }

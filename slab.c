@@ -62,6 +62,7 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
     SceKernelMemBlockType type;
     SceUID res, blkid;
 
+    LOG("Allocating exec slab for %d size 0x%08X", pid, size);
     // allocate exe mem
     memset(&opt, 0, sizeof(opt));
     opt.size = sizeof(opt);

@@ -6,8 +6,11 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include <psp2kern/kernel/cpu.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <psp2kern/kernel/threadmgr.h>
+#include <string.h>
+#include "error.h"
 #include "taihen_internal.h"
 #include "proc_map.h"
 #include "slab.h"
@@ -68,26 +71,26 @@ int patches_init(void) {
   int ret;
 
   g_patch_pool = sceKernelMemPoolCreate("tai_patches", PATCHES_POOL_SIZE, NULL);
+  LOG("sceKernelMemPoolCreate(tai_patches): 0x%08X", g_patch_pool);
   if (g_patch_pool < 0) {
-    LOG("sceKernelMemPoolCreate failed: 0x%08X", g_patch_pool);
     return g_patch_pool;
   }
   g_map = proc_map_alloc(NUM_PROC_MAP_BUCKETS);
   if (g_map == NULL) {
     LOG("Failed to create proc map.");
-    return -1;
+    return TAI_ERROR_SYSTEM;
   }
   g_hooks_lock = sceKernelCreateMutexForKernel("tai_hooks_lock", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
+  LOG("sceKernelCreateMutexForKernel(tai_hooks_lock): 0x%08X", g_hooks_lock);
   if (g_hooks_lock < 0) {
-    LOG("sceKernelCreateMutexForKernel failed: 0x%08X", g_hooks_lock);
     return g_hooks_lock;
   }
   ret = sceKernelCreateClass(&g_taihen_class, "taiHENClass", sceKernelGetUidClass(), sizeof(tai_patch_t), nop_func, nop_func);
+  LOG("sceKernelCreateClass(taiHENClass): 0x%08X", ret);
   if (ret < 0) {
-    LOG("sceKernelCreateClass failed: 0x%08X", ret);
     return ret;
   }
-  return 0;
+  return TAI_SUCCESS;
 }
 
 /**
@@ -96,6 +99,7 @@ int patches_init(void) {
  * Should be called before exit.
  */
 void patches_deinit(void) {
+  LOG("Cleaning up patches subsystem.");
   // TODO: Find out how to clean up class
   sceKernelDeleteMutexForKernel(g_hooks_lock);
   sceKernelMemPoolDestroy(g_patch_pool);
@@ -130,13 +134,22 @@ static int tai_hook_function(SceUID pid, void *target_func, const void *src_func
  *
  * @param[in]  dst_pid  The target process
  * @param      dst      The target address
- * @param[in]  src      The source
+ * @param[in]  src      The source kernel address
  * @param[in]  size     The size
  *
  * @return     Zero on success, < 0 on error
  */
 static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t size) {
-  return 0;
+  int ret;
+  if (dst_pid == KERNEL_PID) {
+      ret = sceKernelCpuUnrestrictedMemcpy(dst, src, size);
+      LOG("sceKernelCpuUnrestrictedMemcpy(0x%p, 0x%p, 0x%08X): 0x%08X", dst, src, size, ret);
+  } else {
+      ret = sceKernelRxMemcpyKernelToUserForPid(dst_pid, (uintptr_t)dst, src, size);
+      LOG("sceKernelRxMemcpyKernelToUserForPid(%d, 0x%p, 0x%p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
+  }
+  sceKernelCpuDcacheAndL2Flush(dst, size);
+  return ret;
 }
 
 /**
@@ -150,6 +163,14 @@ static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t s
  * @return     Zero on success, < 0 on error
  */
 static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size_t size) {
+  int ret;
+  if (src_pid == KERNEL_PID) {
+    memcpy(dst, src, size);
+    LOG("memcpy(0x%p, 0x%p, 0x%08X)", dst, src, size);
+  } else {
+    ret = sceKernelMemcpyUserToKernelForPid(src_pid, dst, (uintptr_t)src, size);
+    LOG("sceKernelMemcpyUserToKernelForPid(%d, 0x%p, 0x%p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
+  }
   return 0;
 }
 
@@ -173,6 +194,7 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item, tai_hook_t *
   tai_hook_t *cur;
   int ret;
 
+  LOG("Adding hook %p to chain %p", item, hooks);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (hooks->head == NULL) { // first hook for this list
     hooks->head = item;
@@ -218,6 +240,7 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   tai_hook_t **cur;
   int ret;
 
+  LOG("Removing hook %p for %p", item, hooks);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (hooks->head == item) { // first hook for this list
     // we must remove the patch
@@ -268,9 +291,10 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   struct slab_chain *slab;
   uintptr_t exe_addr;
 
+  LOG("Hooking 0x%p to 0x%p for pid %d", hook_func, dest_func, pid);
   if (hook_func >= MEM_SHARED_START) {
     if (pid == KERNEL_PID) {
-      return -4; // invalid hook address
+      return TAI_ERROR_INVALID_KERNEL_ADDR; // invalid hook address
     } else {
       pid = SHARED_PID;
     }
@@ -278,8 +302,8 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
 
   hook = NULL;
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (void **)&patch);
+  LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
   if (ret < 0) {
-    LOG("sceKernelCreateUidObj failed: 0x%08X", ret);
     return ret;
   }
 
@@ -297,13 +321,16 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   tai_memcpy_to_kernel(pid, patch->data.hooks.origcode, (void *)patch->addr, FUNC_SAVE_SIZE);
   patch->data.hooks.origlen = FUNC_SAVE_SIZE;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
-    sceKernelDeleteUid(patch->uid);
+    ret = sceKernelDeleteUid(patch->uid);
+    LOG("sceKernelDeleteUid(0x%08X): 0x%08X", patch->uid, ret);
     if (tmp == NULL || tmp->type != HOOKS) {
       // error
-      ret = -2;
+      LOG("internal error: proc_map cannot insert hook but did not return a valid existing hook");
+      ret = TAI_ERROR_SYSTEM;
       goto err;
     } else {
       // we have an existing patch
+      LOG("found existing patch %p, discarding %p", tmp, patch);
       patch = tmp;
     }
   }
@@ -321,6 +348,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   inserted = NULL;
   ret = hooks_add_hook(&patch->data.hooks, hook, &inserted);
   if (ret < 0 && patch->data.hooks.head == NULL) {
+    LOG("failed to add hook and patch is now empty, freeing it");
     proc_map_remove(g_map, patch);
     sceKernelDeleteUid(patch->uid);
   }
@@ -353,14 +381,17 @@ int tai_hook_release(tai_hook_t *hook) {
   int ret;
 
   patch = hook->patch;
+  LOG("Releasing hook %p from patch %p", hook, patch);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   ret = hooks_remove_hook(&patch->data.hooks, hook);
   slab = patch->slab;
   if (patch->data.hooks.head == NULL) {
+    LOG("patch is now empty, freeing it");
     proc_map_remove(g_map, patch);
     sceKernelDeleteUid(patch->uid);
   }
   if (hook->refcnt == 0) {
+    LOG("hook is no longer referenced, freeing it");
     slab_free(slab, hook);
   }
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
@@ -372,34 +403,39 @@ int tai_hook_release(tai_hook_t *hook) {
  * @brief      Inserts a raw data injection given an absolute address and PID of
  *             the address space
  *
- * @param[in]  pid       The pid of the src and dest pointers address space
- * @param      dest      The destination
- * @param[in]  src       The source
- * @param[in]  size      The size
+ * @param[in]  pid   The pid of the src and dest pointers address space
+ * @param      dest  The destination
+ * @param[in]  src   The source
+ * @param[in]  size  The size
  *
  * @return     UID for the injection on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if a hook or injection is already
+ *               inserted
  */
 SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   tai_patch_t *patch, *tmp;
   void *saved;
   int ret;
 
+  LOG("Injecting 0x%p with 0x%p for size 0x%08X at pid %d", dest, src, size, pid);
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (void **)&patch);
+  LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, 0x%p", ret, ret, patch);
   if (ret < 0) {
-    LOG("sceKernelCreateUidObj failed: 0x%08X", ret);
     return ret;
   }
   saved = sceKernelMemPoolAlloc(g_patch_pool, size);
+  LOG("sceKernelMemPoolAlloc(g_patch_pool, 0x%08X): 0x%p", size, saved);
   if (saved == NULL) {
     sceKernelDeleteUid(ret);
-    return -1;
+    return TAI_ERROR_MEMORY;
   }
 
   // try to save old data
   if (tai_memcpy_to_kernel(pid, saved, dest, size) < 0) {
+    LOG("Invalid address for memcpy");
     sceKernelDeleteUid(ret);
     sceKernelMemPoolFree(g_patch_pool, saved);
-    return -3;
+    return TAI_ERROR_INVALID_ARGS;
   }
 
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
@@ -413,7 +449,7 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   patch->data.inject.size = size;
   patch->data.inject.patch = patch;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
-    ret = -2;
+    ret = TAI_ERROR_PATCH_EXISTS;
   } else {
     ret = tai_force_memcpy(pid, dest, src, size);
   }
@@ -446,13 +482,15 @@ int tai_inject_release(tai_inject_t *inject) {
   SceUID pid;
 
   patch = inject->patch;
+  LOG("Releasing injection %p for patch %p", inject, patch);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   pid = patch->pid;
   dest = (void *)patch->addr;
   saved = inject->saved;
   size = inject->size;
   if (!proc_map_remove(g_map, patch)) {
-    ret = -1;
+    LOG("internal error, cannot remove patch from proc_map");
+    ret = TAI_ERROR_SYSTEM;
   } else {
     ret = tai_force_memcpy(pid, dest, saved, size);
     sceKernelMemPoolFree(g_patch_pool, saved);
@@ -483,6 +521,7 @@ int tai_inject_release(tai_inject_t *inject) {
 int tai_try_cleanup_process(SceUID pid) {
   tai_patch_t *patch, *next;
   tai_hook_t *hook, *nexthook;
+  LOG("Calling patches cleanup for pid %d", pid);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (proc_map_remove_all_pid(g_map, pid, &patch) > 0) {
     while (patch != NULL) {
