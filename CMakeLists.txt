@@ -37,6 +37,7 @@ add_executable(taihen.elf
 	patches.c
 	proc_map.c
 	taihen.c
+	taihen-user.c
 	posix-compat.c
 	slab.c
 	substitute/lib/hook-functions.c

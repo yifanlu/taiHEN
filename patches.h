@@ -1,8 +1,8 @@
 /**
  * @brief      Main patch system
  */
-#ifndef TAI_PROC_MAP_HEADER
-#define TAI_PROC_MAP_HEADER
+#ifndef TAI_PATCHES_HEADER
+#define TAI_PATCHES_HEADER
 
 #include "taihen_internal.h"
 
@@ -23,4 +23,4 @@ int tai_try_cleanup_process(SceUID pid);
 
 /** @} */
 
-#endif // TAI_PROC_MAP_HEADER
+#endif // TAI_PATCHES_HEADER

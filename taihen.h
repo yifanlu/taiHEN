@@ -70,12 +70,20 @@ typedef struct {
  */
 typedef uintptr_t tai_hook_ref_t;
 
-SceUID taiHookFunctionAbs(tai_hook_ref_t **p_hook, SceUID pid, void *dest_func, const void *hook_func);
+#ifdef __VITA_KERNEL__
+SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t **p_hook, void *dest_func, const void *hook_func);
+SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
+SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
+SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
+int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t *info);
+int taiReleaseForKernel(SceUID pid, SceUID tai_uid);
+#else // !__VITA_KERNEL__
 SceUID taiHookFunctionExport(tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
 SceUID taiHookFunctionImport(tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
 SceUID taiHookFunctionOffset(tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
 int taiGetModuleInfo(const char *module, tai_module_info_t *info);
 int taiRelease(SceUID tai_uid);
+#endif // __VITA_KERNEL__
 
 /**
  * @brief      Calls the next function in the chain
@@ -123,24 +131,29 @@ static inline int taiHookContinue(tai_hook_ref_t *hook, ...) {
  */
 typedef struct _tai_inject tai_inject_t;
 
-SceUID taiInjectAbs(SceUID pid, void *dest, const void *src, size_t size);
-SceUID taiInjectData(SceUID pid, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t len);
+#ifdef __VITA_KERNEL__
+SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t size);
+SceUID taiInjectDataForKernel(SceUID pid, uint32_t module_nid, int segidx, uint32_t offset, const void *data, size_t size);
+#else // !__VITA_KERNEL__
+SceUID taiInjectAbs(void *dest, const void *src, size_t size);
+SceUID taiInjectData(const char *module, int segidx, uint32_t offset, const void *data, size_t size);
+#endif // __VITA_KERNEL__
 
 /** @} */
 
 /**
  * @defgroup   skprx Skprx Loading Interface
  * @brief      Allows user modules to load kernel modules.
- *
- *             Only accessable to non-safe homebrew and taiHEN plugins.
  */
 /** @{ */
 
-int taiLoadKernelModule(const char *path, int flags, int *opt);
-int taiStartKernelModule(int modid, int argc, void *args, int flags, void *opt, int *res);
-int taiLoadStartKernelModule(const char *path, int argc, void *args, int flags);
-int taiStopUnloadKernelModule(int modid, int argc, void *args, int flags, void *opt, int *res);
-int taiUnloadKernelModule(int modid, int flags);
+#ifndef __VITA_KERNEL__
+SceUID taiLoadKernelModule(const char *path, int flags, int *opt);
+int taiStartKernelModule(SceUID modid, int argc, void *args, int flags, void *opt, int *res);
+SceUID taiLoadStartKernelModule(const char *path, int argc, void *args, int flags);
+int taiStopUnloadKernelModule(SceUID modid, int argc, void *args, int flags, void *opt, int *res);
+int taiUnloadKernelModule(SceUID modid, int flags);
+#endif // __VITA_KERNEL__
 
 /** @} */
 
@@ -148,13 +161,15 @@ int taiUnloadKernelModule(int modid, int flags);
  * @defgroup   skprx Kernel Memory Interface
  * @brief      Allows user modules to peek/poke the kernel.
  *
- *             Only accessable to non-safe homebrew and taiHEN plugins. Does not
- *             bypass MMU restrictions (you cannot write to code pages).
+ *             Does not bypass MMU restrictions (you cannot write to code
+ *             pages).
  */
 /** @{ */
 
+#ifndef __VITA_KERNEL__
 int taiMemcpyUserToKernel(void *kernel_dst, const void *user_src, size_t len);
 int taiMemcpyKernelToUser(void *user_dst, const void *kernel_src, size_t len);
+#endif
 
 /** @} */
 

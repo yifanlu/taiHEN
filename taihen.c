@@ -6,6 +6,9 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include "error.h"
+#include "module.h"
+#include "patches.h"
 #include "taihen_internal.h"
 
 /** @brief      The maximum length for a line in the config file. */
@@ -49,6 +52,158 @@ static size_t read_line(char line[MAX_LINE_LEN]) {
  */
 static int load_config(const char *path) {
   return 0;
+}
+
+/**
+ * @brief      Add a hook given an absolute address
+ *
+ *             If target is the kernel, use KERNEL_PID as `pid`.
+ *
+ * @param[in]  pid        The pid of the target
+ * @param[out] p_hook     A reference that can be used by the hook function
+ * @param      dest_func  The function to patch (must be in the target address
+ *                        space)
+ * @param[in]  hook_func  The hook function (must be in the target address
+ *                        space)
+ *
+ * @return     A tai patch reference on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ */
+SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t **p_hook, void *dest_func, const void *hook_func) {
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Add a hook to a module function export
+ *
+ *             If target is the kernel, use KERNEL_PID as `pid`. Since a module
+ *             can have two libraries that export the same NID, you can
+ *             optionally pass in the library NID of the one to hook. Otherwise,
+ *             the first one found will be used.
+ *
+ * @param[in]  pid          The pid of the target
+ * @param[out] p_hook       A reference that can be used by the hook function
+ * @param[in]  module       Name of the target module.
+ * @param[in]  library_nid  Optional. NID of the target library.
+ * @param[in]  func_nid     The function NID. If `library_nid` is 0, then the
+ *                          first export with the NID will be hooked.
+ * @param[in]  hook_func    The hook function (must be in the target address
+ *                          space)
+ *
+ * @return     A tai patch reference on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ */
+SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Add a hook to a module function import
+ *
+ *             If target is the kernel, use KERNEL_PID as `pid`. This will let
+ *             you hook calls from one module to another without having to hook
+ *             all calls to that module.
+ *
+ * @param[in]  pid                 The pid of the target
+ * @param[out] p_hook              A reference that can be used by the hook
+ *                                 function
+ * @param[in]  module              Name of the target module.
+ * @param[in]  import_library_nid  The imported library from the target module
+ * @param[in]  import_func_nid     The function NID of the import
+ * @param[in]  hook_func           The hook function (must be in the target
+ *                                 address space)
+ *
+ * @return     A tai patch reference on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ */
+SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t **p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Add a hook to a module manually with an offset
+ *
+ *             If target is the kernel, use KERNEL_PID as `pid`. The caller is
+ *             responsible for checking that the module is of the correct
+ *             version!
+ *
+ * @param[in]  pid        The pid of the target
+ * @param[out] p_hook     A reference that can be used by the hook function
+ * @param[in]  modid      The module UID from `taiGetModuleInfoForKernel`
+ * @param[in]  segidx     The ELF segment index containing the function to patch
+ * @param[in]  offset     The offset from the start of the segment
+ * @param[in]  thumb      Set to 1 if this is a Thumb function
+ * @param[in]  hook_func  The hook function (must be in the target address
+ *                        space)
+ *
+ * @return     A tai patch reference on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ */
+SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t **p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Gets information on a currently loaded module
+ *
+ *             You should use this before calling
+ *             `taiHookFunctionOffsetForKernel` in order to check that the
+ *             module you wish to hook is currently loaded and that the module
+ *             NID matches. The module NID changes in each version of the
+ *             module.
+ *
+ * @param[in]  pid     The pid of the _caller_ (kernel should set to KERNEL_PID)
+ * @param[in]  module  The name of the module
+ * @param[out] info    The information to fill
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t *info) {
+  return module_get_by_name_nid(pid, module, 0, info);
+}
+
+/**
+ * @brief      Release a hook or injection
+ *
+ * @param[in]  pid      The pid of the target
+ * @param[in]  tai_uid  The tai patch reference to free
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiReleaseForKernel(SceUID pid, SceUID tai_uid) {
+  return 0;
+}
+
+/**
+ * @brief      Injects data into a process bypassing MMU flags
+ *
+ * @param[in]  pid   The pid of the target (can be KERNEL_PID)
+ * @param      dest  The destination in the process address space
+ * @param[in]  src   The source in kernel address space
+ * @param[in]  size  The size of the injection in bytes
+ *
+ * @return     A tai patch reference on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ */
+SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t size) {
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Inject data into a process bypassing MMU flags given an offset
+ *
+ * @param[in]  pid     The pid of the target (can be KERNEL_PID)
+ * @param[in]  module  Name of the target module.
+ * @param[in]  segidx  Index of the ELF segment containing the data to patch
+ * @param[in]  offset  The offset from the start of the segment
+ * @param[in]  data    The data in kernel address space
+ * @param[in]  size    The size of the injection in bytes
+ *
+ * @return     A tai patch reference on success, < 0 on error
+ *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ */
+SceUID taiInjectDataForKernel(SceUID pid, const char *module, int segidx, uint32_t offset, const void *data, size_t size) {
+  return TAI_SUCCESS;
 }
 
 /**
