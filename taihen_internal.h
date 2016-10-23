@@ -43,8 +43,8 @@ struct _tai_inject {
 };
 
 struct _tai_hook_list {
-  uint8_t origcode[FUNC_SAVE_SIZE];
-  size_t origlen;
+  void *func;
+  void *saved;
   tai_hook_t *head;
   tai_hook_t tail;
 };

@@ -14,6 +14,7 @@
 #include "taihen_internal.h"
 #include "proc_map.h"
 #include "slab.h"
+#include "substitute/lib/substitute.h"
 
 /**
  * @file patches.c
@@ -112,17 +113,51 @@ void patches_deinit(void) {
 /**
  * @brief      Adds a hook to a function using libsubstitute
  *
- * @param[in]  pid          The target process
- * @param      target_func  The target function
- * @param[in]  src_func     The source function
+ * @param      slab         The slab to allocate exec memory from
+ * @param      target_func  The function to hook
+ * @param[in]  src_func     The hook function
+ * @param      old          A pointer to call the original implementation
+ * @param      saved        Saved data for freeing the hook
  *
- * @return     libsubstitute return value
+ * @return     Zero on success, < 0 on error
  */
-static int tai_hook_function(SceUID pid, void *target_func, const void *src_func) {
+static int tai_hook_function(struct slab_chain *slab, void *target_func, const void *src_func, void **old, void **saved) {
+  struct substitute_function_hook hook;
+  int ret;
+
   if (target_func == src_func) {
-    return 0; // no need for hook
+    LOG("no hook needed");
+    return TAI_SUCCESS; // no need for hook
   }
-  return 0;
+
+  hook.function = target_func;
+  hook.replacement = (void *)src_func;
+  hook.old_ptr = old;
+  hook.options = 0;
+  hook.opt = slab;
+  ret = substitute_hook_functions(&hook, 1, (struct substitute_function_hook_record **)saved, 0);
+  if (ret != SUBSTITUTE_OK) {
+    LOG("libsubstitute error: %s", substitute_strerror(ret));
+    return TAI_ERROR_SYSTEM;
+  }
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Removes a hook using libsubstitute
+ *
+ * @param[in]  saved  The saved data from `tai_hook_function`
+ *
+ * @return     Zero on success, < 0 on error
+ */
+static int tai_unhook_function(void *saved) {
+  int ret;
+  ret = substitute_free_hooks((struct substitute_function_hook_record *)saved, 1);
+  if (ret != SUBSTITUTE_OK) {
+    LOG("libsubstitute error: %s", substitute_strerror(ret));
+    return TAI_ERROR_SYSTEM;
+  }
+  return TAI_SUCCESS;
 }
 
 /**
@@ -199,7 +234,7 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item, tai_hook_t *
   if (hooks->head == NULL) { // first hook for this list
     hooks->head = item;
     item->next = &hooks->tail;
-    ret = tai_hook_function(item->patch->pid, hooks->tail.func, item->func);
+    ret = tai_hook_function(item->patch->slab, hooks->func, item->func, &hooks->tail.func, &item->patch->data.hooks.saved);
   } else {
     for (cur = hooks->head; cur->next != NULL; cur = cur->next) {
       if (cur->patch == item->patch && cur->func == item->func) {
@@ -244,11 +279,11 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (hooks->head == item) { // first hook for this list
     // we must remove the patch
-    tai_force_memcpy(item->patch->pid, (void *)FUNC_TO_UINTPTR_T(hooks->tail.func), hooks->origcode, hooks->origlen);
+    tai_unhook_function(item->patch->data.hooks.saved);
     // set head to the next item
     hooks->head = (item->next == &hooks->tail) ? NULL : item->next;
     // add a patch to the new head
-    ret = tai_hook_function(item->patch->pid, hooks->tail.func, item->next->func);
+    ret = tai_hook_function(item->patch->slab, hooks->func, item->next->func, &hooks->tail.func, &item->patch->data.hooks.saved);
   } else {
     cur = &hooks->head;
     ret = -1;
@@ -314,12 +349,12 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   patch->addr = FUNC_TO_UINTPTR_T(dest_func);
   patch->size = FUNC_SAVE_SIZE;
   patch->next = NULL;
+  patch->data.hooks.func = dest_func;
+  patch->data.hooks.saved = NULL;
   patch->data.hooks.head = NULL;
   patch->data.hooks.tail.next = NULL;
-  patch->data.hooks.tail.func = dest_func;
+  patch->data.hooks.tail.func = NULL;
   patch->data.hooks.tail.refcnt = 0;
-  tai_memcpy_to_kernel(pid, patch->data.hooks.origcode, (void *)patch->addr, FUNC_SAVE_SIZE);
-  patch->data.hooks.origlen = FUNC_SAVE_SIZE;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
     ret = sceKernelDeleteUid(patch->uid);
     LOG("sceKernelDeleteUid(0x%08X): 0x%08X", patch->uid, ret);
