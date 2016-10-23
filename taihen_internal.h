@@ -30,12 +30,14 @@ typedef enum {
 } tai_patch_type_t;
 
 struct _tai_hook {
-  tai_hook_t *next;
+  // DO NOT MOVE THESE FIELDS AROUND WITHOUT CHANGING IT IN taihen.h TOO
   uintptr_t next_user;
   void *func;
   void *old;
-  tai_patch_t *patch;
+  // END DO NOT MOVE
   int refcnt;
+  tai_hook_t *next;
+  tai_patch_t *patch;
 };
 
 struct _tai_inject {

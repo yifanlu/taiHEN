@@ -24,6 +24,9 @@ extern "C" {
 /** Fake PID indicating memory is shared across all user processes. */
 #define SHARED_PID 0x80000000
 
+/** Fake library NID indicating that any library NID would do. */
+#define TAI_ANY_LIBRARY 0
+
 /**
  * @brief      Plugin start arguments
  *
@@ -90,24 +93,24 @@ int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook);
  *
  * @param      type  Return type
  * @param      hook  The hook continuing the call
- * @param      args  The arguments to the call
  *
  * @return     Return value from the hook chain
  */
-static inline int taiHookContinue(tai_hook_ref_t *hook, ...) {
-  return 0;
-}
-
-/**
- * @brief      Convenience function for calling `taiHookContinue`
- *
- * @param      type  Return type
- * @param      hook  The hook continuing the call
- * @param      args  The arguments to the call
- *
- * @return     Return value from the hook chain
- */
-#define TAI_CONTINUE(type, hook, args...) ((type)taiHookContinue(hook, args))
+#define TAI_CONTINUE(type, hook, ...) ({ \
+  type ret; \
+  struct _tai_hook_ref { \
+    struct _tai_hook_ref *next; \
+    type (*func)(); \
+    type (*old)(); \
+  } *cur; \
+  cur = (struct _tai_hook_ref *)(hook); \
+  if (cur->next == NULL) { \
+    ret = cur->old(__VA_ARGS__); \
+  } else { \
+    ret = cur->next->func(__VA_ARGS__); \
+  } \
+  ret; \
+})
 
 /** @} */
 

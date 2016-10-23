@@ -288,9 +288,20 @@ void module_exit(void) {
 
 }
 
+static tai_hook_ref_t open_ref;
+
+static int open_hook(const char *path, int flags, int mode) {
+  LOG("sceIoOpen called: %s", path);
+  return TAI_CONTINUE(int, open_ref, path, flags, mode);
+}
+
 /**
  * @brief      Temporary test function
  */
-void _start(void) {
+int _start(void) {
+  int ret;
   LOG("Welcome to taiHEN test!");
+  ret = taiHookFunctionExportForKernel(KERNEL_PID, &open_ref, "SceIofilemgr", TAI_ANY_LIBRARY, 0xCC67B6FD, open_hook);
+  LOG("return: 0x%08X", ret);
+  return 0;
 }
