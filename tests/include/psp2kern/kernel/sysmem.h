@@ -161,6 +161,8 @@ int sceKernelCreateClass(SceClass *cls, const char *name, void *uidclass, size_t
 int sceKernelDeleteUserUid(SceUID pid, SceUID user_uid);
 int sceKernelDeleteUid(SceUID uid);
 
+int sceKernelSwitchVmaForPid(SceUID pid);
+
 #ifdef __cplusplus
 }
 #endif

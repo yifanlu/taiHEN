@@ -111,6 +111,32 @@ void patches_deinit(void) {
 }
 
 /**
+ * @brief      Flush L1 and L2 cache for an address
+ *
+ * @param[in]  pid   The pid
+ * @param[in]  vma   The vma
+ * @param[in]  len   The length
+ */
+void mirror_cache_flush(SceUID pid, uintptr_t vma, size_t len) {
+  uintptr_t vma_align;
+  int flags;
+  int context[3];
+  int ret;
+
+  vma_align = vma & ~0x1F;
+  len = ((vma + len + 0x1F) & ~0x1F) - vma_align;
+
+  flags = sceKernelCpuDisableInterrupts();
+  sceKernelCpuSaveContext(context);
+  ret = sceKernelSwitchVmaForPid(pid);
+  sceKernelCpuDcacheAndL2Flush((void *)vma_align, len);
+  sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
+  sceKernelCpuRestoreContext(context);
+  sceKernelCpuEnableInterrupts(flags);
+  LOG("sceKernelSwitchVmaForPid(%d): 0x%08X\n", pid, ret);
+}
+
+/**
  * @brief      Adds a hook to a function using libsubstitute
  *
  * @param      slab         The slab to allocate exec memory from
@@ -233,8 +259,10 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item, tai_hook_t *
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (hooks->head == NULL) { // first hook for this list
     hooks->head = item;
-    item->next = &hooks->tail;
-    ret = tai_hook_function(item->patch->slab, hooks->func, item->func, &hooks->tail.func, &item->patch->data.hooks.saved);
+    item->next = NULL;
+    ret = tai_hook_function(item->patch->slab, hooks->func, item->func, &hooks->old, &hooks->saved);
+    item->old = hooks->old;
+    mirror_cache_flush(item->patch->pid, slab_getmirror(item->patch->slab, item), sizeof(tai_hook_t));
   } else {
     for (cur = hooks->head; cur->next != NULL; cur = cur->next) {
       if (cur->patch == item->patch && cur->func == item->func) {
@@ -243,7 +271,13 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item, tai_hook_t *
     }
     if (!(cur->patch == item->patch && cur->func == item->func)) {
       item->next = cur->next;
+      item->next_user = cur->next_user;
+      item->old = hooks->old;
       cur->next = item;
+      cur->next_user = slab_getmirror(item->patch->slab, item);
+      // flush cache
+      mirror_cache_flush(item->patch->pid, slab_getmirror(item->patch->slab, cur), sizeof(tai_hook_t));
+      mirror_cache_flush(item->patch->pid, cur->next_user, sizeof(tai_hook_t));
       cur = item;
       ret = 1;
     } else {
@@ -273,6 +307,7 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item, tai_hook_t *
  */
 static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   tai_hook_t **cur;
+  uintptr_t tmp, *cur_user;
   int ret;
 
   LOG("Removing hook %p for %p", item, hooks);
@@ -281,11 +316,18 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
     // we must remove the patch
     tai_unhook_function(item->patch->data.hooks.saved);
     // set head to the next item
-    hooks->head = (item->next == &hooks->tail) ? NULL : item->next;
+    hooks->head = item->next;
     // add a patch to the new head
-    ret = tai_hook_function(item->patch->slab, hooks->func, item->next->func, &hooks->tail.func, &item->patch->data.hooks.saved);
+    ret = tai_hook_function(item->patch->slab, hooks->func, item->next->func, &hooks->old, &hooks->saved);
+    // update the old pointers
+    for (cur = &hooks->head; *cur != NULL; cur = &(*cur)->next) {
+      (*cur)->old = hooks->old;
+    }
+    // clear cache of mirror for the last item since it uses the old pointer
+    mirror_cache_flush(item->patch->pid, (uintptr_t)cur - offsetof(tai_hook_t, next), sizeof(tai_hook_t));
   } else {
     cur = &hooks->head;
+    cur_user = &tmp;
     ret = -1;
     while (1) {
       if (*cur) {
@@ -293,11 +335,15 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
           item->refcnt--;
           if (item->refcnt == 0) {
             *cur = item->next; // remove from list
+            *cur_user = item->next_user;
+            // clear cache
+            mirror_cache_flush(item->patch->pid, (uintptr_t)cur - offsetof(tai_hook_t, next), sizeof(tai_hook_t));
           }
           ret = 0;
           break;
         } else {
           cur = &(*cur)->next;
+          cur_user = &(*cur)->next_user;
         }
       } else {
         break;
@@ -352,9 +398,6 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   patch->data.hooks.func = dest_func;
   patch->data.hooks.saved = NULL;
   patch->data.hooks.head = NULL;
-  patch->data.hooks.tail.next = NULL;
-  patch->data.hooks.tail.func = NULL;
-  patch->data.hooks.tail.refcnt = 0;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
     ret = sceKernelDeleteUid(patch->uid);
     LOG("sceKernelDeleteUid(0x%08X): 0x%08X", patch->uid, ret);
@@ -424,7 +467,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   }
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   slab = patch->slab;
-  for (hook = patch->data.hooks.head; hook != NULL && hook != &patch->data.hooks.tail; hook = hook->next) {
+  for (hook = patch->data.hooks.head; hook != NULL; hook = hook->next) {
     if (slab_getmirror(slab, hook) == hook_ref) {
       LOG("Found hook %p for ref %p", hook, hook_ref);
       ret = hooks_remove_hook(&patch->data.hooks, hook);
@@ -588,7 +631,7 @@ int tai_try_cleanup_process(SceUID pid) {
       next = patch->next;
       if (patch->type == HOOKS) {
         hook = patch->data.hooks.head;
-        while (hook != &patch->data.hooks.tail && hook != NULL) {
+        while (hook != NULL) {
           nexthook = hook->next;
           hook->refcnt--;
           if (hook->refcnt == 0) {

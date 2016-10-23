@@ -31,7 +31,9 @@ typedef enum {
 
 struct _tai_hook {
   tai_hook_t *next;
+  uintptr_t next_user;
   void *func;
+  void *old;
   tai_patch_t *patch;
   int refcnt;
 };
@@ -44,9 +46,9 @@ struct _tai_inject {
 
 struct _tai_hook_list {
   void *func;
+  void *old;
   void *saved;
   tai_hook_t *head;
-  tai_hook_t tail;
 };
 
 struct _tai_patch {
