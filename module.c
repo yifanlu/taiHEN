@@ -186,7 +186,7 @@ static size_t find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size
   }
   size = end-src;
   flags = sceKernelCpuDisableInterrupts();
-  sceKernelCpuSaveContext(context);
+  cpu_save_process_context(context);
   while (count < size) {
     asm ("ldrt %0, [%1]" : "=r" (data) : "r" (src+count));
     if (data == needle) {
@@ -194,7 +194,7 @@ static size_t find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size
     }
     count += 4;
   }
-  sceKernelCpuRestoreContext(context);
+  cpu_restore_process_context(context);
   sceKernelCpuEnableInterrupts(flags);
   if (size == 0) {
     return 0;
@@ -319,6 +319,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
   int i;
 
   LOG("Getting export for pid:%d, modname:%s, libnid:%d, funcnid:%x", pid, modname, libnid, funcnid);
+  info.size = sizeof(info);
   if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
     LOG("Failed to find module: %s", modname);
     return TAI_ERROR_NOT_FOUND;
@@ -377,6 +378,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
   int i;
 
   LOG("Getting import for pid:%d, modname:%s, target_libnid:%d, funcnid:%x", pid, modname, target_libnid, funcnid);
+  info.size = sizeof(info);
   if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
     LOG("Failed to find module: %s", modname);
     return TAI_ERROR_NOT_FOUND;

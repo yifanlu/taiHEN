@@ -18,13 +18,44 @@
 extern "C" {
 #endif
 
+
+
+static inline void cpu_save_process_context(int context[3]) {
+  asm ("mrc p15, 0, %0, c2, c0, 1" : "=r" (context[0]));
+  asm ("mrc p15, 0, %0, c3, c0, 0" : "=r" (context[1]));
+  asm ("mrc p15, 0, %0, c13, c0, 1" : "=r" (context[2]));
+}
+
+static inline void cpu_restore_process_context(int context[3]) {
+  int cpsr;
+  int tmp;
+
+  asm ("mrs %0, cpsr" : "=r" (cpsr));
+  if (!(cpsr & 0x80)) {
+    asm ("cpsid i");
+  }
+  asm ("mrc p15, 0, %0, c13, c0, 1" : "=r" (tmp));
+  tmp = (tmp & 0xFFFFFF00) | context[2];
+  asm ("mcr p15, 0, %0, c13, c0, 1" :: "r" (0));
+  asm ("isb" ::: "memory");
+  asm ("mcr p15, 0, %0, c2, c0, 1" :: "r" (context[0] | 0x4A));
+  asm ("isb" ::: "memory");
+  asm ("mcr p15, 0, %0, c13, c0, 1" :: "r" (tmp));
+  asm ("mcr p15, 0, %0, c3, c0, 0" :: "r" (context[1] & 0x55555555));
+  if (!(cpsr & 0x80)) {
+    asm ("cpsie i");
+  }
+}
+
 int sceKernelCpuSaveContext(int context[3]);
 int sceKernelCpuRestoreContext(int context[3]);
 int sceKernelCpuDisableInterrupts(void);
 int sceKernelCpuEnableInterrupts(int flags);
 
 int sceKernelCpuDcacheAndL2Flush(void *ptr, size_t len);
+int sceKernelCpuDcacheFlush(void *ptr, size_t len);
 int sceKernelCpuIcacheAndL2Flush(void *ptr, size_t len);
+int sceKernelCpuDcacheAndL2AndDMAFlush(void *ptr, size_t len);
 
 int sceKernelCpuUnrestrictedMemcpy(void *dst, const void *src, size_t len);
 

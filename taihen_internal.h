@@ -10,7 +10,7 @@
 #include "taihen.h"
 #include "slab.h"
 
-#define LOG(fmt, ...) printf("[%s:%d] " fmt "\n", __FUNCTION__, __LINE__, ##__VA_ARGS__)
+#define LOG(fmt, ...) printf("[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
 #define FUNC_SAVE_SIZE 16
 

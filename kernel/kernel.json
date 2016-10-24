@@ -24,7 +24,14 @@
                     "sceKernelDeleteMutexForKernel": 177283904, 
                     "sceKernelLockMutexForKernel": 380403909, 
                     "sceKernelUnlockMutexForKernel": 511894992,
-                    "sceKernelRunExclusive": 3847214918,
+                    "sceKernelRunExclusive": 3847214918
+                }
+            }, 
+            "SceThreadmgrForDriver": {
+                "kernel": false,
+                "nid": 3804497444,
+                "variables": {},
+                "functions": {
                     "sceKernelGetProcessId": 2647346042
                 }
             }
@@ -78,7 +85,6 @@
                     "sceKernelMapUserBlock": 2102365023,
                     "sceKernelSwitchVmaForPid": 1865076142,
                     "sceKernelRoMemcpyKernelToUserForPid": 1461528377,
-                    "sceKernelRxMemcpyKernelToUserForPid": 814945650,
                     "sceKernelFirstDifferentIntUserForPid": 2201240911,
                     "sceKernelStrnlenUserForPid": 2569661191,
                     "sceKernelStrncpyUserForPid": 1974137208,
@@ -103,7 +109,8 @@
                 "nid": 1671764453,
                 "variables": {},
                 "functions": {
-                    "sceKernelCreateUidObj": 3741485271
+                    "sceKernelCreateUidObj": 3741485271,
+                    "sceKernelRxMemcpyKernelToUserForPid": 814945650
                 }
             },
             "SceSysclibForDriver": {
@@ -139,7 +146,8 @@
                     "sceKernelCpuRestoreContext": 172953529,
                     "sceKernelCpuDcacheAndL2Flush": 272134821,
                     "sceKernelCpuIcacheAndL2Flush": 435256272,
-                    "sceKernelCpuUnrestrictedMemcpy": 2355641836
+                    "sceKernelCpuUnrestrictedMemcpy": 2355641836,
+                    "sceKernelCpuDcacheFlush": 1805837596
                 }
             },
             "SceCpuForDriver": {
@@ -148,7 +156,8 @@
                 "variables": {},
                 "functions": {
                     "sceKernelCpuDisableInterrupts": 2183119086,
-                    "sceKernelCpuEnableInterrupts": 4122661947
+                    "sceKernelCpuEnableInterrupts": 4122661947,
+                    "sceKernelCpuDcacheAndL2AndDMAFlush": 911108260
                 }
             }
         }

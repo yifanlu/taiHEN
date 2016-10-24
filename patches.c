@@ -127,11 +127,11 @@ void mirror_cache_flush(SceUID pid, uintptr_t vma, size_t len) {
   len = ((vma + len + 0x1F) & ~0x1F) - vma_align;
 
   flags = sceKernelCpuDisableInterrupts();
-  sceKernelCpuSaveContext(context);
+  cpu_save_process_context(context);
   ret = sceKernelSwitchVmaForPid(pid);
-  sceKernelCpuDcacheAndL2Flush((void *)vma_align, len);
+  sceKernelCpuDcacheFlush((void *)vma_align, len);
   sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
-  sceKernelCpuRestoreContext(context);
+  cpu_restore_process_context(context);
   sceKernelCpuEnableInterrupts(flags);
   LOG("sceKernelSwitchVmaForPid(%d): 0x%08X\n", pid, ret);
 }
@@ -204,12 +204,12 @@ static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t s
   int ret;
   if (dst_pid == KERNEL_PID) {
       ret = sceKernelCpuUnrestrictedMemcpy(dst, src, size);
-      LOG("sceKernelCpuUnrestrictedMemcpy(0x%p, 0x%p, 0x%08X): 0x%08X", dst, src, size, ret);
+      LOG("sceKernelCpuUnrestrictedMemcpy(%p, %p, 0x%08X): 0x%08X", dst, src, size, ret);
   } else {
       ret = sceKernelRxMemcpyKernelToUserForPid(dst_pid, (uintptr_t)dst, src, size);
-      LOG("sceKernelRxMemcpyKernelToUserForPid(%d, 0x%p, 0x%p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
+      LOG("sceKernelRxMemcpyKernelToUserForPid(%d, %p, %p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
   }
-  sceKernelCpuDcacheAndL2Flush(dst, size);
+  sceKernelCpuDcacheAndL2AndDMAFlush(dst, size);
   return ret;
 }
 
@@ -227,10 +227,10 @@ static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size
   int ret;
   if (src_pid == KERNEL_PID) {
     memcpy(dst, src, size);
-    LOG("memcpy(0x%p, 0x%p, 0x%08X)", dst, src, size);
+    LOG("memcpy(%p, %p, 0x%08X)", dst, src, size);
   } else {
     ret = sceKernelMemcpyUserToKernelForPid(src_pid, dst, (uintptr_t)src, size);
-    LOG("sceKernelMemcpyUserToKernelForPid(%d, 0x%p, 0x%p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
+    LOG("sceKernelMemcpyUserToKernelForPid(%d, %p, %p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
   }
   return 0;
 }
@@ -372,7 +372,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   struct slab_chain *slab;
   uintptr_t exe_addr;
 
-  LOG("Hooking 0x%p to 0x%p for pid %d", hook_func, dest_func, pid);
+  LOG("Hooking %p to %p for pid %d", hook_func, dest_func, pid);
   if (hook_func >= MEM_SHARED_START) {
     if (pid == KERNEL_PID) {
       return TAI_ERROR_INVALID_KERNEL_ADDR; // invalid hook address
@@ -510,14 +510,14 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   void *saved;
   int ret;
 
-  LOG("Injecting 0x%p with 0x%p for size 0x%08X at pid %d", dest, src, size, pid);
+  LOG("Injecting %p with %p for size 0x%08X at pid %d", dest, src, size, pid);
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (void **)&patch);
-  LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, 0x%p", ret, ret, patch);
+  LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, %p", ret, ret, patch);
   if (ret < 0) {
     return ret;
   }
   saved = sceKernelMemPoolAlloc(g_patch_pool, size);
-  LOG("sceKernelMemPoolAlloc(g_patch_pool, 0x%08X): 0x%p", size, saved);
+  LOG("sceKernelMemPoolAlloc(g_patch_pool, 0x%08X): %p", size, saved);
   if (saved == NULL) {
     sceKernelDeleteUid(ret);
     return TAI_ERROR_MEMORY;
