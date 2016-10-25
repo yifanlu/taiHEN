@@ -30,20 +30,20 @@ static inline void cpu_restore_process_context(int context[3]) {
   int cpsr;
   int tmp;
 
-  asm ("mrs %0, cpsr" : "=r" (cpsr));
+  asm volatile ("mrs %0, cpsr" : "=r" (cpsr));
   if (!(cpsr & 0x80)) {
-    asm ("cpsid i");
+    asm volatile ("cpsid i" ::: "memory");
   }
-  asm ("mrc p15, 0, %0, c13, c0, 1" : "=r" (tmp));
+  asm volatile ("mrc p15, 0, %0, c13, c0, 1" : "=r" (tmp));
   tmp = (tmp & 0xFFFFFF00) | context[2];
-  asm ("mcr p15, 0, %0, c13, c0, 1" :: "r" (0));
-  asm ("isb" ::: "memory");
-  asm ("mcr p15, 0, %0, c2, c0, 1" :: "r" (context[0] | 0x4A));
-  asm ("isb" ::: "memory");
-  asm ("mcr p15, 0, %0, c13, c0, 1" :: "r" (tmp));
-  asm ("mcr p15, 0, %0, c3, c0, 0" :: "r" (context[1] & 0x55555555));
+  asm volatile ("mcr p15, 0, %0, c13, c0, 1" :: "r" (0));
+  asm volatile ("isb" ::: "memory");
+  asm volatile ("mcr p15, 0, %0, c2, c0, 1" :: "r" (context[0] | 0x4A));
+  asm volatile ("isb" ::: "memory");
+  asm volatile ("mcr p15, 0, %0, c13, c0, 1" :: "r" (tmp));
+  asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (context[1] & 0x55555555));
   if (!(cpsr & 0x80)) {
-    asm ("cpsie i");
+    asm volatile ("cpsie i" ::: "memory");
   }
 }
 

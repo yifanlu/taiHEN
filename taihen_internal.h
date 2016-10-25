@@ -30,12 +30,9 @@ typedef enum {
 } tai_patch_type_t;
 
 struct _tai_hook {
-  // DO NOT MOVE THESE FIELDS AROUND WITHOUT CHANGING IT IN taihen.h TOO
-  uintptr_t next_user;
-  void *func;
-  void *old;
-  // END DO NOT MOVE
+  struct _tai_hook_user u;
   int refcnt;
+  // TODO: obfuscate these two kernel pointers as they might be stored in userland
   tai_hook_t *next;
   tai_patch_t *patch;
 };

@@ -73,6 +73,15 @@ typedef struct {
  */
 typedef uintptr_t tai_hook_ref_t;
 
+/**
+ * @brief      Internal structure
+ */
+struct _tai_hook_user {
+  uintptr_t next;
+  void *func;
+  void *old;
+};
+
 #ifdef __VITA_KERNEL__
 SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t *p_hook, void *dest_func, const void *hook_func);
 SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
@@ -97,19 +106,14 @@ int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook);
  * @return     Return value from the hook chain
  */
 #define TAI_CONTINUE(type, hook, ...) ({ \
-  type ret; \
-  struct _tai_hook_ref { \
-    struct _tai_hook_ref *next; \
-    type (*func)(); \
-    type (*old)(); \
-  } *cur; \
-  cur = (struct _tai_hook_ref *)(hook); \
-  if (cur->next == NULL) { \
-    ret = cur->old(__VA_ARGS__); \
-  } else { \
-    ret = cur->next->func(__VA_ARGS__); \
-  } \
-  ret; \
+  struct _tai_hook_user *cur, *next; \
+  cur = (struct _tai_hook_user *)(hook); \
+  next = (struct _tai_hook_user *)cur->next; \
+  (next == NULL) ? \
+    ((type(*)())cur->old)(__VA_ARGS__) \
+  : \
+    ((type(*)())next->func)(__VA_ARGS__) \
+  ; \
 })
 
 /** @} */

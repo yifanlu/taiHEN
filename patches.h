@@ -14,7 +14,7 @@
 int patches_init(void);
 void patches_deinit(void);
 
-void mirror_cache_flush(SceUID pid, uintptr_t vma, size_t len);
+void cache_flush(SceUID pid, uintptr_t vma, size_t len);
 SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, const void *hook_func);
 int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref);
 SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size);

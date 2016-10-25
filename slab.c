@@ -269,7 +269,7 @@ void *slab_alloc(struct slab_chain *const sch, uintptr_t *exe_addr)
             curr.s->page = sch->partial;
             curr.s->write_res = write_res;
             curr.s->exe_res = exe_res;
-            curr.s->exe_data = exe_data + offsetof(struct slab_header, data);
+            curr.s->exe_data = exe_data;
             exe_data += sch->slabsize;
             curr.s->slots = sch->empty_slotmask;
             sch->empty = prev = curr.s;
@@ -281,7 +281,7 @@ void *slab_alloc(struct slab_chain *const sch, uintptr_t *exe_addr)
                 curr.s->page = sch->partial;
                 curr.s->write_res = write_res;
                 curr.s->exe_res = exe_res;
-                curr.s->exe_data = exe_data + offsetof(struct slab_header, data);
+                curr.s->exe_data = exe_data;
                 exe_data += sch->slabsize;
                 curr.s->slots = sch->empty_slotmask;
                 prev = curr.s;
@@ -401,7 +401,7 @@ uintptr_t slab_getmirror(struct slab_chain *const sch, const void *const addr)
         ((uintptr_t) addr & sch->alignment_mask);
 
 
-    return slab->exe_data + (ptrdiff_t)((char *) addr - (char *) slab);
+    return slab->exe_data - offsetof(struct slab_header, data) + (ptrdiff_t)((char *) addr - (char *) slab);
 }
 
 void slab_traverse(const struct slab_chain *const sch, void (*fn)(const void *))

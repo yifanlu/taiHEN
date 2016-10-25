@@ -9,6 +9,7 @@
 #include "error.h"
 #include "module.h"
 #include "patches.h"
+#include "proc_map.h"
 #include "taihen_internal.h"
 
 /** @brief      The maximum length for a line in the config file. */
@@ -70,7 +71,7 @@ static int load_config(const char *path) {
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
 SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t *p_hook, void *dest_func, const void *hook_func) {
-  return tai_hook_func_abs((tai_hook_ref_t *)p_hook, pid, dest_func, hook_func);
+  return tai_hook_func_abs(p_hook, pid, dest_func, hook_func);
 }
 
 /**
@@ -290,9 +291,21 @@ void module_exit(void) {
 
 static tai_hook_ref_t open_ref;
 
-static int open_hook(const char *path, int flags, int mode) {
-  LOG("sceIoOpen called: %s", path);
-  return TAI_CONTINUE(int, open_ref, path, flags, mode);
+static int open_hook(const char *path, int flags, int mode, void *opt) {
+  char kpath[256];
+  int ret;
+  struct _tai_hook_user *hook;
+  LOG("sceIoOpen called");
+  ret = TAI_CONTINUE(int, open_ref, path, flags, mode, opt);
+  LOG("copying path");
+  sceKernelMemcpyUserToKernel(kpath, path, 255);
+  kpath[255] = 0;
+  LOG("open %s: 0x%08X", kpath, ret);
+  hook = (void *)open_ref;
+  LOG("hook: %p", hook);
+  LOG("hook->old: %p", hook->old);
+  LOG("hook->next: %p", hook->next);
+  return ret;
 }
 
 /**
@@ -301,6 +314,12 @@ static int open_hook(const char *path, int flags, int mode) {
 int _start(void) {
   int ret;
   LOG("Welcome to taiHEN test!");
+  LOG("init maps system");
+  ret = proc_map_init();
+  LOG("ret = 0x%08X", ret);
+  LOG("init patches system");
+  ret = patches_init();
+  LOG("ret = 0x%08X", ret);
   ret = taiHookFunctionExportForKernel(KERNEL_PID, &open_ref, "SceIofilemgr", TAI_ANY_LIBRARY, 0xCC67B6FD, open_hook);
   LOG("return: 0x%08X", ret);
   return 0;
