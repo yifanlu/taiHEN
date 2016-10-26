@@ -122,7 +122,7 @@ SceUID taiInjectAbs(void *dest, const void *src, size_t size) {
  *
  * @see        taiInjectDataForKernel
  *
- * @param[in]  module  Name of the target module.
+ * @param[in]  modid   The module UID from `taiGetModuleInfo`
  * @param[in]  segidx  Index of the ELF segment containing the data to patch
  * @param[in]  offset  The offset from the start of the segment
  * @param[in]  data    Source data
@@ -131,7 +131,7 @@ SceUID taiInjectAbs(void *dest, const void *src, size_t size) {
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiInjectData(const char *module, int segidx, uint32_t offset, const void *data, size_t size) {
+SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const void *data, size_t size) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
 }
 

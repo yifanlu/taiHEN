@@ -231,9 +231,9 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
   }
   for (int i = 0; i < count; i++) {
     ret = sceKernelGetModuleInternal(modlist[i], &sceinfo);
-    LOG("sceKernelGetModuleInternal(%d): 0x%08X", modlist[i], ret);
+    LOG("sceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
     if (ret < 0) {
-      LOG("Error getting info for mod: %d", modlist[i]);
+      LOG("Error getting info for mod: %x", modlist[i]);
       continue;
     }
     if (sce_to_tai_module_info(pid, sceinfo, info) < 0) {
@@ -273,10 +273,10 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
     LOG("Invalid segment index: %d", segidx);
     return TAI_ERROR_INVALID_ARGS;
   }
-  LOG("Getting offset for pid:%d, modid:%d, segidx:%d, offset:%x", pid, modid, segidx, offset);
+  LOG("Getting offset for pid:%x, modid:%x, segidx:%d, offset:%x", pid, modid, segidx, offset);
   if (pid != KERNEL_PID) {
     modid = sceKernelKernelUidForUserUid(pid, modid);
-    LOG("sceKernelKernelUidForUserUid(%d): 0x%08X", pid, modid);
+    LOG("sceKernelKernelUidForUserUid(%x): 0x%08X", pid, modid);
     if (modid < 0) {
       LOG("Cannot find kernel object for user object.");
       return TAI_ERROR_NOT_FOUND;
@@ -284,7 +284,7 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
   }
   sceinfo.size = sizeof(sceinfo);
   ret = sceKernelGetModuleInfoForKernel(pid, modid, &sceinfo);
-  LOG("sceKernelGetModuleInfoForKernel(%d, %d): 0x%08X", pid, modid, ret);
+  LOG("sceKernelGetModuleInfoForKernel(%x, %x): 0x%08X", pid, modid, ret);
   if (ret < 0) {
     LOG("Error getting segment info for %d", modid);
     return ret;
@@ -318,7 +318,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
   size_t found;
   int i;
 
-  LOG("Getting export for pid:%d, modname:%s, libnid:%d, funcnid:%x", pid, modname, libnid, funcnid);
+  LOG("Getting export for pid:%x, modname:%s, libnid:%d, funcnid:%x", pid, modname, libnid, funcnid);
   info.size = sizeof(info);
   if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
     LOG("Failed to find module: %s", modname);
@@ -377,7 +377,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
   size_t found;
   int i;
 
-  LOG("Getting import for pid:%d, modname:%s, target_libnid:%d, funcnid:%x", pid, modname, target_libnid, funcnid);
+  LOG("Getting import for pid:%x, modname:%s, target_libnid:%d, funcnid:%x", pid, modname, target_libnid, funcnid);
   info.size = sizeof(info);
   if (module_get_by_name_nid(pid, modname, 0, &info) < 0) {
     LOG("Failed to find module: %s", modname);

@@ -225,7 +225,7 @@ static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t s
       LOG("sceKernelCpuUnrestrictedMemcpy(%p, %p, 0x%08X): 0x%08X", dst, src, size, ret);
   } else {
       ret = sceKernelRxMemcpyKernelToUserForPid(dst_pid, (uintptr_t)dst, src, size);
-      LOG("sceKernelRxMemcpyKernelToUserForPid(%d, %p, %p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
+      LOG("sceKernelRxMemcpyKernelToUserForPid(%x, %p, %p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
   }
   sceKernelCpuDcacheAndL2Flush(dst, size);
   return ret;
@@ -248,7 +248,7 @@ static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size
     LOG("memcpy(%p, %p, 0x%08X)", dst, src, size);
   } else {
     ret = sceKernelMemcpyUserToKernelForPid(src_pid, dst, (uintptr_t)src, size);
-    LOG("sceKernelMemcpyUserToKernelForPid(%d, %p, %p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
+    LOG("sceKernelMemcpyUserToKernelForPid(%x, %p, %p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
   }
   return 0;
 }
@@ -372,7 +372,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   struct slab_chain *slab;
   uintptr_t exe_addr;
 
-  LOG("Hooking %p to %p for pid %d", hook_func, dest_func, pid);
+  LOG("Hooking %p to %p for pid %x", hook_func, dest_func, pid);
   if (hook_func >= MEM_SHARED_START) {
     if (pid == KERNEL_PID) {
       return TAI_ERROR_INVALID_KERNEL_ADDR; // invalid hook address
@@ -382,6 +382,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   }
 
   hook = NULL;
+  // TODO: create it for a PID to allow auto cleanup on process exit
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (void **)&patch);
   LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
   if (ret < 0) {
@@ -458,7 +459,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   int ret;
 
   ret = sceKernelGetObjForUid(uid, &g_taihen_class, (void **)&patch);
-  LOG("sceKernelGetObjForUid(%d): 0x%08X", uid, ret);
+  LOG("sceKernelGetObjForUid(%x): 0x%08X", uid, ret);
   if (ret < 0) {
     return ret;
   }
@@ -479,7 +480,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
       goto end;
     }
   }
-  LOG("Cannot find hook for uid %d ref %p", uid, hook_ref);
+  LOG("Cannot find hook for uid %x ref %p", uid, hook_ref);
   ret = TAI_ERROR_NOT_FOUND;
 end:
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
@@ -507,12 +508,13 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
 
   // TODO: Check that dest is not inside our slab structure... that could corrupt kernel code
 
-  LOG("Injecting %p with %p for size 0x%08X at pid %d", dest, src, size, pid);
+  LOG("Injecting %p with %p for size 0x%08X at pid %x", dest, src, size, pid);
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (void **)&patch);
-  LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, %p", ret, ret, patch);
+  LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, %p", ret, patch);
   if (ret < 0) {
     return ret;
   }
+
   saved = sceKernelMemPoolAlloc(g_patch_pool, size);
   LOG("sceKernelMemPoolAlloc(g_patch_pool, 0x%08X): %p", size, saved);
   if (saved == NULL) {
@@ -542,6 +544,7 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
     ret = TAI_ERROR_PATCH_EXISTS;
   } else {
     ret = tai_force_memcpy(pid, dest, src, size);
+    cache_flush(pid, (uintptr_t)dest, size);
   }
 
   if (ret < 0) {
@@ -573,7 +576,7 @@ int tai_inject_release(SceUID uid) {
   SceUID pid;
 
   ret = sceKernelGetObjForUid(uid, &g_taihen_class, (void **)&patch);
-  LOG("sceKernelGetObjForUid(%d): 0x%08X", uid, ret);
+  LOG("sceKernelGetObjForUid(%x): 0x%08X", uid, ret);
   if (ret < 0) {
     return ret;
   }
@@ -593,6 +596,7 @@ int tai_inject_release(SceUID uid) {
     ret = TAI_ERROR_SYSTEM;
   } else {
     ret = tai_force_memcpy(pid, dest, saved, size);
+    cache_flush(pid, (uintptr_t)dest, size);
     sceKernelMemPoolFree(g_patch_pool, saved);
     sceKernelDeleteUid(patch->uid);
   }
@@ -621,7 +625,7 @@ int tai_inject_release(SceUID uid) {
 int tai_try_cleanup_process(SceUID pid) {
   tai_patch_t *patch, *next;
   tai_hook_t *hook, *nexthook;
-  LOG("Calling patches cleanup for pid %d", pid);
+  LOG("Calling patches cleanup for pid %x", pid);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (proc_map_remove_all_pid(g_map, pid, &patch) > 0) {
     while (patch != NULL) {

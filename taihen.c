@@ -162,7 +162,7 @@ SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t *p_hook, SceUID
 
   ret = module_get_offset(pid, modid, segidx, offset, &addr);
   if (ret < 0) {
-    LOG("Failed to find offset for mod:%d, segidx:%d, offset:0x%08X: 0x%08X", modid, segidx, offset, ret);
+    LOG("Failed to find offset for mod:%x, segidx:%d, offset:0x%08X: 0x%08X", modid, segidx, offset, ret);
     return ret;
   }
   if (thumb) {
@@ -193,13 +193,12 @@ int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t 
 /**
  * @brief      Release a hook
  *
- * @param[in]  pid      The pid of the target
  * @param[in]  tai_uid  The tai patch reference to free
  * @param[in]  hook     The hook to free
  *
  * @return     Zero on success, < 0 on error
  */
-int taiHookReleaseForKernel(SceUID pid, SceUID tai_uid, tai_hook_ref_t hook) {
+int taiHookReleaseForKernel(SceUID tai_uid, tai_hook_ref_t hook) {
   return tai_hook_release(tai_uid, hook);
 }
 
@@ -215,14 +214,14 @@ int taiHookReleaseForKernel(SceUID pid, SceUID tai_uid, tai_hook_ref_t hook) {
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
 SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t size) {
-  return TAI_SUCCESS;
+  return tai_inject_abs(pid, dest, src, size);
 }
 
 /**
  * @brief      Inject data into a process bypassing MMU flags given an offset
  *
  * @param[in]  pid     The pid of the target (can be KERNEL_PID)
- * @param[in]  module  Name of the target module.
+ * @param[in]  modid   The module UID from `taiGetModuleInfoForKernel`
  * @param[in]  segidx  Index of the ELF segment containing the data to patch
  * @param[in]  offset  The offset from the start of the segment
  * @param[in]  data    The data in kernel address space
@@ -231,19 +230,26 @@ SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t siz
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
-SceUID taiInjectDataForKernel(SceUID pid, const char *module, int segidx, uint32_t offset, const void *data, size_t size) {
-  return TAI_SUCCESS;
+SceUID taiInjectDataForKernel(SceUID pid, SceUID modid, int segidx, uint32_t offset, const void *data, size_t size) {
+  int ret;
+  uintptr_t addr;
+
+  ret = module_get_offset(pid, modid, segidx, offset, &addr);
+  if (ret < 0) {
+    LOG("Failed to find offset for mod:%x, segidx:%d, offset:0x%08X: 0x%08X", modid, segidx, offset, ret);
+    return ret;
+  }
+  return taiInjectAbsForKernel(pid, (void *)addr, data, size);
 }
 
 /**
  * @brief      Release an injection
  *
- * @param[in]  pid      The pid of the target
  * @param[in]  tai_uid  The tai patch reference to free
  *
  * @return     Zero on success, < 0 on error
  */
-int taiInjectReleaseForKernel(SceUID pid, SceUID tai_uid) {
+int taiInjectReleaseForKernel(SceUID tai_uid) {
   return tai_inject_release(tai_uid);
 }
 
@@ -322,6 +328,8 @@ static int open_hook_2(const char *path, int flags, int mode, void *opt) {
   return TAI_CONTINUE(int, open_ref_2, path, flags, mode, opt);
 }
 
+static const volatile int testval = 0xdeadbeef;
+
 /**
  * @brief      Temporary test function
  */
@@ -340,5 +348,15 @@ int _start(void) {
   ret = taiHookFunctionExportForKernel(KERNEL_PID, &open_ref_2, "SceIofilemgr", TAI_ANY_LIBRARY, 0xCC67B6FD, open_hook_2);
   LOG("return: 0x%08X", ret);
   LOG("open_ref_2: %p", open_ref_2);
+  ret = taiHookReleaseForKernel(ret, open_ref);
+  LOG("release return: 0x%08X", ret);
+  LOG("data: %x", testval);
+  int val = 0x22222222;
+  ret = taiInjectAbsForKernel(KERNEL_PID, &testval, &val, 4);
+  LOG("inject return: 0x%08X", ret);
+  LOG("data: %x", testval);
+  ret = taiInjectReleaseForKernel(ret);
+  LOG("inject release: 0x%08X", ret);
+  LOG("data: %x", testval);
   return 0;
 }

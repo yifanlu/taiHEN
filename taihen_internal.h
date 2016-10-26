@@ -31,8 +31,8 @@ typedef enum {
 
 struct _tai_hook {
   struct _tai_hook_user u;
-  int refcnt;
   // TODO: obfuscate these two kernel pointers as they might be stored in userland
+  // also put a MAC over them
   tai_hook_t *next;
   tai_patch_t *patch;
 };
