@@ -101,7 +101,8 @@
                     "sceKernelDeleteUserUid": 2225385310,
                     "sceKernelAllocMemBlockForKernel": 3376959689,
                     "sceKernelGetMemBlockBaseForKernel": 2822893018,
-                    "sceKernelFreeMemBlockForKernel": 10361953
+                    "sceKernelFreeMemBlockForKernel": 10361953,
+                    "sceKernelGetPidContext": 785348932
                 }
             },
             "SceSysmemForKernel": {
@@ -158,6 +159,14 @@
                     "sceKernelCpuEnableInterrupts": 4122661947,
                     "sceKernelCpuDcacheAndL2AndDMAFlush": 911108260,
                     "sceKernelCpuDcacheAndL2Flush": 2629431502
+                }
+            },
+            "SceSysrootForKernel": {
+                "kernel": false,
+                "nid": 915528261,
+                "variables": {},
+                "functions": {
+                    "sceKernelGetSysrootBuffer": 1044731970
                 }
             }
         }

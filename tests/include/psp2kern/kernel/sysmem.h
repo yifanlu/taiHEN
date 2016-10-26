@@ -164,6 +164,9 @@ int sceKernelDeleteUid(SceUID uid);
 
 int sceKernelSwitchVmaForPid(SceUID pid);
 
+void *sceKernelGetSysrootBuffer(void);
+int sceKernelGetPidContext(SceUID pid, int **ctx);
+
 #ifdef __cplusplus
 }
 #endif

@@ -290,6 +290,7 @@ void module_exit(void) {
 }
 
 static tai_hook_ref_t open_ref;
+static tai_hook_ref_t open_ref_2;
 
 static int open_hook(const char *path, int flags, int mode, void *opt) {
   char kpath[256];
@@ -308,6 +309,19 @@ static int open_hook(const char *path, int flags, int mode, void *opt) {
   return ret;
 }
 
+static int open_hook_2(const char *path, int flags, int mode, void *opt) {
+  char kpath[256];
+  struct _tai_hook_user *hook;
+  sceKernelMemcpyUserToKernel(kpath, path, 255);
+  kpath[255] = 0;
+  LOG("open2 %s", kpath);
+  hook = (void *)open_ref_2;
+  LOG("hook: %p", hook);
+  LOG("hook->old: %p", hook->old);
+  LOG("hook->next: %p", hook->next);
+  return TAI_CONTINUE(int, open_ref_2, path, flags, mode, opt);
+}
+
 /**
  * @brief      Temporary test function
  */
@@ -322,5 +336,9 @@ int _start(void) {
   LOG("ret = 0x%08X", ret);
   ret = taiHookFunctionExportForKernel(KERNEL_PID, &open_ref, "SceIofilemgr", TAI_ANY_LIBRARY, 0xCC67B6FD, open_hook);
   LOG("return: 0x%08X", ret);
+  LOG("open_ref: %p", open_ref);
+  ret = taiHookFunctionExportForKernel(KERNEL_PID, &open_ref_2, "SceIofilemgr", TAI_ANY_LIBRARY, 0xCC67B6FD, open_hook_2);
+  LOG("return: 0x%08X", ret);
+  LOG("open_ref_2: %p", open_ref_2);
   return 0;
 }
