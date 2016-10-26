@@ -383,7 +383,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
 
   hook = NULL;
   // TODO: create it for a PID to allow auto cleanup on process exit
-  ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (void **)&patch);
+  ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
   LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
   if (ret < 0) {
     return ret;
@@ -458,7 +458,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   struct slab_chain *slab;
   int ret;
 
-  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (void **)&patch);
+  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (SceObjectBase **)&patch);
   LOG("sceKernelGetObjForUid(%x): 0x%08X", uid, ret);
   if (ret < 0) {
     return ret;
@@ -509,7 +509,7 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   // TODO: Check that dest is not inside our slab structure... that could corrupt kernel code
 
   LOG("Injecting %p with %p for size 0x%08X at pid %x", dest, src, size, pid);
-  ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (void **)&patch);
+  ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (SceObjectBase **)&patch);
   LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, %p", ret, patch);
   if (ret < 0) {
     return ret;
@@ -575,7 +575,7 @@ int tai_inject_release(SceUID uid) {
   int ret;
   SceUID pid;
 
-  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (void **)&patch);
+  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (SceObjectBase **)&patch);
   LOG("sceKernelGetObjForUid(%x): 0x%08X", uid, ret);
   if (ret < 0) {
     return ret;

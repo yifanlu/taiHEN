@@ -152,10 +152,14 @@ typedef struct {
   char data[0x2C];
 } SceClass;
 
+typedef struct {
+  uint32_t sce_reserved[2];
+} SceObjectBase;
+
 SceUID sceKernelKernelUidForUserUid(SceUID pid, SceUID user_uid);
 SceUID sceKernelCreateUserUid(SceUID pid, SceUID kern_uid);
-SceUID sceKernelCreateUidObj(SceClass *cls, const char *name, void *opt, void **obj);
-int sceKernelGetObjForUid(SceUID uid, SceClass *cls, void **obj);
+SceUID sceKernelCreateUidObj(SceClass *cls, const char *name, void *opt, SceObjectBase **obj);
+int sceKernelGetObjForUid(SceUID uid, SceClass *cls, SceObjectBase **obj);
 SceClass *sceKernelGetUidClass(void);
 typedef int (*SceClassCallback)(void *item);
 int sceKernelCreateClass(SceClass *cls, const char *name, void *uidclass, size_t itemsize, SceClassCallback create, SceClassCallback destroy);

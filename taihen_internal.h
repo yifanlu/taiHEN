@@ -51,6 +51,7 @@ struct _tai_hook_list {
 };
 
 struct _tai_patch {
+  uint32_t sce_reserved[2]; // used by SCE object system
   union {
     tai_inject_t inject;
     tai_hook_list_t hooks;
