@@ -13,7 +13,6 @@
 #include "slab.h"
 
 /**
- * @file proc_map.c
  * @brief      Patches are grouped by PID and stored in a linked list ordered by
  *             the address being patched. The groups are stored in a hash map
  *             where the hash function is just the PID.
@@ -185,9 +184,9 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
  *             be called on the shutdown of a process. In other words, after
  *             calling this, any pointer reference for that process is invalid!
  *
- *             Also note that for optimization, all pointers to slab in the list
- *             are considered invalid! Maybe we should null the pointers out in
- *             the future.
+ *             Also note that for optimization, all pointers to `slab` in the
+ *             list are considered invalid! Maybe we should null the pointers
+ *             out in the future.
  *
  * @param      map   The map
  * @param[in]  pid   The pid to remove

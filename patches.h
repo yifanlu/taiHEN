@@ -7,7 +7,18 @@
 #include "taihen_internal.h"
 
 /**
- * @defgroup   patches Patches Interface
+ * @defgroup   patches Patch System
+ * @brief      Modify read-only and executable memory
+ *
+ * @details    There are two kinds of patches. Injections are raw modifications
+ *             to any memory address (including read-only) memory. Once an
+ *             injection is inserted, nobody else can inject that memory address
+ *             for that process. The original data is saved and when the
+ *             injection is released, the it is written back. Hooks are handled
+ *             by [substitute](http://github.com/comex/substitute) and one
+ *             function can have multiple hooks chained together. This allows
+ *             many plugins to hook the same function. Function hooks allow the
+ *             plugin to run any code before and after a function is called.
  */
 /** @{ */
 

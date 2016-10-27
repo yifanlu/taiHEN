@@ -7,16 +7,24 @@
 #include <psp2kern/types.h>
 #include "taihen_internal.h"
 
-typedef struct {
-  int nbuckets;
-  SceUID lock;
-  tai_proc_t *buckets[];
-} tai_proc_map_t;
-
 /**
  * @defgroup   proc_map Process Map Interface
+ * @brief      Internal map structure
+ *
+ * @details    This is a thread-safe map data structure for keeping track of
+ *             mappings from PID to a linked-list of patches (stored in
+ *             `tai_proc_t`).
  */
 /** @{ */
+
+/**
+ * @brief      The actual map in memory.
+ */
+typedef struct _tai_proc_map {
+  int nbuckets;				///< Number of buckets set by `proc_map_alloc`
+  SceUID lock;				///< Mutex for accessing buckets
+  tai_proc_t *buckets[];	///< Buckets
+} tai_proc_map_t;
 
 int proc_map_init(void);
 void proc_map_deinit(void);

@@ -80,7 +80,7 @@ SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t *p_hook, void *dest_func, c
  *             If target is the kernel, use KERNEL_PID as `pid`. Since a module
  *             can have two libraries that export the same NID, you can
  *             optionally pass in the library NID of the one to hook. Otherwise,
- *             the first one found will be used.
+ *             use `TAI_ANY_LIBRARY` and the first one found will be used.
  *
  * @param[in]  pid          The pid of the target
  * @param[out] p_hook       A reference that can be used by the hook function

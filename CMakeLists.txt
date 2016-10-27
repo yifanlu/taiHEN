@@ -31,6 +31,7 @@ ExternalProject_Add(kernel
 
 add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
 add_definitions(-DNO_PTHREADS)
+add_definitions(-DENABLE_LOGGING)
 
 add_executable(taihen.elf
 	module.c

@@ -17,7 +17,6 @@
 #include "substitute/lib/substitute.h"
 
 /**
- * @file patches.c
  * @brief      Hooks are added to a linked list and injections are written
  *             directly.
  *
@@ -112,6 +111,10 @@ void patches_deinit(void) {
 
 /**
  * @brief      Flush L1 and L2 cache for an address
+ *
+ *             For thread safety, interrupts may be disabled for the duration of
+ *             this call. That plus the act of cache flushing itself makes this
+ *             an expensive operation.
  *
  * @param[in]  pid   The pid
  * @param[in]  vma   The vma
