@@ -224,14 +224,15 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
   size_t count;
   int ret;
 
+  count = MOD_LIST_SIZE;
   ret = sceKernelGetModuleListForKernel(pid, 1, 1, modlist, &count);
-  LOG("sceKernelGetModuleListForKernel(%d): 0x%08X", pid, ret);
+  LOG("sceKernelGetModuleListForKernel(%x): 0x%08X, count: %d", pid, ret, count);
   if (ret < 0) {
     return ret;
   }
   for (int i = 0; i < count; i++) {
     ret = sceKernelGetModuleInternal(modlist[i], &sceinfo);
-    LOG("sceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
+    //LOG("sceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
     if (ret < 0) {
       LOG("Error getting info for mod: %x", modlist[i]);
       continue;

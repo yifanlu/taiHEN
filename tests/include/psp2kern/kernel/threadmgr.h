@@ -129,7 +129,7 @@ typedef enum SceThreadStatus
 
  * @return UID of the created thread, or an error code.
  */
-SceUID sceKernelCreateThread(const char *name, SceKernelThreadEntry entry, int initPriority,
+SceUID sceKernelCreateThreadForKernel(const char *name, SceKernelThreadEntry entry, int initPriority,
                              int stackSize, SceUInt attr, int cpuAffinityMask,
                              const SceKernelThreadOptParam *option);
 
@@ -140,7 +140,7 @@ SceUID sceKernelCreateThread(const char *name, SceKernelThreadEntry entry, int i
  *
  * @return < 0 on error.
  */
-int sceKernelDeleteThread(SceUID thid);
+int sceKernelDeleteThreadForKernel(SceUID thid);
 
 /**
  * Start a created thread
@@ -149,21 +149,21 @@ int sceKernelDeleteThread(SceUID thid);
  * @param arglen - Length of the data pointed to by argp, in bytes
  * @param argp - Pointer to the arguments.
  */
-int sceKernelStartThread(SceUID thid, SceSize arglen, void *argp);
+int sceKernelStartThreadForKernel(SceUID thid, SceSize arglen, void *argp);
 
 /**
  * Exit a thread
  *
  * @param status - Exit status.
  */
-int sceKernelExitThread(int status);
+int sceKernelExitThreadForKernel(int status);
 
 /**
   * Exit a thread and delete itself.
   *
   * @param status - Exit status
   */
-int sceKernelExitDeleteThread(int status);
+int sceKernelExitDeleteThreadForKernel(int status);
 
 /**
   * Wait until a thread has ended.
@@ -174,7 +174,7 @@ int sceKernelExitDeleteThread(int status);
   *
   * @return < 0 on error.
   */
-int sceKernelWaitThreadEnd(SceUID thid, int *stat, SceUInt *timeout);
+int sceKernelWaitThreadEndForKernel(SceUID thid, int *stat, SceUInt *timeout);
 
 /**
   * Wait until a thread has ended and handle callbacks if necessary.
@@ -1037,7 +1037,7 @@ int sceKernelWaitLwCond(SceKernelLwCondWork *pWork,  unsigned int *pTimeout);
  *
  * @return The system time
  */
-SceInt64 sceKernelGetSystemTimeWide(void);
+SceInt64 sceKernelGetSystemTimeWideForDriver(void);
 
 /**
  * @brief sceKernelGetThreadTLSAddr gets an address to a 4 bytes area of TLS memory for the specified thread

@@ -32,6 +32,7 @@ ExternalProject_Add(kernel
 add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
 add_definitions(-DNO_PTHREADS)
 add_definitions(-DENABLE_LOGGING)
+add_definitions(-D__VITA_KERNEL__)
 
 add_executable(taihen.elf
 	module.c
@@ -47,6 +48,7 @@ add_executable(taihen.elf
 	substitute/lib/transform-dis.c
 	substitute/lib/cbit/vec.c
 	substitute/lib/vita/execmem.c
+	tests/test_api_kernel.c
 )
 
 target_link_libraries(taihen.elf
@@ -55,6 +57,8 @@ target_link_libraries(taihen.elf
 	SceKernelThreadMgrTMP_KERNEL_stub
 	SceSysmemTMP_KERNEL_stub
 	SceKernelModulemgrTMP_KERNEL_stub
+	SceIofilemgrTMP_KERNEL_stub
+	SceSblSsMgrTMP_KERNEL_stub
 )
 add_dependencies(taihen.elf kernel)
 

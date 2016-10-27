@@ -32,7 +32,12 @@
                 "nid": 3804497444,
                 "variables": {},
                 "functions": {
-                    "sceKernelGetProcessId": 2647346042
+                    "sceKernelGetProcessId": 2647346042,
+                    "sceKernelGetSystemTimeWideForDriver": 4109258665,
+                    "sceKernelWaitThreadEndForKernel": 1042293103,
+                    "sceKernelCreateThreadForKernel": 3328659069,
+                    "sceKernelDeleteThreadForKernel": 2894286655,
+                    "sceKernelStartThreadForKernel": 569721243
                 }
             }
         }
@@ -167,6 +172,42 @@
                 "variables": {},
                 "functions": {
                     "sceKernelGetSysrootBuffer": 1044731970
+                }
+            }
+        }
+    },
+    "SceIofilemgr": {
+        "nid": 1042566167, 
+        "modules": {
+            "SceIofilemgrForDriver": {
+                "kernel": false, 
+                "nid": 1090333127, 
+                "variables": {}, 
+                "functions": {
+                    "sceIoDreadForDriver": 550461383,
+                    "sceIoWriteForDriver": 569283056,
+                    "sceIoDopenForDriver": 1178281420,
+                    "sceIoLseekForDriver": 1644758145,
+                    "sceIoOpenForDriver": 1964583282,
+                    "sceIoChstatForDriver": 2101524700,
+                    "sceIoGetstatForDriver": 1976134949,
+                    "sceIoMkdirForDriver": 2138114853,
+                    "sceIoReadForDriver": 3783195651,
+                    "sceIoCloseForDriver": 4187871395,
+                    "sceIoRenameForDriver": 3691792791
+                }
+            }
+        }
+    },
+    "SceSblSsMgr": {
+        "nid": 4259156986, 
+        "modules": {
+            "SceSblSsMgrForDriver": {
+                "kernel": false, 
+                "nid": 1642676877, 
+                "variables": {}, 
+                "functions": {
+                    "sceKernelGetRandomNumberForDriver": 1335622629
                 }
             }
         }
