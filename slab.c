@@ -469,8 +469,9 @@ void slab_destroy(const struct slab_chain *const sch)
         struct slab_header *page = pages_head;
 
         do {
-            sce_exe_free(page->write_res, page->exe_res);
+            struct slab_header *target = page;
             page = page->next;
+            sce_exe_free(target->write_res, target->exe_res);
         } while (page != NULL);
     }
 }

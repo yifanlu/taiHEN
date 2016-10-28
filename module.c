@@ -290,8 +290,8 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
     LOG("Error getting segment info for %d", modid);
     return ret;
   }
-  if (offset > sceinfo.segments[segidx].size) {
-    LOG("Offset %x overflows segment size %x", offset, sceinfo.segments[segidx].size);
+  if (offset > sceinfo.segments[segidx].memsz) {
+    LOG("Offset %x overflows segment size %x", offset, sceinfo.segments[segidx].memsz);
     return TAI_ERROR_INVALID_ARGS;
   }
   *addr = (uintptr_t)sceinfo.segments[segidx].vaddr + offset;
@@ -396,7 +396,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
       import = &local;
     }
 
-    LOG("import size is 0x%04X", import->size);
+    //LOG("import size is 0x%04X", import->size);
     if (import->size == sizeof(struct sce_module_imports_1)) {
       if (target_libnid == 0 || import->type1.lib_nid == target_libnid) {
         if (pid == KERNEL_PID) {

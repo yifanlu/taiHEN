@@ -9,6 +9,8 @@
 #include <psp2kern/io/fcntl.h>
 #include "../taihen.h"
 #include "../module.h"
+#include "../patches.h"
+#include "../proc_map.h"
 
 /** Macro for printing test messages with an identifier */
 #ifndef NO_TEST_OUTPUT
@@ -37,7 +39,7 @@ int sceKernelGetRandomNumberForDriver(void *out, size_t len);
  * @param[out] ordering  An array of permutated indexes uniformly distributed
  */
 static inline void permute_index(int rn, int limit, int ordering[limit-1]) {
-  ordering[0] = rn % (limit-1);
+  ordering[0] = (unsigned)rn % (limit-1);
   for (int i = 1; i < limit-1; i++) {
     ordering[i] = (ordering[i-1] + ordering[0] + 1) % limit;
   }
@@ -57,9 +59,9 @@ static int g_passed[TEST_1_NUM_HOOKS];
 
 #define HOOK(x) static int hook ##x (int r0, int r1, int r2, int r3) { \
   const char *name = "hook"; \
-  g_passed[x] = 1; \
+  g_passed[x]++; \
   TEST_MSG("called: %d", x); \
-  return TAI_CONTINUE(int, g_passed[x], r0, r1, r2, r3); \
+  return TAI_CONTINUE(int, g_hooks[x], r0, r1, r2, r3); \
 }
 
 HOOK(0) HOOK(1) HOOK(2) HOOK(3) HOOK(4) HOOK(5) HOOK(6) HOOK(7) HOOK(8) HOOK(9)
@@ -91,17 +93,17 @@ int test_scenario_1(const char *name, int flavor) {
   }
   for (j = 0; j < TEST_1_NUM_HOOKS; j++) {
     i = ordering[j];
-    if ((flavor % 2 == 0) || (flavor % 2 == 1 && (i / 3) != 1)) {
-      switch (i % 3) {
-        case 0: g_refs[i] = taiHookFunctionExportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", TAI_ANY_LIBRARY, 0x75192972, hooks[i]); break;
-        case 1: g_refs[i] = taiHookFunctionImportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", 0x7EE45391, 0x38463759, hooks[i]); break;
-        case 2: g_refs[i] = taiHookFunctionOffsetForKernel(KERNEL_PID, &g_hooks[i], info.modid, 0, 0x14f1c, 1, hooks[i]); break;
-      }
-      TEST_MSG("hook %d: %x, %p", i, g_refs[i], g_hooks[i]);
-      g_passed[i] = 0;
-    } else {
-      g_passed[i] = 1;
+    TEST_MSG("adding hook %d", i);
+    switch (i % 3) {
+      case 0: g_refs[i] = taiHookFunctionExportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", TAI_ANY_LIBRARY, 0x75192972, hooks[i]); break;
+      case 1: g_refs[i] = taiHookFunctionImportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", 0x7EE45391, 0x38463759, hooks[i]); break;
+      case 2: g_refs[i] = taiHookFunctionOffsetForKernel(KERNEL_PID, &g_hooks[i], info.modid, 0, 0x14f1c, 1, hooks[i]); break;
     }
+    TEST_MSG("hook %d: %x, %p", i, g_refs[i], g_hooks[i]);
+    if (g_refs[i] < 0) {
+      return g_refs[i];
+    }
+    g_passed[i] = 0;
   }
   return 0;
 }
@@ -118,10 +120,10 @@ int test_scenario_1_test_hooks(const char *name) {
 
   ret = sceIoOpenForDriver("ux0:bad", 0, 0);
   for (i = 0; i < TEST_1_NUM_HOOKS; i++) {
-    if (g_passed[i]) {
-      TEST_MSG("HOOKS PASSED: %d", i);
+    if (g_passed[i] > 0) {
+      TEST_MSG("HOOKS PASSED: %d, called: %d", i, g_passed[i]);
     } else {
-      TEST_MSG("HOOKS FAILED: %d", i);
+      TEST_MSG("HOOKS FAILED: %d, called: 0", i);
       return -1;
     }
   }
@@ -142,16 +144,24 @@ int test_scenario_1_cleanup(const char *name, int flavor) {
   int ret;
   int i, j;
   int ordering[TEST_1_NUM_HOOKS];
-  permute_index(flavor, TEST_1_NUM_HOOKS+1, ordering);
+  permute_index(flavor / 2, TEST_1_NUM_HOOKS+1, ordering);
   for (j = 0; j < TEST_1_NUM_HOOKS; j++) {
     i = ordering[j];
-    if ((flavor == 0) || (flavor == 1 && (i / 3) != 1)) {
-      ret = taiHookReleaseForKernel(g_refs[i], g_hooks[i]);
-      TEST_MSG("release %d: %x", i, ret);
-    }
+    TEST_MSG("releasing hook %d", i);
+    ret = taiHookReleaseForKernel(g_refs[i], g_hooks[i]);
+    TEST_MSG("release %d: %x", i, ret);
     g_passed[i] = 0;
     g_refs[i] = 0;
     g_hooks[i] = 0;
+  }
+  ret = sceIoOpenForDriver("ux0:bad", 0, 0);
+  for (i = 0; i < TEST_1_NUM_HOOKS; i++) {
+    if (g_passed[i] == 0) {
+      TEST_MSG("RELEASE PASSED: %d, called: 0", i);
+    } else {
+      TEST_MSG("RELEASE FAILED: %d, called: %d", i, g_passed[i]);
+      return -1;
+    }
   }
   return 0;
 }
@@ -186,12 +196,16 @@ int test_scenario_2(const char *name, int flavor) {
   for (j = 0; j < TEST_2_NUM_INJECT; j++) {
     i = ordering[j];
     if (i % 2 == 1) {
-      offset = 0x14f1c;
+      offset = 0x4a4;
     } else {
       offset = 0x1dbe0 + i;
     }
+    TEST_MSG("adding injection %d", i);
     g_inj_refs[i] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, offset, &dat, 2);
     TEST_MSG("offset: %x, ret: %x", offset, g_inj_refs[i]);
+    if (g_inj_refs[i] < 0) {
+      g_inj_refs[i] = 0;
+    }
   }
   return 0;
 }
@@ -208,12 +222,15 @@ int test_scenario_2_cleanup(const char *name, int flavor) {
   int ret;
   int i, j;
   int ordering[TEST_2_NUM_INJECT];
-  permute_index(flavor, TEST_2_NUM_INJECT+1, ordering);
+  permute_index(flavor / 2, TEST_2_NUM_INJECT+1, ordering);
   for (j = 0; j < TEST_2_NUM_INJECT; j++) {
     i = ordering[j];
-    ret = taiInjectReleaseForKernel(g_inj_refs[i]);
-    TEST_MSG("release %d: %x", i, ret);
-    g_inj_refs[i] = 0;
+    if (g_inj_refs[i] > 0) {
+      TEST_MSG("removing injection %d", i);
+      ret = taiInjectReleaseForKernel(g_inj_refs[i]);
+      TEST_MSG("release %d: %x", i, ret);
+      g_inj_refs[i] = 0;
+    }
   }
   return 0;
 }
@@ -365,18 +382,11 @@ static int single_threaded(void) {
   int ret;
 
   sceKernelGetRandomNumberForDriver(&flavor, sizeof(int));
-  ret = test_scenario_1("st-hook-uniform", flavor & ~1);
+  ret = test_scenario_1("st-hook-uniform", flavor);
   if (ret < 0) return ret;
   ret = test_scenario_1_test_hooks("st-hook-uniform");
   if (ret < 0) return ret;
-  ret = test_scenario_1_cleanup("st-hook-uniform", flavor & ~1);
-  if (ret < 0) return ret;
-  sceKernelGetRandomNumberForDriver(&flavor, sizeof(int));
-  ret = test_scenario_1("st-hook-skewed", flavor | 1);
-  if (ret < 0) return ret;
-  ret = test_scenario_1_test_hooks("st-hook-skewed");
-  if (ret < 0) return ret;
-  ret = test_scenario_1_cleanup("st-hook-skewed", flavor | 1);
+  ret = test_scenario_1_cleanup("st-hook-uniform", flavor);
   if (ret < 0) return ret;
   sceKernelGetRandomNumberForDriver(&flavor, sizeof(int));
   ret = test_scenario_2("st-inject", flavor);
@@ -392,6 +402,20 @@ static int single_threaded(void) {
 
 int _start(void) {
   const char *name = "main";
+  int ret;
+  TEST_MSG("Initializing system");
+  ret = proc_map_init();
+  TEST_MSG("proc_map_init: %x", ret);
+  if (ret < 0) {
+    TEST_MSG("FAILED");
+    return 0;
+  }
+  ret = patches_init();
+  TEST_MSG("patches_init: %x", ret);
+  if (ret < 0) {
+    TEST_MSG("FAILED");
+    return 0;
+  }
   TEST_MSG("Testing single thread");
   if (single_threaded() < 0) {
     TEST_MSG("FAILED");
@@ -412,5 +436,9 @@ int _start(void) {
     TEST_MSG("FAILED");
     return 0;
   }
+  TEST_MSG("patches_deinit");
+  patches_deinit();
+  TEST_MSG("proc_map_deinit");
+  proc_map_deinit();
   return 0;
 }

@@ -266,7 +266,7 @@ static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size
  * @param      hooks  The chain of hooks to add to
  * @param      item   The hook to add
  *
- * @return     Zero if new hook added, < 0 on error
+ * @return     Zero if new hook added, 1 if it exists, < 0 on error
  */
 static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   tai_hook_t *head;
@@ -288,9 +288,11 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
     item->u.old = hooks->old;
     head->next = item;
     head->u.next = slab_getmirror(item->patch->slab, item);
+    LOG("Added hook to existing chain %p", head);
     // flush cache for head + item, which were modified
     cache_flush(item->patch->pid, slab_getmirror(item->patch->slab, head), sizeof(tai_hook_t));
     cache_flush(item->patch->pid, head->u.next, sizeof(tai_hook_t));
+    ret = 1;
   }
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
 
@@ -320,17 +322,22 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (hooks->head == item) { // first hook for this list
     // we must remove the patch
-    tai_unhook_function(item->patch->data.hooks.saved);
+    tai_unhook_function(hooks->saved);
+    hooks->saved = NULL;
     // set head to the next item
     hooks->head = item->next;
-    // add a patch to the new head
-    ret = tai_hook_function(item->patch->slab, hooks->func, item->next->u.func, &hooks->old, &hooks->saved);
-    // update the old pointers
-    for (cur = &hooks->head; *cur != NULL; cur = &(*cur)->next) {
-      (*cur)->u.old = hooks->old;
+    if (hooks->head != NULL) {
+      // add a patch to the new head
+      ret = tai_hook_function(item->patch->slab, hooks->func, hooks->head->u.func, &hooks->old, &hooks->saved);
+      // update the old pointers
+      for (cur = &hooks->head; *cur != NULL; cur = &(*cur)->next) {
+        (*cur)->u.old = hooks->old;
+      }
+      // clear cache of mirror for the last item since it uses the old pointer
+      cache_flush(item->patch->pid, (uintptr_t)cur - offsetof(tai_hook_t, next), sizeof(tai_hook_t));
+    } else {
+      ret = 0;
     }
-    // clear cache of mirror for the last item since it uses the old pointer
-    cache_flush(item->patch->pid, (uintptr_t)cur - offsetof(tai_hook_t, next), sizeof(tai_hook_t));
   } else {
     cur = &hooks->head;
     cur_user = &tmp;
@@ -456,7 +463,7 @@ err:
  * @return     Zero on success, < 0 on error
  */
 int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
-  tai_hook_t *hook;
+  tai_hook_t **cur, *hook;
   tai_patch_t *patch;
   struct slab_chain *slab;
   int ret;
@@ -468,17 +475,19 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   }
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   slab = patch->slab;
-  for (hook = patch->data.hooks.head; hook != NULL; hook = hook->next) {
-    if (slab_getmirror(slab, hook) == hook_ref) {
+  for (cur = &patch->data.hooks.head; *cur != NULL; cur = &(*cur)->next) {
+    if (slab_getmirror(slab, *cur) == hook_ref) {
+      hook = *cur;
       LOG("Found hook %p for ref %p", hook, hook_ref);
       ret = hooks_remove_hook(&patch->data.hooks, hook);
+      *cur = hook->next;
+      LOG("freeing hook");
+      slab_free(slab, hook);
       if (patch->data.hooks.head == NULL) {
         LOG("patch is now empty, freeing it");
         proc_map_remove(g_map, patch);
         sceKernelDeleteUid(patch->uid);
       }
-      LOG("freeing hook");
-      slab_free(slab, hook);
       ret = TAI_SUCCESS;
       goto end;
     }
