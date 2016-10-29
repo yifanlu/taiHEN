@@ -140,7 +140,7 @@ static int parse_headers_patched(int ctx, const void *headers, size_t len, void 
   }
   ret = TAI_CONTINUE(int, g_parse_headers_hook, ctx, headers, len, args);
   if (ctx == 1) { // as of 3.60, only one decrypt context exists
-    if (ret == 0x800f0624 || ret == 0x800f0616 || ret == 0x800f0024) {
+    if (ret == 0x800f0624 || ret == 0x800f0616 || ret == 0x800f0024 || ret == 0x800f0b3a) {
       g_is_homebrew = 1;
       *(uint32_t *)(args + OFFSET_PATCH_ARG) = 0x20;
       ret = 0;
@@ -166,7 +166,7 @@ static int setup_buffer_patched(int ctx, int segidx) {
   ret = TAI_CONTINUE(int, g_setup_buffer_hook, ctx, segidx);
   if (ctx == 1 && g_is_homebrew && segidx < MAX_SEGMENTS) {
     ret = g_seg_info[segidx].compressed;
-    LOG("homebrew compressed: %d", ret);
+    LOG("segidx %d, compression type: %d", segidx, ret);
   }
   return ret;
 }
