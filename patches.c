@@ -12,6 +12,7 @@
 #include <string.h>
 #include "error.h"
 #include "taihen_internal.h"
+#include "patches.h"
 #include "proc_map.h"
 #include "slab.h"
 #include "substitute/lib/substitute.h"
@@ -109,6 +110,7 @@ void patches_deinit(void) {
   g_hooks_lock = 0;
 }
 
+#ifdef __arm__
 /**
  * @brief      Flush L1 and L2 cache for an address
  *
@@ -153,6 +155,7 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
     LOG("sceKernelSwitchVmaForPid(%d): 0x%08X\n", pid, ret);
   }
 }
+#endif
 
 /**
  * @brief      Adds a hook to a function using libsubstitute
@@ -184,7 +187,7 @@ static int tai_hook_function(struct slab_chain *slab, void *target_func, const v
   LOG("Done hooking");
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
-    return TAI_ERROR_SYSTEM;
+    return TAI_ERROR_HOOK_ERROR;
   }
   return TAI_SUCCESS;
 }
@@ -202,7 +205,7 @@ static int tai_unhook_function(void *saved) {
   ret = substitute_free_hooks((struct substitute_function_hook_record *)saved, 1);
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
-    return TAI_ERROR_SYSTEM;
+    return TAI_ERROR_HOOK_ERROR;
   }
   return TAI_SUCCESS;
 }
@@ -230,7 +233,7 @@ static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t s
       ret = sceKernelRxMemcpyKernelToUserForPid(dst_pid, (uintptr_t)dst, src, size);
       LOG("sceKernelRxMemcpyKernelToUserForPid(%x, %p, %p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
   }
-  sceKernelCpuDcacheAndL2Flush(dst, size);
+  cache_flush(dst_pid, (uintptr_t)dst, size);
   return ret;
 }
 
@@ -376,8 +379,7 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
  */
 SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, const void *hook_func) {
   tai_patch_t *patch, *tmp;
-  tai_hook_t *hook, *inserted;
-  SceUID uid;
+  tai_hook_t *hook;
   int ret;
   struct slab_chain *slab;
   uintptr_t exe_addr;
@@ -387,11 +389,12 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
     if (pid == KERNEL_PID) {
       return TAI_ERROR_INVALID_KERNEL_ADDR; // invalid hook address
     } else {
-      pid = SHARED_PID;
+      return TAI_ERROR_NOT_IMPLEMENTED; // TODO: add support for this
     }
   }
 
   hook = NULL;
+  slab = NULL;
   // TODO: create it for a PID to allow auto cleanup on process exit
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
   LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
@@ -411,11 +414,11 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   patch->data.hooks.head = NULL;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
     ret = sceKernelDeleteUid(patch->uid);
-    LOG("sceKernelDeleteUid(0x%08X): 0x%08X", patch->uid, ret);
+    LOG("sceKernelDeleteUid(old): 0x%08X", ret);
     if (tmp == NULL || tmp->type != HOOKS) {
       // error
-      LOG("internal error: proc_map cannot insert hook but did not return a valid existing hook");
-      ret = TAI_ERROR_SYSTEM;
+      LOG("this hook overlaps an existing hook");
+      ret = TAI_ERROR_PATCH_EXISTS;
       goto err;
     } else {
       // we have an existing patch
@@ -445,7 +448,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
 
 err:
   // error and we have allocated a hook
-  if (ret < 0 && hook) {
+  if (ret < 0 && slab && hook) {
     slab_free(slab, hook);
   }
 
@@ -556,7 +559,6 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
     ret = TAI_ERROR_PATCH_EXISTS;
   } else {
     ret = tai_force_memcpy(pid, dest, src, size);
-    cache_flush(pid, (uintptr_t)dest, size);
   }
 
   if (ret < 0) {
@@ -608,7 +610,6 @@ int tai_inject_release(SceUID uid) {
     ret = TAI_ERROR_SYSTEM;
   } else {
     ret = tai_force_memcpy(pid, dest, saved, size);
-    cache_flush(pid, (uintptr_t)dest, size);
     sceKernelMemPoolFree(g_patch_pool, saved);
     sceKernelDeleteUid(patch->uid);
   }

@@ -257,16 +257,17 @@ void *start_test(void *arg) {
 
 int main(int argc, const char *argv[]) {
   const char *name = "INIT";
-  int seed;
   tai_proc_map_t *map;
   pthread_t threads[TEST_NUM_THREADS];
   struct thread_args args[TEST_NUM_THREADS];
   
+  int seed = 0;
+
   if (argc > 1) {
     seed = atoi(argv[1]);
     TEST_MSG("Seeding PRNG: %d", seed);
-    srand(seed);
   }
+  srand(seed);
 
   TEST_MSG("Setup maps");
   proc_map_init();

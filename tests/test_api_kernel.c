@@ -11,6 +11,7 @@
 #include "../module.h"
 #include "../patches.h"
 #include "../proc_map.h"
+#include "../error.h"
 
 /** Macro for printing test messages with an identifier */
 #ifndef NO_TEST_OUTPUT
@@ -18,6 +19,15 @@
 #else
 #define TEST_MSG(fmt, ...)
 #endif
+
+/** 3.60 offset */
+#define IOFILEMGR_OFFSET_SCEIOOPENFORDRIVER 0x4a4
+
+/** 3.60 offset */
+#define IOFILEMGR_OFFSET_SOME_FUNC_CALLED_FROM_SCEIOOPENFORDRIVER 0x14f1c
+
+/** 3.60 offset */
+#define IOFILEMGR_OFFSET_JUNK 0x1dbe0
 
 /** This mutex will be unlocked whenever a test is done */
 static SceUID g_done_lock;
@@ -97,11 +107,16 @@ int test_scenario_1(const char *name, int flavor) {
     switch (i % 3) {
       case 0: g_refs[i] = taiHookFunctionExportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", TAI_ANY_LIBRARY, 0x75192972, hooks[i]); break;
       case 1: g_refs[i] = taiHookFunctionImportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", 0x7EE45391, 0x38463759, hooks[i]); break;
-      case 2: g_refs[i] = taiHookFunctionOffsetForKernel(KERNEL_PID, &g_hooks[i], info.modid, 0, 0x14f1c, 1, hooks[i]); break;
+      case 2: g_refs[i] = taiHookFunctionOffsetForKernel(KERNEL_PID, &g_hooks[i], info.modid, 0, IOFILEMGR_OFFSET_SOME_FUNC_CALLED_FROM_SCEIOOPENFORDRIVER, 1, hooks[i]); break;
     }
     TEST_MSG("hook %d: %x, %p", i, g_refs[i], g_hooks[i]);
     if (g_refs[i] < 0) {
-      return g_refs[i];
+      if (g_refs[i] == TAI_ERROR_PATCH_EXISTS) {
+        g_refs[i] = 0;
+        TEST_MSG("existing patch, skipping %d", i);
+      } else {
+        return g_refs[i];
+      }
     }
     g_passed[i] = 0;
   }
@@ -119,8 +134,9 @@ int test_scenario_1_test_hooks(const char *name) {
   int ret, i;
 
   ret = sceIoOpenForDriver("ux0:bad", 0, 0);
+  TEST_MSG("sceIoOpenForDriver: %x", ret);
   for (i = 0; i < TEST_1_NUM_HOOKS; i++) {
-    if (g_passed[i] > 0) {
+    if (!g_refs[i] || g_passed[i] > 0) {
       TEST_MSG("HOOKS PASSED: %d, called: %d", i, g_passed[i]);
     } else {
       TEST_MSG("HOOKS FAILED: %d, called: 0", i);
@@ -147,9 +163,13 @@ int test_scenario_1_cleanup(const char *name, int flavor) {
   permute_index(flavor / 2, TEST_1_NUM_HOOKS+1, ordering);
   for (j = 0; j < TEST_1_NUM_HOOKS; j++) {
     i = ordering[j];
-    TEST_MSG("releasing hook %d", i);
-    ret = taiHookReleaseForKernel(g_refs[i], g_hooks[i]);
-    TEST_MSG("release %d: %x", i, ret);
+    if (g_refs[i] > 0) {
+      TEST_MSG("releasing hook %d", i);
+      ret = taiHookReleaseForKernel(g_refs[i], g_hooks[i]);
+      TEST_MSG("release %d: %x", i, ret);
+    } else {
+      TEST_MSG("skipping %d", i);
+    }
     g_passed[i] = 0;
     g_refs[i] = 0;
     g_hooks[i] = 0;
@@ -172,6 +192,9 @@ int test_scenario_1_cleanup(const char *name, int flavor) {
 /** References to the injections */
 static SceUID g_inj_refs[TEST_2_NUM_INJECT];
 
+/** thumb instruction for bxlr */
+const uint16_t bxlr = 0x4770;
+
 /**
  * @brief      Test injections
  *
@@ -181,7 +204,6 @@ static SceUID g_inj_refs[TEST_2_NUM_INJECT];
  * @return     Success
  */
 int test_scenario_2(const char *name, int flavor) {
-  const uint16_t dat = 0x4770;
   int i, j, ret;
   int ordering[TEST_2_NUM_INJECT];
   size_t offset;
@@ -196,17 +218,38 @@ int test_scenario_2(const char *name, int flavor) {
   for (j = 0; j < TEST_2_NUM_INJECT; j++) {
     i = ordering[j];
     if (i % 2 == 1) {
-      offset = 0x4a4;
+      offset = IOFILEMGR_OFFSET_SCEIOOPENFORDRIVER;
     } else {
-      offset = 0x1dbe0 + i;
+      offset = IOFILEMGR_OFFSET_JUNK + i;
     }
     TEST_MSG("adding injection %d", i);
-    g_inj_refs[i] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, offset, &dat, 2);
+    g_inj_refs[i] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, offset, &bxlr, 2);
     TEST_MSG("offset: %x, ret: %x", offset, g_inj_refs[i]);
     if (g_inj_refs[i] < 0) {
-      g_inj_refs[i] = 0;
+      if (g_inj_refs[i] == TAI_ERROR_PATCH_EXISTS) {
+        g_inj_refs[i] = 0;
+        TEST_MSG("existing patch, skipping %d", i);
+      } else {
+        return g_inj_refs[i];
+      }
     }
   }
+  return 0;
+}
+
+/**
+ * @brief      Test injection
+ *
+ * @param[in]  name  The name
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int test_scenario_2_test_inject(const char *name) {
+  int ret;
+  ret = sceIoOpenForDriver(name, 0, 0);
+  TEST_MSG("open after inject: %x", ret);
+  if (ret != (int)name) return -1;
+  TEST_MSG("INJECT PASS");
   return 0;
 }
 
@@ -230,60 +273,23 @@ int test_scenario_2_cleanup(const char *name, int flavor) {
       ret = taiInjectReleaseForKernel(g_inj_refs[i]);
       TEST_MSG("release %d: %x", i, ret);
       g_inj_refs[i] = 0;
+    } else {
+      TEST_MSG("skipping %d", i);
     }
   }
   return 0;
 }
 
-/**
- * @brief      Randomly pick between test 1 or test 2
- *
- * @param[in]  name    The name of the test
- * @param[in]  flavor  Unused
- *
- * @return     Success
- */
-int test_scenario_3(const char *name, int flavor) {
-  int ret;
-  int test = flavor % 2;
-
-  TEST_MSG("Running test:%d flavor:%d", test, flavor / 2);
-  if (test) {
-    return test_scenario_1(name, flavor / 2);
-  } else {
-    return test_scenario_2(name, flavor / 2);
-  }
-}
-
-/**
- * @brief      Randomly pick between test 1 or test 2
- *
- * @param[in]  name    The name of the test
- * @param[in]  flavor  Unused
- *
- * @return     Success
- */
-int test_scenario_3_cleanup(const char *name, int flavor) {
-  int ret;
-  int test = flavor % 2;
-
-  TEST_MSG("Running cleanup test:%d flavor:%d", test, flavor / 2);
-  if (test) {
-    return test_scenario_1_cleanup(name, flavor / 2);
-  } else {
-    return test_scenario_2_cleanup(name, flavor / 2);
-  }
-}
-
 /** Number of threads for tests. */
-#define TEST_NUM_THREADS 32
+#define TEST_NUM_THREADS (TEST_1_NUM_HOOKS > TEST_2_NUM_INJECT ? TEST_1_NUM_HOOKS : TEST_2_NUM_INJECT)
+
+/** Counter for done */
+static int g_done_count = 0;
 
 /**
  * @brief      Arguments for test thread
  */
 struct thread_args {
-  int (*test) (const char *, int);
-  int (*test_cleanup) (const char *, int);
   const char *prefix;
   int index;
   int flavor;
@@ -300,18 +306,75 @@ int start_test(SceSize args, void *argp) {
   struct thread_args *targs = (struct thread_args *)argp;
   int ret;
   char name[256];
+  int i;
+  int flavor;
+  int skip;
+  tai_module_info_t info;
+
   snprintf(name, 256, "%s-thread-%d", targs->prefix, targs->index);
-  ret = targs->test(name, targs->flavor);
-  if (ret < 0) {
-    TEST_MSG("Test failed, releasing all locks.");
-    sceKernelUnlockMutexForKernel(g_wait_lock, TEST_NUM_THREADS);
-    return ret;
+
+  i = targs->index;
+  flavor = targs->flavor;
+  ret = 0;
+  skip = 0;
+
+  TEST_MSG("starting test phase");
+  if (flavor % 2) {
+    if (i >= TEST_1_NUM_HOOKS) {
+      TEST_MSG("no space, exiting");
+      skip = 1;
+      goto wait;
+    }
+    ret = g_refs[i] = taiHookFunctionExportForKernel(KERNEL_PID, &g_hooks[i], "SceIofilemgr", TAI_ANY_LIBRARY, 0x75192972, hooks[i]);
+    if (ret == TAI_ERROR_PATCH_EXISTS) {
+      TEST_MSG("patch exists");
+      ret = g_refs[i] = 0;
+      g_hooks[i] = 0;
+    } else if (ret < 0) {
+      goto wait;
+    }
+  } else {
+    if (i >= TEST_2_NUM_INJECT) {
+      TEST_MSG("no space, exiting");
+      skip = 1;
+      goto wait;
+    }
+    info.size = sizeof(info);
+    ret = taiGetModuleInfoForKernel(KERNEL_PID, "SceIofilemgr", &info);
+    if (ret >= 0) {
+      ret = g_inj_refs[i] = taiInjectDataForKernel(KERNEL_PID, info.modid, 0, IOFILEMGR_OFFSET_SCEIOOPENFORDRIVER, &bxlr, 2);
+      if (ret == TAI_ERROR_PATCH_EXISTS) {
+        TEST_MSG("patch exists");
+        ret = g_inj_refs[i] = 0;
+      } else if (ret < 0) {
+        goto wait;
+      }
+    }
   }
-  sceKernelUnlockMutexForKernel(g_done_lock, 1);
-  sceKernelLockMutexForKernel(g_wait_lock, 1, NULL);
-  ret = targs->test_cleanup(name, targs->flavor);
   if (ret < 0) {
-    TEST_MSG("Test cleanup failed");
+    TEST_MSG("TEST FAILED: %x", ret);
+  }
+wait:
+  sceKernelLockMutexForKernel(g_done_lock, 1, NULL);
+  g_done_count++;
+  sceKernelUnlockMutexForKernel(g_done_lock, 1);
+  TEST_MSG("test start phase complete, waiting for others");
+  sceKernelLockMutexForKernel(g_wait_lock, 1, NULL);
+  sceKernelUnlockMutexForKernel(g_wait_lock, 1);
+  TEST_MSG("starting cleanup phase");
+  if (ret >= 0 && !skip) {
+    if (flavor % 2) {
+      if (g_refs[i]) {
+        ret = taiHookReleaseForKernel(g_refs[i], g_hooks[i]);
+      }
+    } else {
+      if (g_inj_refs[i]) {
+        ret = taiInjectReleaseForKernel(g_inj_refs[i]);
+      }
+    }
+    if (ret < 0) {
+      TEST_MSG("TEST CLEANUP FAILED: %x", ret);
+    }
   }
   return ret;
 }
@@ -319,7 +382,7 @@ int start_test(SceSize args, void *argp) {
 /**
  * @brief      Multi threaded tests
  *
- * @param[in]  type  The type, 1 = test_1, 2 = test_2, 3 = test_3
+ * @param[in]  type  The type, 0 = test_1, 1 = test_2
  *
  * @return     Zero on success, < 0 on error
  */
@@ -334,30 +397,43 @@ static int multi_threaded(int type) {
   g_done_lock = sceKernelCreateMutexForKernel("done", 0, 0, NULL);
 
   for (i = 0; i < TEST_NUM_THREADS; i++) {
-    threads[i] = sceKernelCreateThreadForKernel("test", start_test, 64, 0x1000, 0, 0x10000, 0);
+    threads[i] = sceKernelCreateThreadForKernel("test", start_test, 64, 0x2000, 0, 0x10000, 0);
     TEST_MSG("create thread %d: %x", i, threads[i]);
     sceKernelGetRandomNumberForDriver(&args[i].flavor, sizeof(int));
-    switch (type) {
-      case 1: args[i].test = test_scenario_1; args[i].test_cleanup = test_scenario_1_cleanup; args[i].prefix = "hooks"; break;
-      case 2: args[i].test = test_scenario_2; args[i].test_cleanup = test_scenario_2_cleanup; args[i].prefix = "injects"; break;
-      case 3: args[i].test = test_scenario_3; args[i].test_cleanup = test_scenario_3_cleanup; args[i].prefix = "mixed"; break;
-    }
+    args[i].prefix = type ? "hook" : "inject";
     args[i].index = i;
+    args[i].flavor = (args[i].flavor << 1) | type;
   }
 
+  g_done_count = 0;
+  sceKernelLockMutexForKernel(g_wait_lock, 1, NULL);
   for (i = 0; i < TEST_NUM_THREADS; i++) {
     ret = sceKernelStartThreadForKernel(threads[i], sizeof(args[i]), &args[i]);
     TEST_MSG("started thread %d: %x", i, ret);
   }
 
   TEST_MSG("wait for threads to hit checkpoint");
-  sceKernelLockMutexForKernel(g_done_lock, TEST_NUM_THREADS, NULL);
-  TEST_MSG("all threads done, testing hooks");
-  TEST_MSG("open: %x", ret);
-  if (type & 1) {
-    test_scenario_1_test_hooks(name);
+  int done, last = 0;
+  while (1) {
+    sceKernelLockMutexForKernel(g_done_lock, 1, NULL);
+    done = g_done_count;
+    sceKernelUnlockMutexForKernel(g_done_lock, 1);
+    if (done != last) {
+      TEST_MSG("done: %d", done);
+      last = done;
+    }
+    if (done == TEST_NUM_THREADS) {
+      break;
+    }
   }
-  sceKernelUnlockMutexForKernel(g_wait_lock, TEST_NUM_THREADS);
+  TEST_MSG("all threads done, testing hooks");
+  if (type & 1) {
+    ret = test_scenario_1_test_hooks(name);
+  } else {
+    ret = test_scenario_2_test_inject(name);
+  }
+  TEST_MSG("starting cleanup phase");
+  sceKernelUnlockMutexForKernel(g_wait_lock, 1);
 
   TEST_MSG("waiting for threads to complete");
   for (i = 0; i < TEST_NUM_THREADS; i++) {
@@ -365,15 +441,12 @@ static int multi_threaded(int type) {
       TEST_MSG("wait %d timed out", i);
     }
     TEST_MSG("thread %d returned %x", i, ret);
-    if (ret < 0) {
-      return ret;
-    }
     sceKernelDeleteThreadForKernel(threads[i]);
   }
 
   sceKernelDeleteMutexForKernel(g_wait_lock);
   sceKernelDeleteMutexForKernel(g_done_lock);
-  return 0;
+  return ret;
 }
 
 static int single_threaded(void) {
@@ -391,9 +464,8 @@ static int single_threaded(void) {
   sceKernelGetRandomNumberForDriver(&flavor, sizeof(int));
   ret = test_scenario_2("st-inject", flavor);
   if (ret < 0) return ret;
-  ret = sceIoOpenForDriver(name, 0, 0);
-  TEST_MSG("open after inject: %x", ret);
-  if ((void *)ret != name) return -1;
+  ret = test_scenario_2_test_inject("st-inject");
+  if (ret < 0) return ret;
   ret = test_scenario_2_cleanup("st-inject", flavor);
   if (ret < 0) return ret;
 
@@ -422,17 +494,12 @@ int _start(void) {
     return 0;
   }
   TEST_MSG("Testing multiple threads, test 1");
-  if (multi_threaded(1) < 0) {
+  if (multi_threaded(0) < 0) {
     TEST_MSG("FAILED");
     return 0;
   }
   TEST_MSG("Testing multiple threads, test 2");
-  if (multi_threaded(2) < 0) {
-    TEST_MSG("FAILED");
-    return 0;
-  }
-  TEST_MSG("Testing multiple threads, test 3");
-  if (multi_threaded(3) < 0) {
+  if (multi_threaded(1) < 0) {
     TEST_MSG("FAILED");
     return 0;
   }

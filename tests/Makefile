@@ -1,6 +1,6 @@
 CC=gcc
 LD=gcc
-CFLAGS=-g
+CFLAGS=-g -DENABLE_LOGGING
 INCS=-Iinclude
 LIBS=-lpthread
 
@@ -14,10 +14,10 @@ all: test_proc_map test_patches
 %.to: ../%.c
 	$(CC) -c -o $@ $< $(CFLAGS) $(INCS)
 
-test_proc_map: compat.o test_proc_map.o proc_map.to
+test_proc_map: compat.o test_proc_map.o proc_map.to slab.to
 	$(LD) -o $@ $^ $(CFLAGS) $(LIBS)
 
-test_patches: compat.o test_patches.o patches.to proc_map.to
+test_patches: compat.o test_patches.o patches.to proc_map.to slab.to
 	$(LD) -o $@ $^ $(CFLAGS) $(LIBS)
 
 clean:

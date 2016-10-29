@@ -49,7 +49,8 @@ static inline void permute_index(int limit, int ordering[limit-1]) {
  * @return     Success
  */
 int test_scenario_1(const char *name, int flavor) {
-  tai_hook_t *hooks[TEST_1_NUM_HOOKS];
+  tai_hook_ref_t hooks[TEST_1_NUM_HOOKS];
+  SceUID uids[TEST_1_NUM_HOOKS];
   int start[TEST_1_NUM_HOOKS];
   int ret;
 
@@ -64,17 +65,18 @@ int test_scenario_1(const char *name, int flavor) {
       addr = start[i] * 16;
     }
     TEST_MSG("Attempting to add hook at addr:%lx", addr);
-    if (taiHookFunctionAbs(&hooks[i], 0, (void *)addr, NULL) < 0) {
+    if ((uids[i] = tai_hook_func_abs(&hooks[i], 0, (void *)addr, NULL)) < 0) {
       TEST_MSG("Failed to hook addr:%lx", addr);
-      hooks[i] = NULL;
+      hooks[i] = 0;
+      uids[i] = 0;
     } else {
       TEST_MSG("Successfully hooked addr:%lx", addr);
     }
   }
   TEST_MSG("Cleanup");
   for (int i = 0; i < TEST_1_NUM_HOOKS; i++) {
-    if (hooks[i] != NULL) {
-      ret = taiHookRelease(hooks[i]);
+    if (hooks[i] != 0) {
+      ret = tai_hook_release(uids[i], hooks[i]);
       assert(ret == 0);
     }
   }
@@ -94,7 +96,7 @@ int test_scenario_1(const char *name, int flavor) {
  * @return     Success
  */
 int test_scenario_2(const char *name, int flavor) {
-  tai_inject_t *injections[TEST_2_NUM_INJECT];
+  SceUID uid[TEST_2_NUM_INJECT];
   int start[TEST_2_NUM_INJECT];
   int off[TEST_2_NUM_INJECT];
   int sz[TEST_2_NUM_INJECT];
@@ -111,17 +113,17 @@ int test_scenario_2(const char *name, int flavor) {
     addr = start[i] * 0x10 + off[i] * 0x10;
     size = sz[i] * 0x10;
     TEST_MSG("Attempting to add injection at addr:%lx, size:%zx", addr, size);
-    if (taiInjectAbs(&injections[i], 0, (void *)addr, NULL, size) < 0) {
+    if ((uid[i] = tai_inject_abs(0, (void *)addr, NULL, size)) < 0) {
       TEST_MSG("Failed to inject addr:%lx, size:%zx", addr, size);
-      injections[i] = NULL;
+      uid[i] = 0;
     } else {
       TEST_MSG("Successfully injected addr:%lx", addr);
     }
   }
   TEST_MSG("Cleanup");
   for (int i = 0; i < TEST_2_NUM_INJECT; i++) {
-    if (injections[i] != NULL) {
-      ret = taiInjectRelease(injections[i]);
+    if (uid[i] != 0) {
+      ret = tai_inject_release(uid[i]);
       assert(ret == 0);
     }
   }
@@ -180,12 +182,13 @@ int main(int argc, const char *argv[]) {
   pthread_t threads[TEST_NUM_THREADS];
   struct thread_args args[TEST_NUM_THREADS];
   
-  int seed = atoi(argv[1]);
+  int seed = 0;
 
   if (argc > 1) {
+    seed = atoi(argv[1]);
     TEST_MSG("Seeding PRNG: %d", seed);
-    srand(seed);
   }
+  srand(seed);
 
   TEST_MSG("Setup patches");
   patches_init();

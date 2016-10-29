@@ -26,6 +26,8 @@
  *
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
+ *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
  */
 SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
@@ -46,6 +48,8 @@ SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_
  *
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
+ *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
  */
 SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
@@ -67,6 +71,8 @@ SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_
  *
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
+ *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
+ *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
  */
 SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
@@ -95,6 +101,7 @@ int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
  * @param[in]  hook     The hook to free
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to restore the function
  */
 int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook) {
   return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
