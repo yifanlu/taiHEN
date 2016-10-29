@@ -27,6 +27,9 @@
 /** Fake PID indicating memory is shared across all user processes. */
 #define SHARED_PID 0x80000000
 
+/** Fallback if the current running fw version cannot be detected. */
+#define DEFAULT_FW_VERSION 0x3600000
+
 /**
  * @addtogroup patches
  */

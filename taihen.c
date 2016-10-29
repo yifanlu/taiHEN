@@ -7,53 +7,11 @@
  */
 #include <psp2kern/types.h>
 #include "error.h"
+#include "hen.h"
 #include "module.h"
 #include "patches.h"
 #include "proc_map.h"
 #include "taihen_internal.h"
-
-/** @brief      The maximum length for a line in the config file. */
-#define MAX_LINE_LEN 256
-
-/**
- * @brief      Reads a line from the config.
- *
- * @param[out] line  The line
- *
- * @return     Actual number of characters read.
- */
-static size_t read_line(char line[MAX_LINE_LEN]) {
-  return 0;
-}
-
-/**
- * @brief      Loads plugins specified by the configuration.
- *
- *             By default, the config is at `ux0:tai/config.txt`. Each line of
- *             the config file is a command. Currently the only commands
- *             supported are
- *
- *             ``` hookuser path [module name] hookkern path ```
- *
- *             The way the `hookuser` command works is that whenever it string
- *             matches module name when a user module is loaded, it will load
- *             the plugin. If the module name is omitted, it will load with
- *             every application launch. The plugin will be unloaded when the
- *             application exits. It is also possible for multiple instances of
- *             the plugin to be loaded if it is hooked into multiple
- *             applications. For `hookkern`, the kernel plugin is loaded at the
- *             start of taiHEN and stays resident until it is manually unloaded
- *             by itself or another plugin. Any line in the config that starts
- *             with `#` will be ignored. This provides a quick way to turn off
- *             plugins. Each line must be at most `MAX_LINE_LEN` characters.
- *
- * @param[in]  path  Path to the config file
- *
- * @return     Zero for success SCE_KERNEL_ERROR code on IO error
- */
-static int load_config(const char *path) {
-  return 0;
-}
 
 /**
  * @brief      Add a hook given an absolute address
@@ -275,6 +233,22 @@ int taiInjectReleaseForKernel(SceUID tai_uid) {
  * @return     Success always
  */
 int module_start(SceSize argc, const void *args) {
+  int ret;
+  ret = proc_map_init();
+  if (ret < 0) {
+    LOG("procc map init failed: %x", ret);
+    return ret;
+  }
+  ret = patches_init();
+  if (ret < 0) {
+    LOG("patches init failed: %x", ret);
+    return ret;
+  }
+  ret = hen_patch_sigchecks();
+  if (ret < 0) {
+    LOG("HEN patches failed: %x", ret);
+    return ret;
+  }
   return 0;
 }
 
@@ -292,6 +266,10 @@ int module_start(SceSize argc, const void *args) {
  * @return     Success always
  */
 int module_stop(SceSize argc, const void *args) {
+  // TODO: release everything
+  hen_restore_sigchecks();
+  patches_deinit();
+  proc_map_deinit();
   return 0;
 }
 
@@ -302,4 +280,8 @@ int module_stop(SceSize argc, const void *args) {
  */
 void module_exit(void) {
 
+}
+
+void _start(void) {
+  module_start(0, NULL);
 }

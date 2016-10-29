@@ -90,9 +90,6 @@ typedef struct sce_module_info {
 
 #define MOD_LIST_SIZE 0x80
 
-/** Fallback if the current running fw version cannot be detected. */
-#define DEFAULT_FW_VERSION 0x3600000
-
 /** The currently running FW version. */
 static uint32_t fw_version = 0;
 

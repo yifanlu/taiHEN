@@ -35,6 +35,7 @@ add_definitions(-DENABLE_LOGGING)
 add_definitions(-D__VITA_KERNEL__)
 
 add_executable(taihen.elf
+	hen.c
 	module.c
 	patches.c
 	proc_map.c
@@ -48,7 +49,6 @@ add_executable(taihen.elf
 	substitute/lib/transform-dis.c
 	substitute/lib/cbit/vec.c
 	substitute/lib/vita/execmem.c
-	tests/test_api_kernel.c
 )
 
 target_link_libraries(taihen.elf
