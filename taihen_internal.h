@@ -4,10 +4,6 @@
 #ifndef TAI_INTERNAL_HEADER
 #define TAI_INTERNAL_HEADER
 
-#ifndef __VITA_KERNEL__
-#define __VITA_KERNEL__
-#endif
-
 #include <psp2kern/types.h>
 #include <inttypes.h>
 #include <stdio.h>

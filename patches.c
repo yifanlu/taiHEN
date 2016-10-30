@@ -154,6 +154,7 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
     sceKernelCpuEnableInterrupts(flags);
     LOG("sceKernelSwitchVmaForPid(%d): 0x%08X\n", pid, ret);
   }
+  asm volatile ("isb" ::: "memory");
 }
 #endif
 

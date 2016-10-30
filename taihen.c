@@ -250,6 +250,16 @@ int module_start(SceSize argc, const void *args) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
+
+  int henkaku;
+  SceKernelLMOption opt;
+  int res;
+
+  opt.size = sizeof(opt);
+  henkaku = sceKernelLoadModuleForDriver("ux0:app/MLCL00001/henkaku.skprx", 0, &opt);
+  LOG("HENkaku: %x", henkaku);
+  ret = sceKernelStartModuleForDriver(henkaku, 0, NULL, 0, NULL, &res);
+  LOG("start: %x, %x", ret, res);
   return SCE_KERNEL_START_SUCCESS;
 }
 

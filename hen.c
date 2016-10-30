@@ -142,7 +142,10 @@ static int parse_headers_patched(int ctx, const void *headers, size_t len, void 
   if (ctx == 1) { // as of 3.60, only one decrypt context exists
     if (ret == 0x800f0624 || ret == 0x800f0616 || ret == 0x800f0024 || ret == 0x800f0b3a) {
       g_is_homebrew = 1;
-      *(uint32_t *)(args + OFFSET_PATCH_ARG) = 0x20;
+      // we only do this patch if another hook hasn't modified it already
+      if (*(uint32_t *)(args + OFFSET_PATCH_ARG) == 0) {
+        *(uint32_t *)(args + OFFSET_PATCH_ARG) = 0x20;
+      }
       ret = 0;
     } else {
       g_is_homebrew = 0;
