@@ -12,21 +12,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 
 include_directories(
 	substitute
-	tests/include
 )
 
 link_directories(
 	${CMAKE_CURRENT_BINARY_DIR}
-)
-
-include(ExternalProject)
-ExternalProject_Add(kernel
-	SOURCE_DIR ${CMAKE_SOURCE_DIR}/kernel
-	CONFIGURE_COMMAND ""
-	BUILD_IN_SOURCE 1
-	BUILD_COMMAND make
-	PREFIX=${CMAKE_CURRENT_BINARY_DIR}
-	INSTALL_COMMAND ""
 )
 
 add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
@@ -53,17 +42,16 @@ add_executable(taihen.elf
 
 target_link_libraries(taihen.elf
 	gcc
-	SceStdioTMP_KERNEL_stub
-	SceKernelThreadMgrTMP_KERNEL_stub
-	SceSysmemTMP_KERNEL_stub
-	SceKernelModulemgrTMP_KERNEL_stub
-	SceIofilemgrTMP_KERNEL_stub
-	SceSblSsMgrTMP_KERNEL_stub
+	SceKernelThreadMgr_stub
+	SceSysmem_stub
+	SceKernelModulemgr_stub
+	SceIofilemgr_stub
+	SceStdio_stub
+	SceSblSsMgr_stub
 )
-add_dependencies(taihen.elf kernel)
 
 add_custom_target(taihen.skprx ALL
-	COMMAND vita-elf-create taihen.elf taihen.velf ${CMAKE_SOURCE_DIR}/kernel/kernel.json
+	COMMAND vita-elf-create -e ${CMAKE_SOURCE_DIR}/exports.yml taihen.elf taihen.velf
 	COMMAND vita-make-fself taihen.velf taihen.skprx
 )
 add_dependencies(taihen.skprx taihen.elf)

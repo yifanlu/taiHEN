@@ -6,6 +6,7 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include <psp2kern/kernel/modulemgr.h>
 #include "error.h"
 #include "hen.h"
 #include "module.h"
@@ -237,19 +238,19 @@ int module_start(SceSize argc, const void *args) {
   ret = proc_map_init();
   if (ret < 0) {
     LOG("procc map init failed: %x", ret);
-    return ret;
+    return SCE_KERNEL_START_FAILED;
   }
   ret = patches_init();
   if (ret < 0) {
     LOG("patches init failed: %x", ret);
-    return ret;
+    return SCE_KERNEL_START_FAILED;
   }
   ret = hen_patch_sigchecks();
   if (ret < 0) {
     LOG("HEN patches failed: %x", ret);
-    return ret;
+    return SCE_KERNEL_START_FAILED;
   }
-  return 0;
+  return SCE_KERNEL_START_SUCCESS;
 }
 
 /**
@@ -270,7 +271,7 @@ int module_stop(SceSize argc, const void *args) {
   hen_restore_sigchecks();
   patches_deinit();
   proc_map_deinit();
-  return 0;
+  return SCE_KERNEL_STOP_SUCCESS;
 }
 
 /**
@@ -280,8 +281,4 @@ int module_stop(SceSize argc, const void *args) {
  */
 void module_exit(void) {
 
-}
-
-void _start(void) {
-  module_start(0, NULL);
 }

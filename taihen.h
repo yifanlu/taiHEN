@@ -44,8 +44,9 @@ extern "C" {
  *             arguments and does not get this struct!
  */
 typedef struct _tai_start {
-  uint32_t size;
-  uint32_t library_nid;
+  uint32_t size;              ///< Structure size
+  char module_name[27];       ///< Name of module that loaded this plugin
+  uint32_t module_nid;        ///< NID of module that loaded this plugin
 } tai_start_t;
 
 /**
@@ -54,14 +55,14 @@ typedef struct _tai_start {
  *             This supplements the output of `sceKernelGetModuleInfo`
  */
 typedef struct _tai_module_info {
-  size_t size;
-  SceUID modid;
-  uint32_t module_nid;
-  const char *name;
-  uintptr_t exports_start;
-  uintptr_t exports_end;
-  uintptr_t imports_start;
-  uintptr_t imports_end;
+  size_t size;                ///< Structure size, set to sizeof(tai_module_info_t)
+  SceUID modid;               ///< Module UID
+  uint32_t module_nid;        ///< Module NID
+  const char *name;           ///< Module name
+  uintptr_t exports_start;    ///< Pointer to export table in process address space
+  uintptr_t exports_end;      ///< Pointer to end of export table
+  uintptr_t imports_start;    ///< Pointer to import table in process address space
+  uintptr_t imports_end;      ///< Pointer to end of import table
 } tai_module_info_t;
 
 /**

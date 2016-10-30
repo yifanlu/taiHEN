@@ -183,7 +183,7 @@ static size_t find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size
   }
   size = end-src;
   flags = sceKernelCpuDisableInterrupts();
-  cpu_save_process_context(context);
+  sceKernelCpuSaveContext(context);
   while (count < size) {
     asm ("ldrt %0, [%1]" : "=r" (data) : "r" (src+count));
     if (data == needle) {
@@ -191,7 +191,7 @@ static size_t find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size
     }
     count += 4;
   }
-  cpu_restore_process_context(context);
+  sceKernelCpuRestoreContext(context);
   sceKernelCpuEnableInterrupts(flags);
   if (size == 0) {
     return 0;

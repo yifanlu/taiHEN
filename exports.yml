@@ -1,0 +1,42 @@
+taiHEN:
+  attributes: 0
+  version:
+    major: 1
+    minor: 1
+  main:
+    start: module_start
+    stop: module_stop
+    exit: module_exit
+  modules:
+    taiHEN:
+      syscall: true
+      functions:
+        - taiHookFunctionExport
+        - taiHookFunctionImport
+        - taiHookFunctionOffset
+        - taiGetModuleInfo
+        - taiHookRelease
+        - taiInjectAbs
+        - taiInjectData
+        - taiInjectRelease
+    taiHENUnsafe:
+      syscall: true
+      functions:
+        - taiLoadKernelModule
+        - taiStartKernelModule
+        - taiLoadStartKernelModule
+        - taiStopUnloadKernelModule
+        - taiUnloadKernelModule
+        - taiMemcpyUserToKernel
+        - taiMemcpyKernelToUser
+    taiHENForKernel:
+      functions:
+        - taiHookFunctionAbs
+        - taiHookFunctionExportForKernel
+        - taiHookFunctionImportForKernel
+        - taiHookFunctionOffsetForKernel
+        - taiGetModuleInfoForKernel
+        - taiHookReleaseForKernel
+        - taiInjectAbsForKernel
+        - taiInjectDataForKernel
+        - taiInjectReleaseForKernel

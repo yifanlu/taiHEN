@@ -140,17 +140,17 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
   } else {
     // TODO: Take care of SHARED_PID
     flags = sceKernelCpuDisableInterrupts();
-    cpu_save_process_context(my_context);
+    sceKernelCpuSaveContext(my_context);
     ret = sceKernelGetPidContext(pid, &other_context);
     if (ret >= 0) {
-      cpu_restore_process_context(other_context);
+      sceKernelCpuRestoreContext(other_context);
       asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
       sceKernelCpuDcacheFlush((void *)vma_align, len);
       sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
-    cpu_restore_process_context(my_context);
+    sceKernelCpuRestoreContext(my_context);
     sceKernelCpuEnableInterrupts(flags);
     LOG("sceKernelSwitchVmaForPid(%d): 0x%08X\n", pid, ret);
   }
