@@ -263,22 +263,15 @@ static int rif_get_info_patched(int a1, int a2, int a3, int a4, int a5, int a6, 
 }
 
 /**
- * @brief      Patch for checking if a package is valid
- * 
- * This bypasses fpkg signature checks.
- *
- * @param[in]  buf    The package header buffer
- * @param[in]  size   The header size
- * @param      opt    The options
- * @param[in]  flags  The flags
+ * @brief      Patch for checking if a fpkg support is enabled
  *
  * @return     Zero if valid, < 0 on error
  */
-static int package_check_patched(const char *buf, size_t size, void *opt, int flags) {
+static int package_check_patched(void) {
   int ret;
-  ret = TAI_CONTINUE(int, g_package_check_hook, buf, size, opt, flags);
-  LOG("patching package check: %x => 0", ret);
-  return 0;
+  ret = TAI_CONTINUE(int, g_package_check_hook);
+  LOG("patching fpkg enabled: %x => 1", ret);
+  return 1;
 }
 
 /**
@@ -287,18 +280,6 @@ static int package_check_patched(const char *buf, size_t size, void *opt, int fl
  * @return     Zero on success, < 0 on error
  */
 int hen_patch_sigchecks(void) {
-  int sysver;
-  uint32_t fwinfo[10];
-
-  /*
-  fwinfo[0] = sizeof(fwinfo);
-  if (sceKernelGetSystemSwVersion(fwinfo) < 0) {
-    sysver = DEFAULT_FW_VERSION;
-  } else {
-    sysver = fwinfo[8];
-  }
-  LOG("sceKernelGetSystemSwVersion: 0x%08X", sysver);
-  */
   memset(g_hooks, 0, sizeof(g_hooks));
   g_hooks[0] = taiHookFunctionImportForKernel(KERNEL_PID, 
                                               &g_parse_headers_hook, 
@@ -348,23 +329,15 @@ int hen_patch_sigchecks(void) {
                                               rif_get_info_patched);
   if (g_hooks[5] < 0) goto fail;
   LOG("rif_get_info added");
-  g_hooks[6] = taiHookFunctionExportForKernel(KERNEL_PID, 
+  g_hooks[6] = taiHookFunctionImportForKernel(KERNEL_PID, 
                                               &g_package_check_hook, 
                                               "SceNpDrm", 
-                                              0x88514DB2, // SceNpDrmPackage
-                                              0xA1D885FA, // sceNpDrmPackageCheck
+                                              0xFD00C69A, // SceSblAIMgrForDriver
+                                              0xD78B04A2,
                                               package_check_patched);
   if (g_hooks[6] < 0) goto fail;
-  LOG("sceNpDrmPackageCheck added");
+  LOG("package_check added");
 
-  /*
-  // version specific patches
-  if (sysver >= 0x3600000) {
-
-  } else {
-    LOG("Unrecognized fw: %x, skipping some patches", sysver);
-  }
-  */
   return TAI_SUCCESS;
 fail:
   if (g_hooks[0] >= 0) {
