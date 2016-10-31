@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html>
+
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <meta name="description" content="大変革 : Homebrew, mods, plugins, and more">
 
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
-    <title>大変革 by yifanlu</title>
+    <title>大変革</title>
   </head>
 
   <body>
-    <header>
-      <div class="inner">
-        <h1>大変革</h1>
-        <h2>Homebrew, mods, plugins, and more</h2>
-        <a href="https://github.com/yifanlu/taiHEN" class="button"><small>View project on</small> GitHub</a>
-      </div>
-    </header>
 
-    <div id="content-wrapper">
-      <div class="inner clearfix">
-        <section id="main-content">
-          <h2>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/yifanlu/taiHEN">View on GitHub</a>
+
+          <h1 id="project_title">大変革</h1>
+          <h2 id="project_tagline">Homebrew, mods, plugins, and more</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/yifanlu/taiHEN/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/yifanlu/taiHEN/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h2>
 <a id="the-next-step" class="anchor" href="#the-next-step" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The next step</h2>
 
 <p>taiHENkaku is everything you know and love about <a href="https://henkaku.xyz/">HENkaku</a> and more. Just like before, you can run your favorite homebrew games, emulators, and tweaks. However, this update brings the addition of plugins as well. Based off of technology similar to <a href="http://www.cydiasubstrate.com">Cydia Substrate</a> (specifically thanks to <a href="https://github.com/comex/substitute">substitute</a>), taiHEN allows developers to write hooks and patches to remix games, system applications, and the kernel.</p>
@@ -43,7 +46,7 @@
 <h2>
 <a id="developers" class="anchor" href="#developers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Developers</h2>
 
-<p>Calling all developers! We need you to create some awesome new tweaks using taiHEN! With the new hooking system, the possibilities are endless: cheats, UI tweaks, screen casting, and more. But we need your help is making it all a reality. Get started by downloading the latest kernel enabled <a href="https://github.com/vitasdk/buildscripts">toolchain</a> and the taiHEN library from the links to the right. Check out the <a href="/docs/">API documentation</a> for taiHEN. Join us in the #vitasdk chatroom in FreeNode IRC for help and support.</p>
+<p>Calling all developers! We need you to create some awesome new tweaks using taiHEN! With the new hooking system, the possibilities are endless: cheats, UI tweaks, screen casting, and more. But we need your help is making it all a reality. Get started by downloading the latest kernel enabled <a href="https://github.com/vitasdk/buildscripts">toolchain</a> and the <a href="https://github.com/yifanlu/taiHEN/releases/new">taiHEN library</a>. Check out the <a href="/docs/">API documentation</a> for taiHEN. Join us in the #vitasdk chatroom in FreeNode IRC for help and support.</p>
 
 <h3>
 <a id="building" class="anchor" href="#building" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building</h3>
@@ -226,25 +229,18 @@ SceUID <span class="pl-en">hook_local_open</span>(<span class="pl-k">const</span
                         hook_local_open);  <span class="pl-c">// Name of the hook function</span>
   <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
 }</pre></div>
-        </section>
-
-        <aside id="sidebar">
-          <a href="https://github.com/yifanlu/taiHEN/zipball/master" class="button">
-            <small>Download</small>
-            .zip file
-          </a>
-          <a href="https://github.com/yifanlu/taiHEN/tarball/master" class="button">
-            <small>Download</small>
-            .tar.gz file
-          </a>
-
-          <p class="repo-owner"><a href="https://github.com/yifanlu/taiHEN"></a> is maintained by <a href="https://github.com/yifanlu">yifanlu</a>.</p>
-
-          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
-        </aside>
-      </div>
+      </section>
     </div>
 
-  
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">大変革 maintained by <a href="https://github.com/yifanlu">yifanlu</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
   </body>
 </html>
