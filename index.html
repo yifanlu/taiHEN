@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>大変革 by yifanlu</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>大変革</h1>
+        <h2>Homebrew, mods, plugins, and more</h2>
+        <a href="https://github.com/yifanlu/taiHEN" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h2>
+<a id="the-next-step" class="anchor" href="#the-next-step" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>The next step</h2>
+
+<p>taiHENkaku is everything you know and love about <a href="https://henkaku.xyz/">HENkaku</a> and more. Just like before, you can run your favorite homebrew games, emulators, and tweaks. However, this update brings the addition of plugins as well. Based off of technology similar to <a href="http://www.cydiasubstrate.com">Cydia Substrate</a> (specifically thanks to <a href="https://github.com/comex/substitute">substitute</a>), taiHEN allows developers to write hooks and patches to remix games, system applications, and the kernel.</p>
+
+<h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting started</h2>
+
+<p>We are still ironing out some issues but you can try an early beta today! Just visit <strong><a href="http://beta.henkaku.xyz/">http://beta.henkaku.xyz/</a></strong> from your PS Vita device to try out the new release. If you wish to wait or go back to the last stable release, just reboot your console and visit the old site, <strong><a href="https://henkaku.xyz/">https://henkaku.xyz/</a></strong>.</p>
+
+<p>Please note that currently, the beta is only recommended for developers who wish to test out their own taiHEN plugins. We still recommend the last stable release for everyone else because while we rewrote HENkaku from the ground up to use the new patch system, it does not introduce any new features for the user (and does introduce new instabilities). We hope that developers will use taiHEN to write new mods that would work with taiHENkaku and any future exploits!</p>
+
+<h2>
+<a id="developers" class="anchor" href="#developers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Developers</h2>
+
+<p>Calling all developers! We need you to create some awesome new tweaks using taiHEN! With the new hooking system, the possibilities are endless: cheats, UI tweaks, screen casting, and more. But we need your help is making it all a reality. Get started by downloading the latest kernel enabled <a href="https://github.com/vitasdk/buildscripts">toolchain</a> and the taiHEN library from the links to the right. Check out the <a href="/docs/">API documentation</a> for taiHEN. Join us in the #vitasdk chatroom in FreeNode IRC for help and support.</p>
+
+<h3>
+<a id="building" class="anchor" href="#building" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building</h3>
+
+<p>We will add build instructions for plugins here in the future. Right now, just check out how the <a href="https://github.com/henkaku/henkaku/plugin/tree/master/src">HENkaku plugin</a> does it or chat with us in #vitasdk.</p>
+
+<h3>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h3>
+
+<p>The configuration that determines the plugins to load and the load order can be found in <code>ux0:tai/config.txt</code>. The format is very simple and self explanatory.</p>
+
+<pre lang="text"><code># ignored line starting with #
+# Kernel plugins are started with taiHEN and are in this section
+*KERNEL
+ux0:app/MLCL00001/henkaku.skprx
+ux0:path/to/another.skprx
+ux0:tai/plugin3.skprx
+ux0:data/tai/plugin4.skprx
+ux0:data/tai/plugin5.skprx
+# titleid for SceSettings
+*NPXS10015
+ux0:app/MLCL00001/henkaku.suprx
+ux0:data/tai/some_settings_plugin.suprx
+# titleid for Package Installer
+*NPXS10031
+ux0:path/to/some_pkg_installer_plgin.suprx
+# titleid for SceShell is special (does not follow the XXXXYYYYY format)
+*main
+ux0:app/MLCL00001/henkaku.skprx
+ux0:data/tai/shell_plgin.skprx
+</code></pre>
+
+<p>The key things to note are</p>
+
+<ol>
+<li>
+<code>#</code> begins a comment, <code>*</code> begins a section, and any other character begins a path.</li>
+<li>
+<code>KERNEL</code> is a special section name denoting to load a kernel plugin when taiHEN is started up. All other section names are the title id of the application/game in which to load the plugin at startup. Note that SceShell has a special title id of <code>main</code>.</li>
+<li>In each section, there is a list of plugin paths that will be loaded in order. Paths can be anywhere but it is recommended that plugins reside in <code>ux0:tai</code> or <code>ux0:data/tai</code>. It is valid to have one plugin in multiple sections but the developer must ensure that the plugin knows which application it is loaded in if it needs to do things differently.</li>
+</ol>
+
+<h3>
+<a id="examples" class="anchor" href="#examples" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Examples</h3>
+
+<p>We hope you will read the <a href="/docs/">API documentation</a> to see the full power of taiHEN and the <a href="https://github.com/henkaku/henkaku/plugin/tree/master/src">HENkaku source</a> to see an example usage. However, below are some quick usage examples that demonstrate the power of taiHEN.</p>
+
+<h4>
+<a id="do-something-on-startup" class="anchor" href="#do-something-on-startup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Do something on startup</h4>
+
+<p>This user plugin will be configured to load on an application named "AppName."</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
+<span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> app_start_ref;
+<span class="pl-c">// our hook for app entry</span>
+<span class="pl-k">int</span> <span class="pl-en">hook_app_start</span>(SceSize argc, <span class="pl-k">const</span> <span class="pl-k">void</span> *args) {
+  <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>hello world!<span class="pl-cce">\n</span><span class="pl-pds">"</span></span>);
+  <span class="pl-k">return</span> <span class="pl-c1">TAI_CONTINUE</span>(<span class="pl-k">int</span>, app_start_ref, argc, args);
+}
+<span class="pl-c">// our own plugin entry</span>
+<span class="pl-k">int</span> <span class="pl-en">module_start</span>(SceSize argc, <span class="pl-k">const</span> <span class="pl-k">void</span> *args) {
+  <span class="pl-c1">taiHookFunctionExport</span>(&amp;app_start_ref,  <span class="pl-c">// Output a reference</span>
+                        <span class="pl-s"><span class="pl-pds">"</span>AppName<span class="pl-pds">"</span></span>,       <span class="pl-c">// Name of module being hooked</span>
+                        TAI_ANY_LIBRARY, <span class="pl-c">// If there's multiple libs exporting this</span>
+                        0x935CD196,      <span class="pl-c">// Special NID specifying `module_start`</span>
+                        hook_app_start); <span class="pl-c">// Name of the hook function</span>
+  <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
+}</pre></div>
+
+<h4>
+<a id="logging-filesystem" class="anchor" href="#logging-filesystem" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Logging Filesystem</h4>
+
+<p>This plugin will be configured to load in kernel.</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
+<span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> open_ref;
+<span class="pl-c">// this function is in kernel space</span>
+SceUID <span class="pl-en">hook_user_open</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *path, <span class="pl-k">int</span> flags, SceMode mode, <span class="pl-k">void</span> *args) {
+  <span class="pl-k">char</span> k_path[<span class="pl-c1">256</span>];
+  SceUID fd;
+  fd = <span class="pl-c1">TAI_CONTINUE</span>(SceUID, open_ref, path, flags, mode, args);
+  <span class="pl-c">// we need to copy the user pointer to kernel space</span>
+  <span class="pl-c1">sceKernelStrncpyUserToKernel</span>(k_path, (<span class="pl-c1">uintptr_t</span>)path, <span class="pl-c1">256</span>);
+  <span class="pl-c">// do some logging</span>
+  <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>opening: <span class="pl-c1">%s</span>, res: <span class="pl-c1">%x</span><span class="pl-cce">\n</span><span class="pl-pds">"</span></span>, k_path, fd);
+  <span class="pl-k">return</span> fd;
+}
+<span class="pl-c">// plugin entry</span>
+<span class="pl-k">int</span> <span class="pl-en">module_start</span>(SceSize argc, <span class="pl-k">const</span> <span class="pl-k">void</span> *args) {
+  <span class="pl-c1">taiHookFunctionExportForKernel</span>(KERNEL_PID,      <span class="pl-c">// Kernel process</span>
+                                 &amp;open_ref,       <span class="pl-c">// Output a reference</span>
+                                 <span class="pl-s"><span class="pl-pds">"</span>SceIofilemgr<span class="pl-pds">"</span></span>,  <span class="pl-c">// Name of module being hooked</span>
+                                 TAI_ANY_LIBRARY, <span class="pl-c">// If there's multiple libs exporting this</span>
+                                 0xCC67B6FD,      <span class="pl-c">// NID specifying `sceIoOpen`</span>
+                                 hook_user_open); <span class="pl-c">// Name of the hook function</span>
+  <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
+}</pre></div>
+
+<h4>
+<a id="chain-of-hooks" class="anchor" href="#chain-of-hooks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Chain of hooks</h4>
+
+<p>Consider one kernel plugin with the code above. Now consider a second kernel plugin as follows.</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
+<span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> another_open_ref;
+<span class="pl-c">// this function is in kernel space</span>
+SceUID <span class="pl-en">hook_user_open_differently</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *path, <span class="pl-k">int</span> flags, SceMode mode, <span class="pl-k">void</span> *args) {
+  <span class="pl-k">char</span> k_path[<span class="pl-c1">256</span>];
+  SceUID fd;
+  fd = <span class="pl-c1">TAI_CONTINUE</span>(SceUID, another_open_ref, path, flags, mode, args);
+  <span class="pl-c">// we need to copy the user pointer to kernel space</span>
+  <span class="pl-c1">sceKernelStrncpyUserToKernel</span>(k_path, (<span class="pl-c1">uintptr_t</span>)path, <span class="pl-c1">256</span>);
+  <span class="pl-c">// filter out certain paths</span>
+  <span class="pl-k">if</span> (<span class="pl-c1">strcmp</span>(k_path, <span class="pl-s"><span class="pl-pds">"</span>ux0:hidden_file.bin<span class="pl-pds">"</span></span>) == <span class="pl-c1">0</span> &amp;&amp; fd &gt;= <span class="pl-c1">0</span>) {
+    <span class="pl-c1">sceIoClose</span>(fd); <span class="pl-c">// close the handle</span>
+    fd = SCE_KERNEL_ERROR_NOENT;
+  }
+  <span class="pl-k">return</span> fd;
+}
+<span class="pl-c">// another plugin entry</span>
+<span class="pl-k">int</span> <span class="pl-en">module_start</span>(SceSize argc, <span class="pl-k">const</span> <span class="pl-k">void</span> *args) {
+  <span class="pl-c1">taiHookFunctionExportForKernel</span>(KERNEL_PID,                  <span class="pl-c">// Kernel process</span>
+                                 &amp;another_open_ref,           <span class="pl-c">// Output a reference</span>
+                                 <span class="pl-s"><span class="pl-pds">"</span>SceIofilemgr<span class="pl-pds">"</span></span>,              <span class="pl-c">// Name of module being hooked</span>
+                                 TAI_ANY_LIBRARY,             <span class="pl-c">// If there's multiple libs exporting this</span>
+                                 0xCC67B6FD,                  <span class="pl-c">// NID specifying `sceIoOpen`</span>
+                                 hook_user_open_differently); <span class="pl-c">// Name of the hook function</span>
+  <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
+}</pre></div>
+
+<p>Now we have both filesystem filtering <em>and</em> logging.</p>
+
+<h4>
+<a id="enabling-dynarec" class="anchor" href="#enabling-dynarec" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Enabling dynarec</h4>
+
+<p>This plugin will be loaded in kernel and changes the return value of a function that does a check to enable dynarec.</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
+<span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> some_sysroot_check_hook;
+<span class="pl-c">// patch function</span>
+<span class="pl-k">static</span> <span class="pl-k">int</span> <span class="pl-en">some_sysroot_check_patched</span>(<span class="pl-k">void</span>) {
+  <span class="pl-c">// It is important that we always call `TAI_CONTINUE` regardless if we need </span>
+  <span class="pl-c">// the return value or not. This ensures other hooks in the chain can run!</span>
+  <span class="pl-c1">TAI_CONTINUE</span>(<span class="pl-k">int</span>, some_sysroot_check_hook);
+  <span class="pl-k">return</span> <span class="pl-c1">1</span>;
+}
+<span class="pl-c">// plugin entry</span>
+<span class="pl-k">int</span> <span class="pl-en">module_start</span>(SceSize argc, <span class="pl-k">const</span> <span class="pl-k">void</span> *args) {
+  <span class="pl-c1">taiHookFunctionExportForKernel</span>(KERNEL_PID,                  <span class="pl-c">// Kernel process</span>
+                                 &amp;some_sysroot_check_hook,    <span class="pl-c">// Output a reference</span>
+                                 <span class="pl-s"><span class="pl-pds">"</span>SceSysmem<span class="pl-pds">"</span></span>,                 <span class="pl-c">// Name of module being hooked</span>
+                                 0x3691DA45,                  <span class="pl-c">// NID specifying `SceSysrootForKernel`</span>
+                                 0xF8769E86,                  <span class="pl-c">// NID of the export function we patch</span>
+                                 some_sysroot_check_patched); <span class="pl-c">// Name of the hook function</span>
+  <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
+}</pre></div>
+
+<h4>
+<a id="local-file-logging" class="anchor" href="#local-file-logging" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Local file logging</h4>
+
+<p>The above examples are all global hooks: every call regardless of origin will be hooked. You can also insert local hooks: a library import from a module. In this example, we have a user plugin loaded with "AppName" that only logs <code>sceIoOpen</code> calls from that application.</p>
+
+<div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
+<span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> local_open_hook;
+<span class="pl-c">// this function is in user space now</span>
+SceUID <span class="pl-en">hook_local_open</span>(<span class="pl-k">const</span> <span class="pl-k">char</span> *path, <span class="pl-k">int</span> flags, SceMode mode) {
+  SceUID fd;
+  fd = <span class="pl-c1">TAI_CONTINUE</span>(SceUID, local_open_hook, path, flags, mode);
+  <span class="pl-c1">printf</span>(<span class="pl-s"><span class="pl-pds">"</span>open in AppName: <span class="pl-c1">%s</span>, ret: <span class="pl-c1">%x</span><span class="pl-pds">"</span></span>, path, fd);
+  <span class="pl-k">return</span> fd;
+}
+<span class="pl-c">// our own plugin entry</span>
+<span class="pl-k">int</span> <span class="pl-en">module_start</span>(SceSize argc, <span class="pl-k">const</span> <span class="pl-k">void</span> *args) {
+  <span class="pl-c1">taiHookFunctionImport</span>(&amp;local_open_hook,  <span class="pl-c">// Output a reference</span>
+                        <span class="pl-s"><span class="pl-pds">"</span>AppName<span class="pl-pds">"</span></span>,         <span class="pl-c">// Name of module being hooked</span>
+                        0xCAE9ACE6,        <span class="pl-c">// NID specifying `SceLibKernel`, a wrapper library</span>
+                        0x6C60AC61,        <span class="pl-c">// NID specifying `sceIoOpen`</span>
+                        hook_local_open);  <span class="pl-c">// Name of the hook function</span>
+  <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
+}</pre></div>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/yifanlu/taiHEN/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/yifanlu/taiHEN/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/yifanlu/taiHEN"></a> is maintained by <a href="https://github.com/yifanlu">yifanlu</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
