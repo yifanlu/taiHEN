@@ -284,10 +284,10 @@ int taiInjectRelease(SceUID tai_uid);
  */
 /** @{ */
 
-SceUID taiLoadKernelModule(const char *path, int flags, int *opt);
-int taiStartKernelModule(SceUID modid, int argc, void *args, int flags, void *opt, int *res);
-SceUID taiLoadStartKernelModule(const char *path, int argc, void *args, int flags);
-int taiStopUnloadKernelModule(SceUID modid, int argc, void *args, int flags, void *opt, int *res);
+SceUID taiLoadKernelModule(const char *path, int flags, void *opt);
+int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res);
+SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flags);
+int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res);
 int taiUnloadKernelModule(SceUID modid, int flags);
 
 /** @} */

@@ -48,6 +48,7 @@ target_link_libraries(taihen.elf
 	SceIofilemgr_stub
 	SceStdio_stub
 	SceSblSsMgr_stub
+	SceSblACMgr_stub
 )
 
 add_custom_target(taihen.skprx ALL

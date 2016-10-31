@@ -106,15 +106,15 @@ static uint32_t fw_version = 0;
  * @return     Zero on success, < 0 on error
  */
 static int sce_to_tai_module_info(SceUID pid, void *sceinfo, tai_module_info_t *taiinfo) {
-  uint32_t fwinfo[10];
+  SceKernelFwInfo fwinfo;
   char *info;
 
   if (fw_version == 0) {
-    fwinfo[0] = sizeof(fwinfo);
-    if (sceKernelGetSystemSwVersion(fwinfo) < 0) {
+    fwinfo.size = sizeof(fwinfo);
+    if (sceKernelGetSystemSwVersion(&fwinfo) < 0) {
       fw_version = DEFAULT_FW_VERSION;
     } else {
-      fw_version = fwinfo[8];
+      fw_version = fwinfo.version;
     }
     LOG("sceKernelGetSystemSwVersion: 0x%08X", fw_version);
   }

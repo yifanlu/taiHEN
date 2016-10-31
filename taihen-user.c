@@ -6,10 +6,22 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include <psp2kern/sblacmgr.h>
+#include <psp2kern/kernel/cpu.h>
+#include <psp2kern/kernel/modulemgr.h>
+#include <psp2kern/kernel/sysmem.h>
+#include <psp2kern/kernel/threadmgr.h>
 #include <psp2/kernel/error.h>
+#include "error.h"
 #include "module.h"
 #include "patches.h"
 #include "taihen_internal.h"
+
+/** Limit for strings passed to kernel */
+#define MAX_NAME_LEN 256
+
+/** Limit for passing args to start module */
+#define MAX_ARGS_SIZE 0x1000
 
 /**
  * @brief      Add a hook to a module function export for the calling process
@@ -28,9 +40,35 @@
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
  *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
+ *             - TAI_ERROR_USER_MEMORY if pointers are incorrect
  */
 SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  char k_module[MAX_NAME_LEN];
+  tai_hook_ref_t k_ref;
+  SceUID kid, ret;
+  SceUID pid;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    kid = taiHookFunctionExportForKernel(pid, &k_ref, k_module, library_nid, func_nid, hook_func);
+    if (kid >= 0) {
+      sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
+      ret = sceKernelCreateUserUid(pid, kid);
+      LOG("1kernel uid: %x, user uid: %x", kid, ret);
+      ret = sceKernelCreateUserUid(pid, kid);
+      LOG("2kernel uid: %x, user uid: %x", kid, ret);
+      ret = sceKernelCreateUserUid(pid, kid);
+      LOG("3kernel uid: %x, user uid: %x", kid, ret);
+    } else {
+      ret = kid;
+    }
+  } else {
+    ret = TAI_ERROR_USER_MEMORY;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -50,9 +88,29 @@ SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
  *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
+ *             - TAI_ERROR_USER_MEMORY if pointers are incorrect
  */
 SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  char k_module[MAX_NAME_LEN];
+  tai_hook_ref_t k_ref;
+  SceUID ret;
+  SceUID pid;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    ret = taiHookFunctionImportForKernel(pid, &k_ref, k_module, import_library_nid, import_func_nid, hook_func);
+    if (ret >= 0) {
+      sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
+      ret = sceKernelCreateUserUid(pid, ret);
+      LOG("user uid: %x", ret);
+    }
+  } else {
+    ret = TAI_ERROR_USER_MEMORY;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -73,9 +131,30 @@ SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
  *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
+ *             - TAI_ERROR_USER_MEMORY if pointers are incorrect
  */
 SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  tai_hook_ref_t k_ref;
+  SceUID ret;
+  SceUID pid;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  ret = sceKernelKernelUidForUserUid(pid, modid);
+  if (ret >= 0) {
+    modid = ret;
+    ret = taiHookFunctionOffsetForKernel(pid, &k_ref, modid, segidx, offset, thumb, hook_func);
+    if (ret >= 0) {
+      sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
+      ret = sceKernelCreateUserUid(pid, ret);
+      LOG("user uid: %x", ret);
+    }
+  } else {
+    LOG("Error getting kernel uid for %x: %x", modid, ret);
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -87,9 +166,31 @@ SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, u
  * @param[out] info    The information to fill
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_USER_MEMORY if `info->size` is too small or large or
+ *               `module` is invalid
  */
 int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  char k_module[MAX_NAME_LEN];
+  uint32_t state;
+  SceUID pid;
+  tai_module_info_t k_info;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    sceKernelMemcpyUserToKernel(&k_info, (uintptr_t)info, sizeof(size_t));
+    if (k_info.size == sizeof(k_info)) {
+      ret = taiGetModuleInfoForKernel(pid, k_module, &k_info);
+      sceKernelMemcpyKernelToUser((uintptr_t)info, &k_info, k_info.size);
+    } else {
+      ret = TAI_ERROR_USER_MEMORY;
+    }
+  } else {
+    ret = TAI_ERROR_USER_MEMORY;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -104,7 +205,20 @@ int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
  *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to restore the function
  */
 int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  SceUID pid, kid;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  kid = sceKernelKernelUidForUserUid(pid, tai_uid);
+  if (kid >= 0) {
+    ret = taiHookReleaseForKernel(kid, hook);
+  } else {
+    ret = kid;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -120,7 +234,20 @@ int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook) {
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
 SceUID taiInjectAbs(void *dest, const void *src, size_t size) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  tai_hook_ref_t k_ref;
+  SceUID ret;
+  SceUID pid;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  ret = taiInjectAbsForKernel(pid, dest, src, size);
+  if (ret >= 0) {
+    ret = sceKernelCreateUserUid(pid, ret);
+    LOG("user uid: %x", ret);
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -139,7 +266,26 @@ SceUID taiInjectAbs(void *dest, const void *src, size_t size) {
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  */
 SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const void *data, size_t size) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  tai_hook_ref_t k_ref;
+  SceUID ret;
+  SceUID pid;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  ret = sceKernelKernelUidForUserUid(pid, modid);
+  if (ret >= 0) {
+    modid = ret;
+    ret = taiInjectDataForKernel(pid, modid, segidx, offset, data, size);
+    if (ret >= 0) {
+      ret = sceKernelCreateUserUid(pid, ret);
+      LOG("user uid: %x", ret);
+    }
+  } else {
+    LOG("Error getting kernel uid for %x: %x", modid, ret);
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -152,7 +298,20 @@ SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const void *data
  * @return     Zero on success, < 0 on error
  */
 int taiInjectRelease(SceUID tai_uid) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  SceUID pid, kid;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  kid = sceKernelKernelUidForUserUid(pid, tai_uid);
+  if (kid >= 0) {
+    ret = taiInjectReleaseForKernel(kid);
+  } else {
+    ret = kid;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -163,55 +322,163 @@ int taiInjectRelease(SceUID tai_uid) {
  * @param      opt    Optional arguments, set to NULL
  *
  * @return     A module reference on success, < 0 on error
+ *             - TAI_ERROR_INVALID_ARGS if `opt` is not NULL
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-SceUID taiLoadKernelModule(const char *path, int flags, int *opt) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+SceUID taiLoadKernelModule(const char *path, int flags, void *opt) {
+  uint32_t state;
+  char k_path[MAX_NAME_LEN];
+  SceKernelLMOption k_opt;
+  SceUID pid;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceSblACMgrIsShell(0)) {
+    if (opt != NULL) {
+      if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
+        k_opt.size = sizeof(k_opt);
+        ret = sceKernelLoadModuleForDriver(k_path, flags, &k_opt);
+        LOG("loaded %s: %x", k_path, ret);
+        ret = sceKernelCreateUserUid(pid, ret);
+        LOG("user uid: %x", ret);
+      } else {
+        ret = TAI_ERROR_USER_MEMORY;
+      }
+    } else {
+      ret = TAI_ERROR_INVALID_ARGS;
+    }
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
  * @brief      Starts a kernel module
  *
  * @param[in]  modid  The id from `taiLoadKernelModule`
- * @param[in]  argc   The size of the arguments
- * @param      args   The arguments
+ * @param[in]  args   The size of the arguments
+ * @param      argp   The arguments
  * @param[in]  flags  The flags
  * @param      opt    Optional arguments, set to NULL
  * @param      res    Return value of `module_start`
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_INVALID_ARGS if `args` is too large or `opt` is not NULL
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-int taiStartKernelModule(SceUID modid, int argc, void *args, int flags, void *opt, int *res) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  char buf[MAX_ARGS_SIZE];
+  uint32_t state;
+  int ret;
+  int k_res;
+  SceUID pid;
+  SceKernelLMOption k_opt;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceSblACMgrIsShell(0)) {
+    if (args <= MAX_ARGS_SIZE || opt != NULL) {
+      ret = sceKernelKernelUidForUserUid(pid, modid);
+      if (ret >= 0) {
+        modid = ret;
+        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)argp, args);
+        if (ret >= 0) {
+          k_opt.size = sizeof(k_opt);
+          k_res = 0;
+          ret = sceKernelStartModuleForDriver(modid, args, buf, flags, &k_opt, &k_res);
+          sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+        }
+      } else {
+        LOG("Error getting kernel uid for %x: %x", modid, ret);
+      }
+    } else {
+      ret = TAI_ERROR_INVALID_ARGS;
+    }
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
  * @brief      Loads and starts a kernel module
  *
  * @param[in]  path   The path of the skprx
- * @param[in]  argc   The size of the arguments
- * @param      args   The arguments
+ * @param[in]  args   The size of the arguments
+ * @param      argp   The arguments
  * @param[in]  flags  The flags
  *
  * @return     A module reference on success, < 0 on error
+ *             - TAI_ERROR_INVALID_ARGS if `args` is too large
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-SceUID taiLoadStartKernelModule(const char *path, int argc, void *args, int flags) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flags) {
+  SceUID modid;
+  int ret;
+
+  modid = taiLoadKernelModule(path, flags, NULL);
+  if (modid >= 0) {
+    ret = taiStartKernelModule(modid, args, argp, flags, NULL, NULL);
+    if (ret >= 0) {
+      ret = modid;
+    }
+  } else {
+    ret = modid;
+  }
+  return ret;
 }
 
 /**
  * @brief      Stops and unloads a kernel module
  *
  * @param[in]  modid  The loaded module reference
- * @param[in]  argc   The size of the arguments to `module_stop`
- * @param      args   The arguments to `module_stop`
+ * @param[in]  args   The size of the arguments to `module_stop`
+ * @param      argp   The arguments to `module_stop`
  * @param[in]  flags  The flags
  * @param      opt    Optional arguments, set to NULL
  * @param      res    Return value of `module_stop`
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_INVALID_ARGS if `args` is too large or `opt` is not NULL
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-int taiStopUnloadKernelModule(SceUID modid, int argc, void *args, int flags, void *opt, int *res) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  char buf[MAX_ARGS_SIZE];
+  uint32_t state;
+  int ret;
+  int k_res;
+  SceUID pid;
+  SceKernelULMOption k_opt;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceSblACMgrIsShell(0)) {
+    if (args <= MAX_ARGS_SIZE || opt != NULL) {
+      ret = sceKernelKernelUidForUserUid(pid, modid);
+      if (ret >= 0) {
+        modid = ret;
+        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)argp, args);
+        if (ret >= 0) {
+          k_opt.size = sizeof(k_opt);
+          k_res = 0;
+          ret = sceKernelStopUnloadModuleForDriver(modid, args, buf, flags, &k_opt, &k_res);
+          sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+        }
+      } else {
+        LOG("Error getting kernel uid for %x: %x", modid, ret);
+      }
+    } else {
+      ret = TAI_ERROR_INVALID_ARGS;
+    }
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -221,9 +488,28 @@ int taiStopUnloadKernelModule(SceUID modid, int argc, void *args, int flags, voi
  * @param[in]  flags  The flags
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
 int taiUnloadKernelModule(SceUID modid, int flags) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  SceUID pid;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  pid = sceKernelGetProcessId();
+  if (sceSblACMgrIsShell(0)) {
+    ret = sceKernelKernelUidForUserUid(pid, modid);
+    if (ret >= 0) {
+      modid = ret;
+      ret = sceKernelUnloadModuleForDriver(modid, flags);
+    } else {
+      LOG("Error getting kernel uid for %x: %x", modid, ret);
+    }
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
 }
 
 /**
@@ -234,9 +520,24 @@ int taiUnloadKernelModule(SceUID modid, int flags) {
  * @param[in]  len         The length
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
 int taiMemcpyUserToKernel(void *kernel_dst, const void *user_src, size_t len) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  if (sceSblACMgrIsShell(0)) {
+    ret = 0;
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
+  if (ret == 0) {
+    return sceKernelMemcpyUserToKernel(kernel_dst, (uintptr_t)user_src, len);
+  } else {
+    return ret;
+  }
 }
 
 /**
@@ -251,7 +552,22 @@ int taiMemcpyUserToKernel(void *kernel_dst, const void *user_src, size_t len) {
  * @param[in]  len         The length
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
 int taiMemcpyKernelToUser(void *user_dst, const void *kernel_src, size_t len) {
-  return SCE_KERNEL_ERROR_NOT_IMPLEMENTED;
+  uint32_t state;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  if (sceSblACMgrIsShell(0)) {
+    ret = 0;
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
+  if (ret == 0) {
+    return sceKernelMemcpyKernelToUser((uintptr_t)user_dst, kernel_src, len);
+  } else {
+    return ret;
+  }
 }
