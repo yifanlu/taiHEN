@@ -94,7 +94,7 @@ ux0:data/tai/shell_plgin.skprx
 <h4>
 <a id="do-something-on-startup" class="anchor" href="#do-something-on-startup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Do something on startup</h4>
 
-<p>This user plugin will be configured to load on an application named "AppName."</p>
+<p>Configure the following user plugin to load on an application named "AppName" with the title id "ABCD01234".</p>
 
 <div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
 <span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> app_start_ref;
@@ -113,10 +113,12 @@ ux0:data/tai/shell_plgin.skprx
   <span class="pl-k">return</span> SCE_KERNEL_START_SUCCESS;
 }</pre></div>
 
+<p>We can build this as <code>myplugin.suprx</code> and add it to <code>ux0:tai/config.txt</code> under the section <code>*ABCD01234</code> and it will be loaded when <code>ABCD01234</code> is started and insert the hook.</p>
+
 <h4>
 <a id="logging-filesystem" class="anchor" href="#logging-filesystem" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Logging Filesystem</h4>
 
-<p>This plugin will be configured to load in kernel.</p>
+<p>The following example will log all file opens from applications. Compile it as <code>kernellog.skprx</code> and add to <code>*KERNEL</code> section in <code>ux0:tai/config.txt</code>.</p>
 
 <div class="highlight highlight-source-c"><pre><span class="pl-c">// handle to our hook</span>
 <span class="pl-k">static</span> <span class="pl-c1">tai_hook_ref_t</span> open_ref;
