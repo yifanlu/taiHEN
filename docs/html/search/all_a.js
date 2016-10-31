@@ -1,0 +1,10 @@
+var searchData=
+[
+  ['modid',['modid',['../struct__tai__module__info.html#a9b251b5f70dddbaf237e7ccd57259c30',1,'_tai_module_info']]],
+  ['modname',['modname',['../structsce__module__info.html#a683ed1490908fb006b3bb9f8f43160b7',1,'sce_module_info']]],
+  ['module_5fget_5fby_5fname_5fnid',['module_get_by_name_nid',['../group__module.html#gafe1aab312004ae9175aaf8923907e6b9',1,'module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_module_info_t *info):&#160;module.c'],['../group__module.html#gafe1aab312004ae9175aaf8923907e6b9',1,'module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_module_info_t *info):&#160;module.c']]],
+  ['module_5fget_5fexport_5ffunc',['module_get_export_func',['../group__module.html#ga4b7a8326650d687a04d5c1548c3b81d3',1,'module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func):&#160;module.c'],['../group__module.html#ga4b7a8326650d687a04d5c1548c3b81d3',1,'module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func):&#160;module.c']]],
+  ['module_5fget_5fimport_5ffunc',['module_get_import_func',['../group__module.html#ga9c1adbf0b495389278d93e2f8c1159be',1,'module_get_import_func(SceUID pid, const char *modname, uint32_t target_libnid, uint32_t funcnid, uintptr_t *stub):&#160;module.c'],['../group__module.html#ga9c1adbf0b495389278d93e2f8c1159be',1,'module_get_import_func(SceUID pid, const char *modname, uint32_t target_libnid, uint32_t funcnid, uintptr_t *stub):&#160;module.c']]],
+  ['module_5fget_5foffset',['module_get_offset',['../group__module.html#ga53fb128875502ecf583d7053392f249e',1,'module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr):&#160;module.c'],['../group__module.html#ga53fb128875502ecf583d7053392f249e',1,'module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintptr_t *addr):&#160;module.c']]],
+  ['module_5fnid',['module_nid',['../struct__tai__module__info.html#a009e429f5907dbfb41cf6e9fb6fcbeb9',1,'_tai_module_info']]]
+];
