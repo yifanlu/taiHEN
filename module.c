@@ -284,14 +284,6 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
     return TAI_ERROR_INVALID_ARGS;
   }
   LOG("Getting offset for pid:%x, modid:%x, segidx:%d, offset:%x", pid, modid, segidx, offset);
-  if (pid != KERNEL_PID) {
-    modid = sceKernelKernelUidForUserUid(pid, modid);
-    LOG("sceKernelKernelUidForUserUid(%x): 0x%08X", pid, modid);
-    if (modid < 0) {
-      LOG("Cannot find kernel object for user object.");
-      return TAI_ERROR_NOT_FOUND;
-    }
-  }
   sceinfo.size = sizeof(sceinfo);
   ret = sceKernelGetModuleInfoForKernel(pid, modid, &sceinfo);
   LOG("sceKernelGetModuleInfoForKernel(%x, %x): 0x%08X", pid, modid, ret);

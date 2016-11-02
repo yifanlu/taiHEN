@@ -99,14 +99,17 @@ static tai_hook_ref_t g_rif_check_psp_hook;
 /** Hook reference to `rif_get_info` */
 static tai_hook_ref_t g_rif_get_info_hook;
 
-/** Hook reference to `sceNpDrmPackageCheck` */
+/** Hook reference to check in `sceNpDrmPackageCheck` */
 static tai_hook_ref_t g_package_check_hook;
+
+/** Hook reference to check in `sceNpDrmPackageCheck` */
+static tai_hook_ref_t g_package_check_2_hook;
 
 /** Hook reference to `load_user_libs` */
 static tai_hook_ref_t g_load_user_libs_hook;
 
 /** References to the hooks */
-static SceUID g_hooks[8];
+static SceUID g_hooks[9];
 
 /** Is the current decryption a homebrew? */
 static int g_is_homebrew;
@@ -284,6 +287,18 @@ static int package_check_patched(void) {
 }
 
 /**
+ * @brief      Patch for checking if a fpkg support is enabled
+ *
+ * @return     Zero if valid, < 0 on error
+ */
+static int package_check_2_patched(void) {
+  int ret;
+  ret = TAI_CONTINUE(int, g_package_check_2_hook);
+  LOG("patching fpkg enabled: %x => 1", ret);
+  return 1;
+}
+
+/**
  * @brief      Patch for loading default suprxes for an application
  *
  * @param[in]  pid    The process being started
@@ -295,16 +310,14 @@ static int package_check_patched(void) {
 static int load_user_libs_patched(SceUID pid, void *args, int flags) {
   int ret;
   SceUID mod;
-  tai_start_t start;
+  char titleid[32];
 
   ret = TAI_CONTINUE(int, g_load_user_libs_hook, pid, args, flags);
 
-  sceKernelGetProcessTitleIdForKernel(pid, start.titleid, 32);
-  LOG("title started: %s", start.titleid);
+  sceKernelGetProcessTitleIdForKernel(pid, titleid, 32);
+  LOG("title started: %s", titleid);
 
-  //start.size = sizeof(start);
-  mod = sceKernelLoadModuleForPid(pid, "ux0:app/MLCL00001/henkaku.suprx", 0x8000, NULL);
-  LOG("load henkaku user: %x", mod);
+  // TODO: replace with configuration system
 
   return ret;
 }
@@ -372,13 +385,21 @@ int hen_patch_sigchecks(void) {
                                               package_check_patched);
   LOG("package_check added");
   if (g_hooks[6] < 0) goto fail;
-  g_hooks[7] = taiHookFunctionExportForKernel(KERNEL_PID, 
+  g_hooks[7] = taiHookFunctionImportForKernel(KERNEL_PID, 
+                                              &g_package_check_hook, 
+                                              "SceNpDrm", 
+                                              0xFD00C69A, // SceSblAIMgrForDriver
+                                              0xF4B98F66,
+                                              package_check_2_patched);
+  LOG("package_check_2 added");
+  if (g_hooks[7] < 0) goto fail;
+  g_hooks[8] = taiHookFunctionExportForKernel(KERNEL_PID, 
                                               &g_load_user_libs_hook, 
                                               "SceKernelModulemgr", 
                                               0xC445FA63, // SceModulemgrForKernel
                                               0x3AD26B43,
                                               load_user_libs_patched);
-  if (g_hooks[7] < 0) goto fail;
+  if (g_hooks[8] < 0) goto fail;
   LOG("load_user_libs added");
 
   return TAI_SUCCESS;
@@ -405,7 +426,10 @@ fail:
     taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
   }
   if (g_hooks[7] >= 0) {
-    taiHookReleaseForKernel(g_hooks[7], g_load_user_libs_hook);
+    taiHookReleaseForKernel(g_hooks[7], g_package_check_hook);
+  }
+  if (g_hooks[8] >= 0) {
+    taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
   }
   return TAI_ERROR_SYSTEM;
 }
@@ -425,6 +449,7 @@ int hen_restore_sigchecks(void) {
   ret |= taiHookReleaseForKernel(g_hooks[4], g_rif_check_psp_hook);
   ret |= taiHookReleaseForKernel(g_hooks[5], g_rif_get_info_hook);
   ret |= taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
-  ret |= taiHookReleaseForKernel(g_hooks[7], g_load_user_libs_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[7], g_package_check_2_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
   return ret;
 }

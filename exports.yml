@@ -11,13 +11,13 @@ taihen:
     taihen:
       syscall: true
       functions:
-        - taiHookFunctionExport
-        - taiHookFunctionImport
-        - taiHookFunctionOffset
+        - taiHookFunctionExportForUser
+        - taiHookFunctionImportForUser
+        - taiHookFunctionOffsetForUser
         - taiGetModuleInfo
         - taiHookRelease
         - taiInjectAbs
-        - taiInjectData
+        - taiInjectDataForUser
         - taiInjectRelease
     taihenUnsafe:
       syscall: true

@@ -14,6 +14,8 @@
 #include "proc_map.h"
 #include "taihen_internal.h"
 
+int log_ctr = 0;
+
 /**
  * @brief      Add a hook given an absolute address
  *
@@ -250,17 +252,7 @@ int module_start(SceSize argc, const void *args) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
-
-  // TODO: replace this section with configurable options
-  int henkaku;
-  SceKernelLMOption opt;
-  int res;
-
-  opt.size = sizeof(opt);
-  henkaku = sceKernelLoadModuleForDriver("ux0:app/MLCL00001/henkaku.skprx", 0, &opt);
-  LOG("HENkaku: %x", henkaku);
-  ret = sceKernelStartModuleForDriver(henkaku, 0, NULL, 0, NULL, &res);
-  LOG("start: %x, %x", ret, res);
+  // TODO: load plugins from configuration.
   return SCE_KERNEL_START_SUCCESS;
 }
 

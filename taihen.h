@@ -36,17 +36,8 @@ extern "C" {
 /** Fake library NID indicating that any library NID would match. */
 #define TAI_ANY_LIBRARY 0xFFFFFFFF
 
-/**
- * @brief      Plugin start arguments
- *
- *             This structure is passed from taiHEN to the user plugin being
- *             loaded in `module_start`. Kernel plugins have user defined
- *             arguments and does not get this struct!
- */
-typedef struct _tai_start {
-  uint32_t size;              ///< Structure size
-  char titleid[32];           ///< Title that started this plugin
-} tai_start_t;
+/** Functions for calling the syscalls with arguments */
+#define HELPER inline static __attribute__((unused))
 
 /**
  * @brief      Extended module information
@@ -191,6 +182,30 @@ struct _tai_hook_user {
   void *old;
 };
 
+/**
+ * @brief      Pass hook arguments to kernel
+ */
+typedef struct _tai_hook_args {
+  size_t size;
+  const char *module;
+  uint32_t library_nid;
+  uint32_t func_nid;
+  const void *hook_func;
+} tai_hook_args_t;
+
+/**
+ * @brief      Pass offset arguments to kernel
+ */
+typedef struct _tai_offset_args {
+  size_t size;
+  SceUID modid;
+  int segidx;
+  uint32_t offset;
+  int thumb;
+  const void *source;
+  size_t source_size;
+} tai_offset_args_t;
+
 #ifdef __VITA_KERNEL__
 /** @name Kernel Hooks
  * Hooks exports to kernel
@@ -210,11 +225,42 @@ int taiHookReleaseForKernel(SceUID tai_uid, tai_hook_ref_t hook);
  * Hooks exports to user 
  */
 /** @{ */
-SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func);
-SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func);
-SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func);
+SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *args);
+SceUID taiHookFunctionImportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *args);
+SceUID taiHookFunctionOffsetForUser(tai_hook_ref_t *p_hook, tai_offset_args_t *args);
 int taiGetModuleInfo(const char *module, tai_module_info_t *info);
 int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook);
+
+HELPER SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
+  tai_hook_args_t args;
+  args.size = sizeof(args);
+  args.module = module;
+  args.library_nid = library_nid;
+  args.func_nid = func_nid;
+  args.hook_func = hook_func;
+  return taiHookFunctionExportForUser(p_hook, &args);
+}
+
+HELPER SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
+  tai_hook_args_t args;
+  args.size = sizeof(args);
+  args.module = module;
+  args.library_nid = import_library_nid;
+  args.func_nid = import_func_nid;
+  args.hook_func = hook_func;
+  return taiHookFunctionImportForUser(p_hook, &args);
+}
+
+HELPER SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
+  tai_offset_args_t args;
+  args.size = sizeof(args);
+  args.modid = modid;
+  args.segidx = segidx;
+  args.offset = offset;
+  args.thumb = thumb;
+  args.source = hook_func;
+  return taiHookFunctionOffsetForUser(p_hook, &args);
+}
 /** @} */
 
 #ifdef __GNUC__
@@ -271,8 +317,19 @@ int taiInjectReleaseForKernel(SceUID tai_uid);
  */
 /** @{ */
 SceUID taiInjectAbs(void *dest, const void *src, size_t size);
-SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const void *data, size_t size);
+SceUID taiInjectDataForUser(tai_offset_args_t *args);
 int taiInjectRelease(SceUID tai_uid);
+
+HELPER SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const void *data, size_t size) {
+  tai_offset_args_t args;
+  args.size = sizeof(args);
+  args.modid = modid;
+  args.segidx = segidx;
+  args.offset = offset;
+  args.source_size = size;
+  args.source = data;
+  return taiInjectDataForUser(&args);
+}
 /** @} */
 
 /** @} */

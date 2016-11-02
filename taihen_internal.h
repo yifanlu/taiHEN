@@ -10,9 +10,11 @@
 #include "taihen.h"
 #include "slab.h"
 
+extern int log_ctr;
+
 /** Logging function */
 #ifdef ENABLE_LOGGING
-#define LOG(fmt, ...) printf("[%s:%d] " fmt "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define LOG(fmt, ...) printf("%d [%s:%d] " fmt "\n", log_ctr++, __FILE__, __LINE__, ##__VA_ARGS__)
 #else
 #define LOG(fmt, ...)
 #endif
