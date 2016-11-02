@@ -154,7 +154,7 @@ SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t *p_hook, SceUID
  * @return     Zero on success, < 0 on error
  */
 int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t *info) {
-  return module_get_by_name_nid(pid, module, 0, info);
+  return module_get_by_name_nid(pid, module, TAI_ANY_LIBRARY, info);
 }
 
 /**
@@ -251,6 +251,7 @@ int module_start(SceSize argc, const void *args) {
     return SCE_KERNEL_START_FAILED;
   }
 
+  // TODO: replace this section with configurable options
   int henkaku;
   SceKernelLMOption opt;
   int res;

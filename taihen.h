@@ -34,7 +34,7 @@ extern "C" {
 #define KERNEL_PID 0x10005
 
 /** Fake library NID indicating that any library NID would match. */
-#define TAI_ANY_LIBRARY 0
+#define TAI_ANY_LIBRARY 0xFFFFFFFF
 
 /**
  * @brief      Plugin start arguments
@@ -45,8 +45,7 @@ extern "C" {
  */
 typedef struct _tai_start {
   uint32_t size;              ///< Structure size
-  char module_name[27];       ///< Name of module that loaded this plugin
-  uint32_t module_nid;        ///< NID of module that loaded this plugin
+  char titleid[32];           ///< Title that started this plugin
 } tai_start_t;
 
 /**
@@ -58,7 +57,7 @@ typedef struct _tai_module_info {
   size_t size;                ///< Structure size, set to sizeof(tai_module_info_t)
   SceUID modid;               ///< Module UID
   uint32_t module_nid;        ///< Module NID
-  const char *name;           ///< Module name
+  char name[27];              ///< Module name
   uintptr_t exports_start;    ///< Pointer to export table in process address space
   uintptr_t exports_end;      ///< Pointer to end of export table
   uintptr_t imports_start;    ///< Pointer to import table in process address space
@@ -71,7 +70,7 @@ typedef struct _tai_module_info {
  *
  *  A function hook allows a plugin to run code before and after a
  *  any function call. As an example, say we wish to hook
- *  `sceIoOpen`
+ *  `sceIoOpenForDriver`
  *
  *  ```c
  *  static tai_hook_ref_t open_ref;
@@ -158,7 +157,7 @@ typedef struct _tai_module_info {
  *    SceUID fd;
  *    ret = TAI_CONTINUE(SceUID, open_ref, path, flags, mode);
  *    if (path != log && strncmp(path, "ux0:", 4) == 0) {
- *      fd = sceIoOpen(log, SCE_O_WRONLY, 0);
+ *      fd = sceIoOpenForDriver(log, SCE_O_WRONLY, 0);
  *      sceIoWrite(fd, path, 256);
  *      sceIoClose(fd);
  *    }
@@ -166,7 +165,7 @@ typedef struct _tai_module_info {
  *  }
  *  ```
  *
- *  Note that calling the original `sceIoOpen` will recurse
+ *  Note that calling the original `sceIoOpenForDriver` will recurse
  *  back to `recurse_open_hook` so it is _very important_ to avoid an
  *  infinite recursion. In this case, we check that the parameter is
  *  not the same, but more complex checks may be needed for other 

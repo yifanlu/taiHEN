@@ -6,9 +6,12 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include <psp2kern/kernel/modulemgr.h>
+#include <psp2kern/kernel/sysmem.h>
 #include <string.h>
 #include "error.h"
 #include "hen.h"
+#include "module.h"
 #include "taihen_internal.h"
 
 /** The Vita supports a max of 8 segments for ET_SCE_RELEXEC type */
@@ -99,8 +102,11 @@ static tai_hook_ref_t g_rif_get_info_hook;
 /** Hook reference to `sceNpDrmPackageCheck` */
 static tai_hook_ref_t g_package_check_hook;
 
+/** Hook reference to `load_user_libs` */
+static tai_hook_ref_t g_load_user_libs_hook;
+
 /** References to the hooks */
-static SceUID g_hooks[7];
+static SceUID g_hooks[8];
 
 /** Is the current decryption a homebrew? */
 static int g_is_homebrew;
@@ -278,6 +284,32 @@ static int package_check_patched(void) {
 }
 
 /**
+ * @brief      Patch for loading default suprxes for an application
+ *
+ * @param[in]  pid    The process being started
+ * @param      args   The arguments
+ * @param[in]  flags  The flags
+ *
+ * @return     Zero on success, < 0 on error
+ */
+static int load_user_libs_patched(SceUID pid, void *args, int flags) {
+  int ret;
+  SceUID mod;
+  tai_start_t start;
+
+  ret = TAI_CONTINUE(int, g_load_user_libs_hook, pid, args, flags);
+
+  sceKernelGetProcessTitleIdForKernel(pid, start.titleid, 32);
+  LOG("title started: %s", start.titleid);
+
+  //start.size = sizeof(start);
+  mod = sceKernelLoadModuleForPid(pid, "ux0:app/MLCL00001/henkaku.suprx", 0x8000, NULL);
+  LOG("load henkaku user: %x", mod);
+
+  return ret;
+}
+
+/**
  * @brief      Add kernel patches to disable SELF signature checks
  *
  * @return     Zero on success, < 0 on error
@@ -338,8 +370,16 @@ int hen_patch_sigchecks(void) {
                                               0xFD00C69A, // SceSblAIMgrForDriver
                                               0xD78B04A2,
                                               package_check_patched);
-  if (g_hooks[6] < 0) goto fail;
   LOG("package_check added");
+  if (g_hooks[6] < 0) goto fail;
+  g_hooks[7] = taiHookFunctionExportForKernel(KERNEL_PID, 
+                                              &g_load_user_libs_hook, 
+                                              "SceKernelModulemgr", 
+                                              0xC445FA63, // SceModulemgrForKernel
+                                              0x3AD26B43,
+                                              load_user_libs_patched);
+  if (g_hooks[7] < 0) goto fail;
+  LOG("load_user_libs added");
 
   return TAI_SUCCESS;
 fail:
@@ -364,6 +404,9 @@ fail:
   if (g_hooks[6] >= 0) {
     taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
   }
+  if (g_hooks[7] >= 0) {
+    taiHookReleaseForKernel(g_hooks[7], g_load_user_libs_hook);
+  }
   return TAI_ERROR_SYSTEM;
 }
 
@@ -382,5 +425,6 @@ int hen_restore_sigchecks(void) {
   ret |= taiHookReleaseForKernel(g_hooks[4], g_rif_check_psp_hook);
   ret |= taiHookReleaseForKernel(g_hooks[5], g_rif_get_info_hook);
   ret |= taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[7], g_load_user_libs_hook);
   return ret;
 }

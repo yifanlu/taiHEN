@@ -66,7 +66,7 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
     // allocate exe mem
     memset(&opt, 0, sizeof(opt));
     opt.size = sizeof(opt);
-    opt.attr = 0x400000;
+    opt.attr = 0xA0000000 | 0x400000;
     opt.alignment = align;
     if (align) {
         opt.attr |= SCE_KERNEL_ALLOC_MEMBLOCK_ATTR_HAS_ALIGNMENT;
@@ -77,6 +77,8 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
         type = SCE_KERNEL_MEMBLOCK_TYPE_SHARED_RX;
     } else {
         type = SCE_KERNEL_MEMBLOCK_TYPE_USER_RX;
+        opt.attr |= 0x80080;
+        opt.pid = pid;
     }
     *exe_res = sceKernelAllocMemBlockForKernel("taislab", type, size, &opt);
     LOG("sceKernelAllocMemBlockForKernel(taislab): 0x%08X", *exe_res);
@@ -87,6 +89,15 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
     LOG("sceKernelGetMemBlockBaseForKernel(%x): 0x%08X, addr: 0x%08X", *exe_res, res, *exe_addr);
     if (res < 0) {
         goto err2;
+    }
+
+    // TODO: Perhaps move this to execmem seal?
+    if (pid != KERNEL_PID) {
+        res = sceKernelMapBlockUserVisible(*exe_res);
+        LOG("sceKernelMapBlockUserVisible: %x", res);
+        if (res < 0) {
+            goto err2;
+        }
     }
 
     // map in every process if needed

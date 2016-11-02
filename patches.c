@@ -159,6 +159,51 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
 #endif
 
 /**
+ * @brief      Used by `user_hooking`
+ */
+struct user_hook_args {
+  struct slab_chain *slab;
+  struct substitute_function_hook *hook;
+  struct substitute_function_hook_record **saved;
+};
+
+/**
+ * @brief      Run without interrupts for hooking user code
+ *
+ *             This is needed because the syscall stack is not large enough for
+ *             substitute to run. We disable interrupts to prevent problems with
+ *             the DACR being set back after an interrupt. For the future, we
+ *             will modify libsubtitute to run safely without disabling
+ *             interrupts for user.
+ *
+ * @param      args  The arguments
+ *
+ * @return     Zero for success
+ */
+static int user_hooking(void *args) {
+  int flags;
+  int ret;
+  int my_context[3];
+  int *other_context;
+  int dacr;
+  struct user_hook_args *uargs = (struct user_hook_args *)args;
+
+  flags = sceKernelCpuDisableInterrupts();
+  sceKernelCpuSaveContext(my_context);
+  ret = sceKernelGetPidContext(uargs->slab->pid, &other_context);
+  if (ret >= 0) {
+    sceKernelCpuRestoreContext(other_context);
+    asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
+    asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
+    ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, 0);
+    asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
+  }
+  sceKernelCpuRestoreContext(my_context);
+  sceKernelCpuEnableInterrupts(flags);
+  return ret;
+}
+
+/**
  * @brief      Adds a hook to a function using libsubstitute
  *
  * @param[in]  slab         The slab to allocate exec memory from
@@ -170,6 +215,7 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
  * @return     Zero on success, < 0 on error
  */
 static int tai_hook_function(struct slab_chain *slab, void *target_func, const void *src_func, void **old, void **saved) {
+  struct user_hook_args uargs;
   struct substitute_function_hook hook;
   int ret;
 
@@ -184,7 +230,15 @@ static int tai_hook_function(struct slab_chain *slab, void *target_func, const v
   hook.options = 0;
   hook.opt = slab;
   LOG("Calling substitute_hook_functions");
-  ret = substitute_hook_functions(&hook, 1, (struct substitute_function_hook_record **)saved, 0);
+  if (slab->pid != KERNEL_PID) {
+    // TODO: Take care of SHARED_PID
+    uargs.slab = slab;
+    uargs.hook = &hook;
+    uargs.saved = (struct substitute_function_hook_record **)saved;
+    ret = sceKernelRunWithStack(0x4000, user_hooking, &uargs);
+  } else {
+    ret = substitute_hook_functions(&hook, 1, (struct substitute_function_hook_record **)saved, 0);
+  }
   LOG("Done hooking");
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
@@ -279,12 +333,16 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   LOG("Adding hook %p to chain %p", item, hooks);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (hooks->head == NULL) { // first hook for this list
-    hooks->head = item;
-    item->next = NULL;
-    item->u.next = (uintptr_t)NULL;
     ret = tai_hook_function(item->patch->slab, hooks->func, item->u.func, &hooks->old, &hooks->saved);
-    item->u.old = hooks->old;
-    cache_flush(item->patch->pid, slab_getmirror(item->patch->slab, item), sizeof(tai_hook_t));
+    if (ret >= 0) {
+      hooks->head = item;
+      item->next = NULL;
+      item->u.next = (uintptr_t)NULL;
+      item->u.old = hooks->old;
+      cache_flush(item->patch->pid, slab_getmirror(item->patch->slab, item), sizeof(tai_hook_t));
+    } else {
+      LOG("Hook failed, do not add to chain");
+    }
   } else {
     head = hooks->head;
     item->next = head->next;
@@ -395,7 +453,6 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   }
 
   hook = NULL;
-  slab = NULL;
   // TODO: create it for a PID to allow auto cleanup on process exit
   ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
   LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
@@ -428,8 +485,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
     }
   }
 
-  slab = patch->slab;
-  hook = slab_alloc(slab, &exe_addr);
+  hook = slab_alloc(patch->slab, &exe_addr);
   if (hook == NULL) {
     ret = -1;
     goto err;
@@ -440,17 +496,20 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   ret = hooks_add_hook(&patch->data.hooks, hook);
   if (ret < 0 && patch->data.hooks.head == NULL) {
     LOG("failed to add hook and patch is now empty, freeing it");
+    slab_free(patch->slab, hook);
+    hook = NULL;
     proc_map_remove(g_map, patch);
     sceKernelDeleteUid(patch->uid);
+    patch = NULL;
   } else if (ret >= 0) {
     ret = patch->uid;
-    *p_hook = slab_getmirror(slab, hook);
+    *p_hook = slab_getmirror(patch->slab, hook);
   }
 
 err:
   // error and we have allocated a hook
-  if (ret < 0 && slab && hook) {
-    slab_free(slab, hook);
+  if (ret < 0 && patch && hook) {
+    slab_free(patch->slab, hook);
   }
 
   sceKernelUnlockMutexForKernel(g_hooks_lock, 1);

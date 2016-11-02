@@ -22,6 +22,7 @@ add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
 add_definitions(-DNO_PTHREADS)
 add_definitions(-DENABLE_LOGGING)
 add_definitions(-D__VITA_KERNEL__)
+add_definitions(-DTRANSFORM_DIS_VERBOSE)
 
 add_executable(taihen.elf
 	hen.c
