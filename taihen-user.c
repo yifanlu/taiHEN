@@ -377,46 +377,47 @@ SceUID taiLoadKernelModule(const char *path, int flags, void *opt) {
  * @brief      Starts a kernel module
  *
  * @param[in]  modid  The id from `taiLoadKernelModule`
- * @param[in]  args   The size of the arguments
- * @param      argp   The arguments
- * @param[in]  flags  The flags
+ * @param[in]  args   The arguments
  * @param      opt    Optional arguments, set to NULL
  * @param      res    Return value of `module_start`
  *
  * @return     Zero on success, < 0 on error
- *             - TAI_ERROR_INVALID_ARGS if `args` is too large or `opt` is not NULL
+ *             - TAI_ERROR_INVALID_ARGS if `args` is too large or `opt` is not
+ *               NULL
  *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
-  uintptr_t sp;
+int taiStartKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res) {
+  tai_module_args_t kargs;
   char buf[MAX_ARGS_SIZE];
   uint32_t state;
   int ret;
   int k_res;
   SceUID pid;
   SceKernelLMOption k_opt;
-  void *_opt;
-  int *_res;
 
   ENTER_SYSCALL(state);
-  sceKernelMemcpyUserToKernel(&_opt, sp, sizeof(_opt));
-  sceKernelMemcpyUserToKernel(&_res, sp+4, sizeof(_res));
-  LOG("stack arg: opt: %p, res: %p", _opt, _res);
   pid = sceKernelGetProcessId();
   if (sceSblACMgrIsShell(0)) {
-    if (args <= MAX_ARGS_SIZE || _opt != NULL) {
-      ret = sceKernelKernelUidForUserUid(pid, modid);
-      if (ret >= 0) {
-        modid = ret;
-        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)argp, args);
+    kargs.size = 0;
+    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    if (kargs.size == sizeof(kargs)) {
+      if (kargs.args <= MAX_ARGS_SIZE || opt != NULL) {
+        ret = sceKernelKernelUidForUserUid(pid, modid);
         if (ret >= 0) {
-          k_opt.size = sizeof(k_opt);
-          k_res = 0;
-          ret = sceKernelStartModuleForDriver(modid, args, buf, flags, &k_opt, &k_res);
-          sceKernelMemcpyKernelToUser((uintptr_t)_res, &k_res, sizeof(*_res));
+          modid = ret;
+          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          if (ret >= 0) {
+            k_opt.size = sizeof(k_opt);
+            k_res = 0;
+            ret = sceKernelStartModuleForDriver(modid, kargs.args, buf, kargs.flags, &k_opt, &k_res);
+            sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+          }
+        } else {
+          LOG("Error getting kernel uid for %x: %x", modid, ret);
         }
       } else {
-        LOG("Error getting kernel uid for %x: %x", modid, ret);
+        LOG("invalid args size: %x", kargs.size);
+        ret = TAI_ERROR_USER_MEMORY;
       }
     } else {
       ret = TAI_ERROR_INVALID_ARGS;
@@ -431,28 +432,88 @@ int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *op
 /**
  * @brief      Loads and starts a kernel module
  *
- * @param[in]  path   The path of the skprx
- * @param[in]  args   The size of the arguments
- * @param      argp   The arguments
- * @param[in]  flags  The flags
+ * @param[in]  path  The path of the skprx
+ * @param[in]  args  The arguments
  *
  * @return     A module reference on success, < 0 on error
  *             - TAI_ERROR_INVALID_ARGS if `args` is too large
  *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flags) {
+SceUID taiLoadStartKernelModuleForUser(const char *path, tai_module_args_t *args) {
+  tai_module_args_t kargs;
+  uint32_t state;
   SceUID modid;
   int ret;
 
-  modid = taiLoadKernelModule(path, flags, NULL);
-  if (modid >= 0) {
-    ret = taiStartKernelModule(modid, args, argp, flags, NULL, NULL);
-    if (ret >= 0) {
+
+  ENTER_SYSCALL(state);
+  kargs.size = 0;
+  sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+  EXIT_SYSCALL(state);
+
+  if (kargs.size == sizeof(kargs)) {
+    modid = taiLoadKernelModule(path, kargs.flags, NULL);
+    if (modid >= 0) {
+      ret = taiStartKernelModuleForUser(modid, args, NULL, NULL);
+      if (ret >= 0) {
+        ret = modid;
+      }
+    } else {
       ret = modid;
     }
   } else {
-    ret = modid;
+    LOG("invalid args size: %x", kargs.size);
+    ret = TAI_ERROR_USER_MEMORY;
   }
+  return ret;
+}
+
+/**
+ * @brief      Loads and starts a user module for another process
+ *
+ * @param[in]  pid   The pid to load to
+ * @param[in]  path  The path of the skprx
+ * @param[in]  args  The arguments
+ *
+ * @return     A module reference on success, < 0 on error
+ *             - TAI_ERROR_INVALID_ARGS if `args` is too large
+ *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
+ */
+SceUID taiLoadStartModuleForPidForUser(SceUID pid, const char *path, tai_module_args_t *args) {
+  tai_module_args_t kargs;
+  char buf[MAX_ARGS_SIZE];
+  char k_path[MAX_NAME_LEN];
+  uint32_t state;
+  SceUID modid;
+  int ret;
+
+
+  ENTER_SYSCALL(state);
+  if (sceSblACMgrIsShell(0)) {
+    kargs.size = 0;
+    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    if (kargs.size == sizeof(kargs)) {
+      if (kargs.args <= MAX_ARGS_SIZE) {
+        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+        if (ret >= 0) {
+          ret = sceKernelLoadStartModuleForPid(pid, k_path, kargs.args, buf, kargs.flags, NULL, NULL);
+          LOG("loaded %s: %x", k_path, ret);
+          if (ret >= 0) {
+            ret = sceKernelCreateUserUid(pid, ret);
+            LOG("user uid: %x", ret);
+          }
+        }
+      } else {
+        ret = TAI_ERROR_INVALID_ARGS;
+      }
+    } else {
+      LOG("invalid args size: %x", kargs.size);
+      ret = TAI_ERROR_USER_MEMORY;
+    }
+  } else {
+    ret = TAI_ERROR_NOT_ALLOWED;
+  }
+  EXIT_SYSCALL(state);
   return ret;
 }
 
@@ -460,9 +521,7 @@ SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flag
  * @brief      Stops and unloads a kernel module
  *
  * @param[in]  modid  The loaded module reference
- * @param[in]  args   The size of the arguments to `module_stop`
- * @param      argp   The arguments to `module_stop`
- * @param[in]  flags  The flags
+ * @param[in]  args   The arguments
  * @param      opt    Optional arguments, set to NULL
  * @param      res    Return value of `module_stop`
  *
@@ -470,8 +529,8 @@ SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flag
  *             - TAI_ERROR_INVALID_ARGS if `args` is too large or `opt` is not NULL
  *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
-int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
-  uintptr_t sp;
+int taiStopUnloadKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res) {
+  tai_module_args_t kargs;
   char buf[MAX_ARGS_SIZE];
   uint32_t state;
   int ret;
@@ -479,32 +538,34 @@ int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, voi
   SceUID pid;
   SceUID kid;
   SceKernelULMOption k_opt;
-  void *_opt;
-  int *_res;
 
   ENTER_SYSCALL(state);
-  sceKernelMemcpyUserToKernel(&_opt, sp, sizeof(_opt));
-  sceKernelMemcpyUserToKernel(&_res, sp+4, sizeof(_res));
-  LOG("stack arg: opt: %p, res: %p", _opt, _res);
   pid = sceKernelGetProcessId();
   if (sceSblACMgrIsShell(0)) {
-    if (args <= MAX_ARGS_SIZE || _opt != NULL) {
-      kid = sceKernelKernelUidForUserUid(pid, modid);
-      if (kid >= 0) {
-        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)argp, args);
-        if (ret >= 0) {
-          k_opt.size = sizeof(k_opt);
-          k_res = 0;
-          ret = sceKernelStopUnloadModuleForDriver(kid, args, buf, flags, &k_opt, &k_res);
-          sceKernelMemcpyKernelToUser((uintptr_t)_res, &k_res, sizeof(*_res));
-          sceKernelDeleteUserUid(pid, modid);
+    kargs.size = 0;
+    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    if (kargs.size == sizeof(kargs)) {
+      if (kargs.args <= MAX_ARGS_SIZE || opt != NULL) {
+        kid = sceKernelKernelUidForUserUid(pid, modid);
+        if (kid >= 0) {
+          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          if (ret >= 0) {
+            k_opt.size = sizeof(k_opt);
+            k_res = 0;
+            ret = sceKernelStopUnloadModuleForDriver(kid, kargs.args, buf, kargs.flags, &k_opt, &k_res);
+            sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+            sceKernelDeleteUserUid(pid, modid);
+          }
+        } else {
+          LOG("Error getting kernel uid for %x: %x", modid, kid);
+          ret = kid;
         }
       } else {
-        LOG("Error getting kernel uid for %x: %x", modid, kid);
-        ret = kid;
+        ret = TAI_ERROR_INVALID_ARGS;
       }
     } else {
-      ret = TAI_ERROR_INVALID_ARGS;
+      LOG("invalid args size: %x", kargs.size);
+      ret = TAI_ERROR_USER_MEMORY;
     }
   } else {
     ret = TAI_ERROR_NOT_ALLOWED;

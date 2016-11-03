@@ -206,6 +206,16 @@ typedef struct _tai_offset_args {
   size_t source_size;
 } tai_offset_args_t;
 
+/**
+ * @brief      Pass module arguments to kernel
+ */
+typedef struct _tai_module_args {
+  size_t size;
+  size_t args;
+  void *argp;
+  int flags;
+} tai_module_args_t;
+
 #ifdef __VITA_KERNEL__
 /** @name Kernel Hooks
  * Hooks exports to kernel
@@ -231,6 +241,18 @@ SceUID taiHookFunctionOffsetForUser(tai_hook_ref_t *p_hook, tai_offset_args_t *a
 int taiGetModuleInfo(const char *module, tai_module_info_t *info);
 int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook);
 
+/**
+ * @brief      Helper function for #taiHookFunctionExportForUser
+ *
+ * @see        taiHookFunctionExportForUser
+ *
+ * @param[out] p_hook       A reference that can be used by the hook function
+ * @param[in]  module       Name of the target module.
+ * @param[in]  library_nid  Optional. NID of the target library.
+ * @param[in]  func_nid     The function NID. If `library_nid` is 0, then the
+ *                          first export with the NID will be hooked.
+ * @param[in]  hook_func    The hook function
+ */
 HELPER SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
   tai_hook_args_t args;
   args.size = sizeof(args);
@@ -241,6 +263,18 @@ HELPER SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, 
   return taiHookFunctionExportForUser(p_hook, &args);
 }
 
+/**
+ * @brief      Helper function for #taiHookFunctionImportForUser
+ *
+ * @see        taiHookFunctionImportForUser
+ *
+ * @param[out] p_hook              A reference that can be used by the hook
+ *                                 function
+ * @param[in]  module              Name of the target module.
+ * @param[in]  import_library_nid  The imported library from the target module
+ * @param[in]  import_func_nid     The function NID of the import
+ * @param[in]  hook_func           The hook function
+ */
 HELPER SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
   tai_hook_args_t args;
   args.size = sizeof(args);
@@ -251,6 +285,19 @@ HELPER SceUID taiHookFunctionImport(tai_hook_ref_t *p_hook, const char *module, 
   return taiHookFunctionImportForUser(p_hook, &args);
 }
 
+/**
+ * @brief      Helper function for #taiHookFunctionOffsetForUser
+ *
+ * @see        taiHookFunctionOffsetForUser
+ *
+ * @param[out] p_hook     A reference that can be used by the hook function
+ * @param[in]  modid      The module UID from `taiGetModuleInfo`
+ * @param[in]  segidx     The ELF segment index containing the function to patch
+ * @param[in]  offset     The offset from the start of the segment
+ * @param[in]  thumb      Set to 1 if this is a Thumb function
+ * @param[in]  hook_func  The hook function (must be in the target address
+ *                        space)
+ */
 HELPER SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func) {
   tai_offset_args_t args;
   args.size = sizeof(args);
@@ -320,6 +367,17 @@ SceUID taiInjectAbs(void *dest, const void *src, size_t size);
 SceUID taiInjectDataForUser(tai_offset_args_t *args);
 int taiInjectRelease(SceUID tai_uid);
 
+/**
+ * @brief      Helper function for #taiInjectDataForUser
+ *
+ * @see        taiInjectDataForUser
+ *
+ * @param[in]  modid   The module UID from `taiGetModuleInfo`
+ * @param[in]  segidx  Index of the ELF segment containing the data to patch
+ * @param[in]  offset  The offset from the start of the segment
+ * @param[in]  data    The data in kernel address space
+ * @param[in]  size    The size of the injection in bytes
+ */
 HELPER SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const void *data, size_t size) {
   tai_offset_args_t args;
   args.size = sizeof(args);
@@ -341,10 +399,92 @@ HELPER SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const voi
 /** @{ */
 
 SceUID taiLoadKernelModule(const char *path, int flags, void *opt);
-int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res);
-SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flags);
-int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res);
+int taiStartKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
+SceUID taiLoadStartKernelModuleForUser(const char *path, tai_module_args_t *args);
+SceUID taiLoadStartModuleForPidForUser(SceUID pid, const char *path, tai_module_args_t *args);
+int taiStopUnloadKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
 int taiUnloadKernelModule(SceUID modid, int flags);
+
+/**
+ * @brief      Helper function for #taiStartKernelModuleForUser
+ *
+ * @see        taiStartKernelModuleForUser
+ *
+ * @param[in]  modid  The id from `taiLoadKernelModule`
+ * @param[in]  args   The size of the arguments
+ * @param      argp   The arguments
+ * @param[in]  flags  The flags
+ * @param      opt    Optional arguments, set to NULL
+ * @param      res    Return value of `module_start`
+ */
+HELPER int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  tai_module_args_t argg;
+  argg.size = sizeof(args);
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiStartKernelModuleForUser(modid, &argg, opt, res);
+}
+
+/**
+ * @brief      Helper function for #taiLoadStartKernelModuleForUser
+ *
+ * @see        taiLoadStartKernelModuleForUser
+ *
+ * @param[in]  path   The path of the skprx
+ * @param[in]  args   The size of the arguments
+ * @param      argp   The arguments
+ * @param[in]  flags  The flags
+ */
+HELPER SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flags) {
+  tai_module_args_t argg;
+  argg.size = sizeof(args);
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiLoadStartKernelModuleForUser(path, &argg);
+}
+
+/**
+ * @brief      Helper function for #taiLoadStartModuleForPidForUser
+ *
+ * @see        taiLoadStartModuleForPidForUser
+ *
+ * @param[in]  pid    The pid to load to
+ * @param[in]  path   The path of the suprx
+ * @param[in]  args   The size of the arguments
+ * @param      argp   The arguments
+ * @param[in]  flags  The flags
+ */
+HELPER SceUID taiLoadStartModuleForPid(SceUID pid, const char *path, int args, void *argp, int flags) {
+  tai_module_args_t argg;
+  argg.size = sizeof(args);
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiLoadStartModuleForPidForUser(pid, path, &argg);
+}
+
+/**
+ * @brief      Helper function for #taiStopUnloadKernelModuleForUser
+ *
+ * @see        taiStopUnloadKernelModuleForUser
+ *
+ * @param[in]  modid  The loaded module reference
+ * @param[in]  args   The size of the arguments to `module_stop`
+ * @param      argp   The arguments to `module_stop`
+ * @param[in]  flags  The flags
+ * @param      opt    Optional arguments, set to NULL
+ * @param      res    Return value of `module_stop`
+ */
+HELPER int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  tai_module_args_t argg;
+  argg.size = sizeof(args);
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiStopUnloadKernelModuleForUser(modid, &argg, opt, res);
+}
 
 /** @} */
 
