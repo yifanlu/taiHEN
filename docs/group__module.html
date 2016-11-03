@@ -127,19 +127,19 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets a loaded module by name or NID or both. </p>
-<p>If <code>name</code> is NULL, then only the NID is used to locate the loaded module. If <code>name</code> is not NULL then it will be used to lookup the loaded module. If NID is not zero, then it will be used in the lookup too.</p>
+<p>If <code>name</code> is NULL, then only the NID is used to locate the loaded module. If <code>name</code> is not NULL then it will be used to lookup the loaded module. If NID is not <code>TAI_ANY_LIBRARY</code>, then it will be used in the lookup too.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>The name to lookup. Can be NULL. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">nid</td><td>The nid to lookup. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nid</td><td>The nid to lookup. Can be <code>TAI_ANY_LIBRARY</code>. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>The information</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00221">221</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00230">230</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
@@ -192,7 +192,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">modname</td><td>The name of module to lookup </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">libnid</td><td>Optional NID of the exporting library. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">libnid</td><td>NID of the exporting library. Can be <code>TAI_ANY_LIBRARY</code>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">funcnid</td><td>NID of the exported function </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">func</td><td>Output address of the function</td></tr>
   </table>
@@ -200,7 +200,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00316">316</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00315">315</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
@@ -253,7 +253,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">modname</td><td>The name of the module importing the function </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">target_libnid</td><td>The target's library NID </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">target_libnid</td><td>The target's library NID. Can be <code>TAI_ANY_LIBRARY</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">funcnid</td><td>The target's function NID </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">stub</td><td>Output address to stub calling the imported function</td></tr>
   </table>
@@ -261,7 +261,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00375">375</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00381">381</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
@@ -322,7 +322,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00270">270</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00277">277</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>

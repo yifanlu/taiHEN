@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.12"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>taiHEN: _tai_inject Struct Reference</title>
+<title>taiHEN: _tai_module_args Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,36 +63,36 @@ $(function() {
   <div class="summary">
 <a href="#pub-attribs">Data Fields</a>  </div>
   <div class="headertitle">
-<div class="title">_tai_inject Struct Reference<div class="ingroups"><a class="el" href="group__patches.html">Patch System</a></div></div>  </div>
+<div class="title">_tai_module_args Struct Reference<div class="ingroups"><a class="el" href="group__taihen.html">API Interface</a> &raquo; <a class="el" href="group__hook.html">Hooks Interface</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>Injection data.  
- <a href="struct__tai__inject.html#details">More...</a></p>
+<p>Pass module arguments to kernel.  
+ <a href="struct__tai__module__args.html#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="taihen__internal_8h_source.html">taihen_internal.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="taihen_8h_source.html">taihen.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a203ca62bee71a0117ffcd5d5f6f9d52b"><td class="memItemLeft" align="right" valign="top"><a id="a203ca62bee71a0117ffcd5d5f6f9d52b"></a>
-void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__inject.html#a203ca62bee71a0117ffcd5d5f6f9d52b">saved</a></td></tr>
-<tr class="memdesc:a203ca62bee71a0117ffcd5d5f6f9d52b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The original data (allocated on inject) <br /></td></tr>
-<tr class="separator:a203ca62bee71a0117ffcd5d5f6f9d52b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a854352f53b148adc24983a58a1866d66"><td class="memItemLeft" align="right" valign="top"><a id="a854352f53b148adc24983a58a1866d66"></a>
-size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__inject.html#a854352f53b148adc24983a58a1866d66">size</a></td></tr>
-<tr class="memdesc:a854352f53b148adc24983a58a1866d66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Size of original data. <br /></td></tr>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size</b></td></tr>
 <tr class="separator:a854352f53b148adc24983a58a1866d66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af12be979a5b42c4cf540f8bc8d7baf65"><td class="memItemLeft" align="right" valign="top"><a id="af12be979a5b42c4cf540f8bc8d7baf65"></a>
-struct <a class="el" href="struct__tai__patch.html">_tai_patch</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__inject.html#af12be979a5b42c4cf540f8bc8d7baf65">patch</a></td></tr>
-<tr class="memdesc:af12be979a5b42c4cf540f8bc8d7baf65"><td class="mdescLeft">&#160;</td><td class="mdescRight">The patch containing this injection. <br /></td></tr>
-<tr class="separator:af12be979a5b42c4cf540f8bc8d7baf65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad1e2b8cbca607c1e763acc04350467f"><td class="memItemLeft" align="right" valign="top"><a id="aad1e2b8cbca607c1e763acc04350467f"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>args</b></td></tr>
+<tr class="separator:aad1e2b8cbca607c1e763acc04350467f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a246ef34fa2df332898e5b96c81d46f5e"><td class="memItemLeft" align="right" valign="top"><a id="a246ef34fa2df332898e5b96c81d46f5e"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><b>argp</b></td></tr>
+<tr class="separator:a246ef34fa2df332898e5b96c81d46f5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8bf36fe0577cba66bccda3a6f7e80a4"><td class="memItemLeft" align="right" valign="top"><a id="ac8bf36fe0577cba66bccda3a6f7e80a4"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>flags</b></td></tr>
+<tr class="separator:ac8bf36fe0577cba66bccda3a6f7e80a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Injection data. </p>
+<div class="textblock"><p>Pass module arguments to kernel. </p>
 
-<p>Definition at line <a class="el" href="taihen__internal_8h_source.html#l00058">58</a> of file <a class="el" href="taihen__internal_8h_source.html">taihen_internal.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00212">212</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="taihen__internal_8h_source.html">taihen_internal.h</a></li>
+<li><a class="el" href="taihen_8h_source.html">taihen.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['tai_5fproc_5fmap_5ft',['tai_proc_map_t',['../structtai__proc__map__t.html',1,'']]]
+  ['user_5fhook_5fargs',['user_hook_args',['../structuser__hook__args.html',1,'']]]
 ];

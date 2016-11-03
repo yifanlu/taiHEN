@@ -77,6 +77,15 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__hook__user.html">_tai_hook_user</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internal structure.  <a href="struct__tai__hook__user.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__hook__args.html">_tai_hook_args</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass hook arguments to kernel.  <a href="struct__tai__hook__args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__offset__args.html">_tai_offset_args</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass offset arguments to kernel.  <a href="struct__tai__offset__args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__module__args.html">_tai_module_args</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass module arguments to kernel.  <a href="struct__tai__module__args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -89,6 +98,18 @@ Typedefs</h2></td></tr>
 <tr class="memitem:gac10ef3a300e9826453a63ed3c1f0cc3f"><td class="memItemLeft" align="right" valign="top">typedef uintptr_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a></td></tr>
 <tr class="memdesc:gac10ef3a300e9826453a63ed3c1f0cc3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hook information.  <a href="#gac10ef3a300e9826453a63ed3c1f0cc3f">More...</a><br /></td></tr>
 <tr class="separator:gac10ef3a300e9826453a63ed3c1f0cc3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga80b69aa78bda55d9deaab853234f5b9b"><td class="memItemLeft" align="right" valign="top"><a id="ga80b69aa78bda55d9deaab853234f5b9b"></a>
+typedef struct <a class="el" href="struct__tai__hook__args.html">_tai_hook_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga80b69aa78bda55d9deaab853234f5b9b">tai_hook_args_t</a></td></tr>
+<tr class="memdesc:ga80b69aa78bda55d9deaab853234f5b9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass hook arguments to kernel. <br /></td></tr>
+<tr class="separator:ga80b69aa78bda55d9deaab853234f5b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga11b170a95065811a28f4c96e3b98a1da"><td class="memItemLeft" align="right" valign="top"><a id="ga11b170a95065811a28f4c96e3b98a1da"></a>
+typedef struct <a class="el" href="struct__tai__offset__args.html">_tai_offset_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga11b170a95065811a28f4c96e3b98a1da">tai_offset_args_t</a></td></tr>
+<tr class="memdesc:ga11b170a95065811a28f4c96e3b98a1da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass offset arguments to kernel. <br /></td></tr>
+<tr class="separator:ga11b170a95065811a28f4c96e3b98a1da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7a6524d0523ce32c32a7bea3b37b29b2"><td class="memItemLeft" align="right" valign="top"><a id="ga7a6524d0523ce32c32a7bea3b37b29b2"></a>
+typedef struct <a class="el" href="struct__tai__module__args.html">_tai_module_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a></td></tr>
+<tr class="memdesc:ga7a6524d0523ce32c32a7bea3b37b29b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass module arguments to kernel. <br /></td></tr>
+<tr class="separator:ga7a6524d0523ce32c32a7bea3b37b29b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Kernel Hooks</h2></td></tr>
@@ -117,21 +138,30 @@ Kernel Hooks</h2></td></tr>
 User Hooks</h2></td></tr>
 <tr><td class="ititle" colspan="2"><p><a class="anchor" id="amgrpdcdb34b611fd3b75a8bf26fc0558e1be"></a>Hooks exports to user </p>
 </td></tr>
-<tr class="memitem:ga4e69b49816ce6fa3e8062737c3ed47ab"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga4e69b49816ce6fa3e8062737c3ed47ab">taiHookFunctionExport</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func)</td></tr>
-<tr class="memdesc:ga4e69b49816ce6fa3e8062737c3ed47ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a hook to a module function export for the calling process.  <a href="#ga4e69b49816ce6fa3e8062737c3ed47ab">More...</a><br /></td></tr>
-<tr class="separator:ga4e69b49816ce6fa3e8062737c3ed47ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaadf08ee2a00503a29c8cb115f3ceb761"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#gaadf08ee2a00503a29c8cb115f3ceb761">taiHookFunctionImport</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func)</td></tr>
-<tr class="memdesc:gaadf08ee2a00503a29c8cb115f3ceb761"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a hook to a module function import for the calling process.  <a href="#gaadf08ee2a00503a29c8cb115f3ceb761">More...</a><br /></td></tr>
-<tr class="separator:gaadf08ee2a00503a29c8cb115f3ceb761"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3d2ba0c191d6b97ee5b58008554ed450"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga3d2ba0c191d6b97ee5b58008554ed450">taiHookFunctionOffset</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func)</td></tr>
-<tr class="memdesc:ga3d2ba0c191d6b97ee5b58008554ed450"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a hook to a module manually with an offset for the calling process.  <a href="#ga3d2ba0c191d6b97ee5b58008554ed450">More...</a><br /></td></tr>
-<tr class="separator:ga3d2ba0c191d6b97ee5b58008554ed450"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga098c20b5ba68878729da8dc6ef4238fb"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga098c20b5ba68878729da8dc6ef4238fb">taiHookFunctionExportForUser</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, <a class="el" href="group__hook.html#ga80b69aa78bda55d9deaab853234f5b9b">tai_hook_args_t</a> *args)</td></tr>
+<tr class="memdesc:ga098c20b5ba68878729da8dc6ef4238fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a hook to a module function export for the calling process.  <a href="#ga098c20b5ba68878729da8dc6ef4238fb">More...</a><br /></td></tr>
+<tr class="separator:ga098c20b5ba68878729da8dc6ef4238fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga942b2d3c0bec6e670417949cfaf9b182"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga942b2d3c0bec6e670417949cfaf9b182">taiHookFunctionImportForUser</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, <a class="el" href="group__hook.html#ga80b69aa78bda55d9deaab853234f5b9b">tai_hook_args_t</a> *args)</td></tr>
+<tr class="memdesc:ga942b2d3c0bec6e670417949cfaf9b182"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a hook to a module function import for the calling process.  <a href="#ga942b2d3c0bec6e670417949cfaf9b182">More...</a><br /></td></tr>
+<tr class="separator:ga942b2d3c0bec6e670417949cfaf9b182"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad1b4a779a32fa2a2a49c606c5fc0d6de"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#gad1b4a779a32fa2a2a49c606c5fc0d6de">taiHookFunctionOffsetForUser</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, <a class="el" href="group__hook.html#ga11b170a95065811a28f4c96e3b98a1da">tai_offset_args_t</a> *args)</td></tr>
+<tr class="memdesc:gad1b4a779a32fa2a2a49c606c5fc0d6de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a hook to a module manually with an offset for the calling process.  <a href="#gad1b4a779a32fa2a2a49c606c5fc0d6de">More...</a><br /></td></tr>
+<tr class="separator:gad1b4a779a32fa2a2a49c606c5fc0d6de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab67b879133ad7f48f8b2d161f5ebba82"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#gab67b879133ad7f48f8b2d161f5ebba82">taiGetModuleInfo</a> (const char *module, <a class="el" href="group__taihen.html#gaf8ec630dd11d7c647e9ca2cc2f5f08ad">tai_module_info_t</a> *info)</td></tr>
 <tr class="memdesc:gab67b879133ad7f48f8b2d161f5ebba82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets information on a currently loaded module.  <a href="#gab67b879133ad7f48f8b2d161f5ebba82">More...</a><br /></td></tr>
 <tr class="separator:gab67b879133ad7f48f8b2d161f5ebba82"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga23d24ea46116a54698618af35b39aea6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga23d24ea46116a54698618af35b39aea6">taiHookRelease</a> (SceUID tai_uid, <a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> hook)</td></tr>
 <tr class="memdesc:ga23d24ea46116a54698618af35b39aea6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release a hook for the calling process.  <a href="#ga23d24ea46116a54698618af35b39aea6">More...</a><br /></td></tr>
 <tr class="separator:ga23d24ea46116a54698618af35b39aea6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae05ef14d7925e68acaea4749ac6b79af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#gae05ef14d7925e68acaea4749ac6b79af">taiHookFunctionExport</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func)</td></tr>
+<tr class="memdesc:gae05ef14d7925e68acaea4749ac6b79af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__hook.html#ga098c20b5ba68878729da8dc6ef4238fb" title="Add a hook to a module function export for the calling process. ">taiHookFunctionExportForUser</a>.  <a href="#gae05ef14d7925e68acaea4749ac6b79af">More...</a><br /></td></tr>
+<tr class="separator:gae05ef14d7925e68acaea4749ac6b79af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga795597abd9e27d4e9e3f556b12d8a402"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga795597abd9e27d4e9e3f556b12d8a402">taiHookFunctionImport</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func)</td></tr>
+<tr class="memdesc:ga795597abd9e27d4e9e3f556b12d8a402"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__hook.html#ga942b2d3c0bec6e670417949cfaf9b182" title="Add a hook to a module function import for the calling process. ">taiHookFunctionImportForUser</a>.  <a href="#ga795597abd9e27d4e9e3f556b12d8a402">More...</a><br /></td></tr>
+<tr class="separator:ga795597abd9e27d4e9e3f556b12d8a402"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga80b3ff70e0aeb17d99ee3c37b51d77bb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hook.html#ga80b3ff70e0aeb17d99ee3c37b51d77bb">taiHookFunctionOffset</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, SceUID modid, int segidx, uint32_t offset, int thumb, const void *hook_func)</td></tr>
+<tr class="memdesc:ga80b3ff70e0aeb17d99ee3c37b51d77bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__hook.html#gad1b4a779a32fa2a2a49c606c5fc0d6de" title="Add a hook to a module manually with an offset for the calling process. ">taiHookFunctionOffsetForUser</a>.  <a href="#ga80b3ff70e0aeb17d99ee3c37b51d77bb">More...</a><br /></td></tr>
+<tr class="separator:ga80b3ff70e0aeb17d99ee3c37b51d77bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Patches functions. </p>
@@ -175,8 +205,8 @@ User Hooks</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<b>Value:</b><div class="fragment"><div class="line">({ \</div><div class="line">  struct <a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *cur, *<a class="code" href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">next</a>; \</div><div class="line">  cur = (<span class="keyword">struct </span><a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *)(hook); \</div><div class="line">  next = (<span class="keyword">struct </span><a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *)cur-&gt;<a class="code" href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">next</a>; \</div><div class="line">  (next == NULL) ? \</div><div class="line">    ((type(*)())cur-&gt;old)(__VA_ARGS__) \</div><div class="line">  : \</div><div class="line">    ((type(*)())next-&gt;func)(__VA_ARGS__) \</div><div class="line">  ; \</div><div class="line">})</div><div class="ttc" id="struct__tai__proc_html_a230a61dbce373574d8414910ca2a837e"><div class="ttname"><a href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">_tai_proc::next</a></div><div class="ttdeci">struct _tai_proc * next</div><div class="ttdoc">Next process in this map bucket. </div><div class="ttdef"><b>Definition:</b> <a href="taihen__internal_8h_source.html#l00104">taihen_internal.h:104</a></div></div>
-<div class="ttc" id="struct__tai__hook__user_html"><div class="ttname"><a href="struct__tai__hook__user.html">_tai_hook_user</a></div><div class="ttdoc">Internal structure. </div><div class="ttdef"><b>Definition:</b> <a href="taihen_8h_source.html#l00188">taihen.h:188</a></div></div>
+<b>Value:</b><div class="fragment"><div class="line">({ \</div><div class="line">  struct <a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *cur, *<a class="code" href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">next</a>; \</div><div class="line">  cur = (<span class="keyword">struct </span><a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *)(hook); \</div><div class="line">  next = (<span class="keyword">struct </span><a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *)cur-&gt;<a class="code" href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">next</a>; \</div><div class="line">  (next == NULL) ? \</div><div class="line">    ((type(*)())cur-&gt;old)(__VA_ARGS__) \</div><div class="line">  : \</div><div class="line">    ((type(*)())next-&gt;func)(__VA_ARGS__) \</div><div class="line">  ; \</div><div class="line">})</div><div class="ttc" id="struct__tai__proc_html_a230a61dbce373574d8414910ca2a837e"><div class="ttname"><a href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">_tai_proc::next</a></div><div class="ttdeci">struct _tai_proc * next</div><div class="ttdoc">Next process in this map bucket. </div><div class="ttdef"><b>Definition:</b> <a href="taihen__internal_8h_source.html#l00106">taihen_internal.h:106</a></div></div>
+<div class="ttc" id="struct__tai__hook__user_html"><div class="ttname"><a href="struct__tai__hook__user.html">_tai_hook_user</a></div><div class="ttdoc">Internal structure. </div><div class="ttdef"><b>Definition:</b> <a href="taihen_8h_source.html#l00179">taihen.h:179</a></div></div>
 </div><!-- fragment -->
 <p>Calls the next function in the chain. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -188,7 +218,7 @@ User Hooks</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Return value from the hook chain </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00229">229</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00322">322</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -208,7 +238,7 @@ User Hooks</h2></td></tr>
 <p>Hook information. </p>
 <p>This reference is created on new hooks and is up to the caller to keep track of. The client is responsible for cleanup by passing the reference back to taiHEN when needed. </p>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00183">183</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00174">174</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -253,7 +283,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00172">172</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00184">184</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -301,7 +331,7 @@ User Hooks</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00156">156</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00158">158</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -361,18 +391,18 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00034">34</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00036">36</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
-<a id="ga4e69b49816ce6fa3e8062737c3ed47ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga4e69b49816ce6fa3e8062737c3ed47ab">&sect;&nbsp;</a></span>taiHookFunctionExport()</h2>
+<a id="gae05ef14d7925e68acaea4749ac6b79af"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gae05ef14d7925e68acaea4749ac6b79af">&sect;&nbsp;</a></span>taiHookFunctionExport()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">SceUID taiHookFunctionExport </td>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID taiHookFunctionExport </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *&#160;</td>
           <td class="paramname"><em>p_hook</em>, </td>
@@ -409,27 +439,20 @@ User Hooks</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Add a hook to a module function export for the calling process. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#gab4da6ada9fcf53651839edc0b6e72611" title="Add a hook to a module function export. ">taiHookFunctionExportForKernel</a></dd></dl>
+<p>Helper function for <a class="el" href="group__hook.html#ga098c20b5ba68878729da8dc6ef4238fb" title="Add a hook to a module function export for the calling process. ">taiHookFunctionExportForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#ga098c20b5ba68878729da8dc6ef4238fb" title="Add a hook to a module function export for the calling process. ">taiHookFunctionExportForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">library_nid</td><td>Optional. NID of the target library. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">func_nid</td><td>The function NID. If <code>library_nid</code> is 0, then the first export with the NID will be hooked. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function (must be in the target address space)</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
-<li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
-<li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
-<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
-<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
-</ul>
-</dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00045">45</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00256">256</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -503,18 +526,65 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00060">60</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00062">62</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
-<a id="gaadf08ee2a00503a29c8cb115f3ceb761"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaadf08ee2a00503a29c8cb115f3ceb761">&sect;&nbsp;</a></span>taiHookFunctionImport()</h2>
+<a id="ga098c20b5ba68878729da8dc6ef4238fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga098c20b5ba68878729da8dc6ef4238fb">&sect;&nbsp;</a></span>taiHookFunctionExportForUser()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">SceUID taiHookFunctionImport </td>
+          <td class="memname">SceUID taiHookFunctionExportForUser </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *&#160;</td>
+          <td class="paramname"><em>p_hook</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__hook.html#ga80b69aa78bda55d9deaab853234f5b9b">tai_hook_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add a hook to a module function export for the calling process. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#gab4da6ada9fcf53651839edc0b6e72611" title="Add a hook to a module function export. ">taiHookFunctionExportForKernel</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Call arguments</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
+<li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
+<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
+<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00041">41</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="ga795597abd9e27d4e9e3f556b12d8a402"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga795597abd9e27d4e9e3f556b12d8a402">&sect;&nbsp;</a></span>taiHookFunctionImport()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID taiHookFunctionImport </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *&#160;</td>
           <td class="paramname"><em>p_hook</em>, </td>
@@ -551,27 +621,20 @@ User Hooks</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Add a hook to a module function import for the calling process. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#ga6db61f90fde2aded4b94fbd2bfd808ba" title="Add a hook to a module function import. ">taiHookFunctionImportForKernel</a></dd></dl>
+<p>Helper function for <a class="el" href="group__hook.html#ga942b2d3c0bec6e670417949cfaf9b182" title="Add a hook to a module function import for the calling process. ">taiHookFunctionImportForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#ga942b2d3c0bec6e670417949cfaf9b182" title="Add a hook to a module function import for the calling process. ">taiHookFunctionImportForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">import_library_nid</td><td>The imported library from the target module </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">import_func_nid</td><td>The function NID of the import </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function (must be in the target address space)</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
-<li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
-<li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
-<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
-<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
-</ul>
-</dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00093">93</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00278">278</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -645,18 +708,65 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00093">93</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00095">95</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
-<a id="ga3d2ba0c191d6b97ee5b58008554ed450"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga3d2ba0c191d6b97ee5b58008554ed450">&sect;&nbsp;</a></span>taiHookFunctionOffset()</h2>
+<a id="ga942b2d3c0bec6e670417949cfaf9b182"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga942b2d3c0bec6e670417949cfaf9b182">&sect;&nbsp;</a></span>taiHookFunctionImportForUser()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">SceUID taiHookFunctionOffset </td>
+          <td class="memname">SceUID taiHookFunctionImportForUser </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *&#160;</td>
+          <td class="paramname"><em>p_hook</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__hook.html#ga80b69aa78bda55d9deaab853234f5b9b">tai_hook_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add a hook to a module function import for the calling process. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#ga6db61f90fde2aded4b94fbd2bfd808ba" title="Add a hook to a module function import. ">taiHookFunctionImportForKernel</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Call arguments</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
+<li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
+<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
+<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00091">91</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="ga80b3ff70e0aeb17d99ee3c37b51d77bb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga80b3ff70e0aeb17d99ee3c37b51d77bb">&sect;&nbsp;</a></span>taiHookFunctionOffset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID taiHookFunctionOffset </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *&#160;</td>
           <td class="paramname"><em>p_hook</em>, </td>
@@ -699,8 +809,8 @@ User Hooks</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Add a hook to a module manually with an offset for the calling process. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#gabeb678d55d90c14545b9982b45e7c876" title="Add a hook to a module manually with an offset. ">taiHookFunctionOffsetForKernel</a></dd></dl>
+<p>Helper function for <a class="el" href="group__hook.html#gad1b4a779a32fa2a2a49c606c5fc0d6de" title="Add a hook to a module manually with an offset for the calling process. ">taiHookFunctionOffsetForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#gad1b4a779a32fa2a2a49c606c5fc0d6de" title="Add a hook to a module manually with an offset for the calling process. ">taiHookFunctionOffsetForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
@@ -708,19 +818,12 @@ User Hooks</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">segidx</td><td>The ELF segment index containing the function to patch </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">offset</td><td>The offset from the start of the segment </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">thumb</td><td>Set to 1 if this is a Thumb function </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function (must be in the target address space)</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function (must be in the target address space) </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
-<li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
-<li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
-<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
-<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
-</ul>
-</dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00136">136</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00301">301</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -801,7 +904,54 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00126">126</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00128">128</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+
+</div>
+</div>
+<a id="gad1b4a779a32fa2a2a49c606c5fc0d6de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gad1b4a779a32fa2a2a49c606c5fc0d6de">&sect;&nbsp;</a></span>taiHookFunctionOffsetForUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">SceUID taiHookFunctionOffsetForUser </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *&#160;</td>
+          <td class="paramname"><em>p_hook</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__hook.html#ga11b170a95065811a28f4c96e3b98a1da">tai_offset_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add a hook to a module manually with an offset for the calling process. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#gabeb678d55d90c14545b9982b45e7c876" title="Add a hook to a module manually with an offset. ">taiHookFunctionOffsetForKernel</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Call arguments</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
+<li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
+<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
+<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00139">139</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -845,7 +995,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00207">207</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00219">219</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -888,7 +1038,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00169">169</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00171">171</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>

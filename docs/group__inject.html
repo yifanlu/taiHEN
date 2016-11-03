@@ -89,12 +89,15 @@ User Injections</h2></td></tr>
 <tr class="memitem:ga2b28a18fb23f91e7f06a745bbe242a14"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__inject.html#ga2b28a18fb23f91e7f06a745bbe242a14">taiInjectAbs</a> (void *dest, const void *src, size_t size)</td></tr>
 <tr class="memdesc:ga2b28a18fb23f91e7f06a745bbe242a14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Injects data into the current process bypassing MMU flags.  <a href="#ga2b28a18fb23f91e7f06a745bbe242a14">More...</a><br /></td></tr>
 <tr class="separator:ga2b28a18fb23f91e7f06a745bbe242a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5df2b98e5643fd09ad45f427b60be084"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__inject.html#ga5df2b98e5643fd09ad45f427b60be084">taiInjectData</a> (SceUID modid, int segidx, uint32_t offset, const void *data, size_t size)</td></tr>
-<tr class="memdesc:ga5df2b98e5643fd09ad45f427b60be084"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inject data into the current process bypassing MMU flags given an offset.  <a href="#ga5df2b98e5643fd09ad45f427b60be084">More...</a><br /></td></tr>
-<tr class="separator:ga5df2b98e5643fd09ad45f427b60be084"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45874c9cbf3712743f370006c2ce4fd0"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__inject.html#ga45874c9cbf3712743f370006c2ce4fd0">taiInjectDataForUser</a> (<a class="el" href="group__hook.html#ga11b170a95065811a28f4c96e3b98a1da">tai_offset_args_t</a> *args)</td></tr>
+<tr class="memdesc:ga45874c9cbf3712743f370006c2ce4fd0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inject data into the current process bypassing MMU flags given an offset.  <a href="#ga45874c9cbf3712743f370006c2ce4fd0">More...</a><br /></td></tr>
+<tr class="separator:ga45874c9cbf3712743f370006c2ce4fd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga215ceefef93de832b1c28657e8402cca"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__inject.html#ga215ceefef93de832b1c28657e8402cca">taiInjectRelease</a> (SceUID tai_uid)</td></tr>
 <tr class="memdesc:ga215ceefef93de832b1c28657e8402cca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Release an injection for the calling process.  <a href="#ga215ceefef93de832b1c28657e8402cca">More...</a><br /></td></tr>
 <tr class="separator:ga215ceefef93de832b1c28657e8402cca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga23b73cc44fcb2929e35c60c1bd7e9634"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__inject.html#ga23b73cc44fcb2929e35c60c1bd7e9634">taiInjectData</a> (SceUID modid, int segidx, uint32_t offset, const void *data, size_t size)</td></tr>
+<tr class="memdesc:ga23b73cc44fcb2929e35c60c1bd7e9634"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__inject.html#ga45874c9cbf3712743f370006c2ce4fd0" title="Inject data into the current process bypassing MMU flags given an offset. ">taiInjectDataForUser</a>.  <a href="#ga23b73cc44fcb2929e35c60c1bd7e9634">More...</a><br /></td></tr>
+<tr class="separator:ga23b73cc44fcb2929e35c60c1bd7e9634"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Inject raw data into a module. </p>
@@ -147,7 +150,7 @@ User Injections</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00236">236</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00249">249</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -204,18 +207,18 @@ User Injections</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00184">184</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00186">186</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
-<a id="ga5df2b98e5643fd09ad45f427b60be084"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5df2b98e5643fd09ad45f427b60be084">&sect;&nbsp;</a></span>taiInjectData()</h2>
+<a id="ga23b73cc44fcb2929e35c60c1bd7e9634"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga23b73cc44fcb2929e35c60c1bd7e9634">&sect;&nbsp;</a></span>taiInjectData()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">SceUID taiInjectData </td>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID taiInjectData </td>
           <td>(</td>
           <td class="paramtype">SceUID&#160;</td>
           <td class="paramname"><em>modid</em>, </td>
@@ -252,24 +255,20 @@ User Injections</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Inject data into the current process bypassing MMU flags given an offset. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__inject.html#ga265d827ea273fb086abd0b647d0103aa" title="Inject data into a process bypassing MMU flags given an offset. ">taiInjectDataForKernel</a></dd></dl>
+<p>Helper function for <a class="el" href="group__inject.html#ga45874c9cbf3712743f370006c2ce4fd0" title="Inject data into the current process bypassing MMU flags given an offset. ">taiInjectDataForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__inject.html#ga45874c9cbf3712743f370006c2ce4fd0" title="Inject data into the current process bypassing MMU flags given an offset. ">taiInjectDataForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The module UID from <code>taiGetModuleInfo</code> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">segidx</td><td>Index of the ELF segment containing the data to patch </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">offset</td><td>The offset from the start of the segment </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>Source data </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The size of the injection in bytes</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">data</td><td>The data in kernel address space </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The size of the injection in bytes </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
-<li>TAI_ERROR_PATCH_EXISTS if the address is already patched </li>
-</ul>
-</dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00268">268</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00381">381</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -340,7 +339,40 @@ User Injections</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00201">201</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00203">203</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+
+</div>
+</div>
+<a id="ga45874c9cbf3712743f370006c2ce4fd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga45874c9cbf3712743f370006c2ce4fd0">&sect;&nbsp;</a></span>taiInjectDataForUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">SceUID taiInjectDataForUser </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__hook.html#ga11b170a95065811a28f4c96e3b98a1da">tai_offset_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Inject data into the current process bypassing MMU flags given an offset. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__inject.html#ga265d827ea273fb086abd0b647d0103aa" title="Inject data into a process bypassing MMU flags given an offset. ">taiInjectDataForKernel</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>Call arguments</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_PATCH_EXISTS if the address is already patched </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00277">277</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -370,7 +402,7 @@ User Injections</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00300">300</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00317">317</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -399,7 +431,7 @@ User Injections</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00220">220</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00222">222</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
