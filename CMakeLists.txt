@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_SYSTEM_NAME "Generic")
 set(CMAKE_C_COMPILER "arm-vita-eabi-gcc")
 set(CMAKE_CXX_COMPILER "arm-vita-eabi-g++")
+set(CMAKE_RANLIB "arm-vita-eabi-ranlib")
 
 project(taiHEN)
 
@@ -12,6 +13,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 
 include_directories(
 	substitute
+	taihen-parser/include
 )
 
 link_directories(
@@ -20,9 +22,11 @@ link_directories(
 
 add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
 add_definitions(-DNO_PTHREADS)
-#add_definitions(-DENABLE_LOGGING)
+add_definitions(-DENABLE_LOGGING)
 add_definitions(-D__VITA_KERNEL__)
-#add_definitions(-DTRANSFORM_DIS_VERBOSE)
+add_definitions(-DTRANSFORM_DIS_VERBOSE)
+
+add_subdirectory(taihen-parser)
 
 add_executable(taihen.elf
 	hen.c
@@ -42,6 +46,7 @@ add_executable(taihen.elf
 )
 
 target_link_libraries(taihen.elf
+	taihenconfig
 	gcc
 	SceKernelThreadMgr_stub
 	SceSysmem_stub

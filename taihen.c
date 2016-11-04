@@ -7,6 +7,7 @@
  */
 #include <psp2kern/types.h>
 #include <psp2kern/kernel/modulemgr.h>
+#include <taihen/parser.h>
 #include "error.h"
 #include "hen.h"
 #include "module.h"
@@ -14,7 +15,11 @@
 #include "proc_map.h"
 #include "taihen_internal.h"
 
+/** For ordering log entries */
 int log_ctr = 0;
+
+/** From `hen.c` **/
+extern const char *g_config;
 
 /**
  * @brief      Add a hook given an absolute address
@@ -224,6 +229,30 @@ int taiInjectReleaseForKernel(SceUID tai_uid) {
 }
 
 /**
+ * @brief      Parses the taiHEN config and loads all plugins for a titleid to a
+ *             process
+ *
+ * @param[in]  pid      The pid to load to
+ * @param[in]  titleid  The title to read from the config
+ * @param[in]  flags    The flags
+ *
+ * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_SYSTEM if the config file is invalid
+ */
+int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) {
+  tai_plugin_load_t param;
+  if (g_config) {
+    param.pid = pid;
+    param.flags = flags;
+    taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
+    return TAI_SUCCESS;
+  } else {
+    LOG("config not loaded");
+    return TAI_ERROR_SYSTEM;
+  }
+}
+
+/**
  * @brief      Module entry point
  *
  *             This module should be loaded by a kernel exploit. taiHEN expects
@@ -247,7 +276,7 @@ int module_start(SceSize argc, const void *args) {
     LOG("patches init failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
-  ret = hen_patch_sigchecks();
+  ret = hen_add_patches();
   if (ret < 0) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
@@ -271,7 +300,7 @@ int module_start(SceSize argc, const void *args) {
  */
 int module_stop(SceSize argc, const void *args) {
   // TODO: release everything
-  hen_restore_sigchecks();
+  hen_remove_patches();
   patches_deinit();
   proc_map_deinit();
   return SCE_KERNEL_STOP_SUCCESS;

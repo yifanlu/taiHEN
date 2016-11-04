@@ -393,6 +393,14 @@ HELPER SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const voi
 /** @} */
 
 /**
+ * @name Plugin loading
+ * Kernel plugin loading plugins manually
+ */
+/** @{ */
+int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags);
+/** @} */
+
+/**
  * @name Skprx Load
  * Kernel module loading exports to user
  */

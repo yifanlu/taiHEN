@@ -6,9 +6,11 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include <psp2kern/io/fcntl.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <string.h>
+#include <taihen/parser.h>
 #include "error.h"
 #include "hen.h"
 #include "module.h"
@@ -110,6 +112,12 @@ static tai_hook_ref_t g_load_user_libs_hook;
 
 /** References to the hooks */
 static SceUID g_hooks[9];
+
+/** Memory reference to config read buffer */
+static SceUID g_config_blk;
+
+/** Buffer for the config data */
+const char *g_config;
 
 /** Is the current decryption a homebrew? */
 static int g_is_homebrew;
@@ -308,6 +316,7 @@ static int package_check_2_patched(void) {
  * @return     Zero on success, < 0 on error
  */
 static int load_user_libs_patched(SceUID pid, void *args, int flags) {
+  tai_plugin_load_t param;
   int ret;
   SceUID mod;
   char titleid[32];
@@ -317,9 +326,106 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
   sceKernelGetProcessTitleIdForKernel(pid, titleid, 32);
   LOG("title started: %s", titleid);
 
-  // TODO: replace with configuration system
+  if (g_config) {
+    param.pid = pid;
+    param.flags = 0x8000; // queue for load
+    taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
+  } else {
+    LOG("config not loaded, skipping plugin load");
+  }
 
   return ret;
+}
+
+/**
+ * @brief      Load tai config file
+ *
+ * @return     Zero on success, < 0 on error
+ */
+static int hen_load_config(void) {
+  SceUID fd;
+  SceOff len;
+  int ret;
+  char *config;
+  int rd, total;
+
+  g_config = NULL;
+
+  fd = sceIoOpenForDriver(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
+  if (fd < 0) {
+    LOG("failed to open config %s", TAIHEN_CONFIG_FILE);
+    return fd;
+  }
+
+  len = sceIoLseekForDriver(fd, 0, SCE_SEEK_END);
+  if (len < 0) {
+    LOG("failed to seek config");
+    sceIoCloseForDriver(fd);
+    return TAI_ERROR_SYSTEM;
+  }
+
+  sceIoLseekForDriver(fd, 0, SCE_SEEK_SET);
+
+  g_config_blk = sceKernelAllocMemBlockForKernel("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
+  if (g_config_blk < 0) {
+    LOG("failed to allocate memory: %x", g_config_blk);
+    sceIoCloseForDriver(fd);
+    return g_config_blk;
+  }
+
+  ret = sceKernelGetMemBlockBaseForKernel(g_config_blk, (void **)&config);
+  if (ret < 0) {
+    LOG("failed to get base for %x: %x", g_config_blk, ret);
+    sceIoCloseForDriver(fd);
+    return ret;
+  }
+
+  rd = total = 0;
+  while (total < len) {
+    rd = sceIoReadForDriver(fd, config+total, len-total);
+    if (rd < 0) {
+      LOG("failed to read config: rd %x, total %x, len %x", rd, total, len);
+      ret = rd;
+      break;
+    }
+    total += rd;
+  }
+
+  sceIoCloseForDriver(fd);
+  if (ret < 0) {
+    sceKernelFreeMemBlockForKernel(g_config_blk);
+    return ret;
+  }
+
+  if ((ret = taihen_config_validate(config)) != 0) {
+    LOG("config parsing failed: %x", ret);
+    sceKernelFreeMemBlockForKernel(g_config_blk);
+    return ret;
+  }
+
+  g_config = config;
+  return TAI_SUCCESS;
+}
+
+/**
+ * @brief      Callback to config parser to load a plugin
+ *
+ * @param[in]  path   The path to load
+ * @param[in]  param  The parameters
+ */
+void hen_load_plugin(const char *path, void *param) {
+  tai_plugin_load_t *load = (tai_plugin_load_t *)param;
+  int ret;
+  int result;
+
+  LOG("pid:%x loading module %s (flags:%x)", load->pid, path, load->flags);
+  if ((load->flags & 0x8000) == 0x8000) {
+    ret = sceKernelLoadModuleForPid(load->pid, path, load->flags, NULL);
+    result = ret;
+  } else {
+    ret = sceKernelLoadStartModuleForPid(load->pid, path, 0, NULL, load->flags, NULL, &result);
+  }
+  LOG("load result: %x", ret);
 }
 
 /**
@@ -327,7 +433,7 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
  *
  * @return     Zero on success, < 0 on error
  */
-int hen_patch_sigchecks(void) {
+int hen_add_patches(void) {
   memset(g_hooks, 0, sizeof(g_hooks));
   g_hooks[0] = taiHookFunctionImportForKernel(KERNEL_PID, 
                                               &g_parse_headers_hook, 
@@ -402,6 +508,8 @@ int hen_patch_sigchecks(void) {
   if (g_hooks[8] < 0) goto fail;
   LOG("load_user_libs added");
 
+  if (hen_load_config() < 0) goto fail;
+
   return TAI_SUCCESS;
 fail:
   if (g_hooks[0] >= 0) {
@@ -439,9 +547,12 @@ fail:
  *
  * @return     Zero on success, < 0 on error
  */
-int hen_restore_sigchecks(void) {
+int hen_remove_patches(void) {
   int ret;
 
+  if (g_config) {
+    sceKernelFreeMemBlockForKernel(g_config_blk);
+  }
   ret = taiHookReleaseForKernel(g_hooks[0], g_parse_headers_hook);
   ret |= taiHookReleaseForKernel(g_hooks[1], g_setup_buffer_hook);
   ret |= taiHookReleaseForKernel(g_hooks[2], g_decrypt_buffer_hook);

@@ -13,8 +13,20 @@
  */
 /** @{ */
 
-int hen_patch_sigchecks(void);
-int hen_restore_sigchecks(void);
+/** Path to the taiHEN configuration file */
+#define TAIHEN_CONFIG_FILE "ux0:tai/config.txt"
+
+/**
+ * @brief      Arguments passed from taiHEN to config parser back to taiHEN
+ */
+typedef struct _tai_plugin_load {
+  SceUID pid;			///< Process to load plugin to
+  int flags;			///< Flags for loading
+} tai_plugin_load_t;
+
+void hen_load_plugin(const char *module, void *param);
+int hen_add_patches(void);
+int hen_remove_patches(void);
 
 /** @} */
 

@@ -353,7 +353,7 @@ SceUID taiLoadKernelModule(const char *path, int flags, void *opt) {
   ENTER_SYSCALL(state);
   pid = sceKernelGetProcessId();
   if (sceSblACMgrIsShell(0)) {
-    if (opt != NULL) {
+    if (opt == NULL) {
       if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
         k_opt.size = sizeof(k_opt);
         ret = sceKernelLoadModuleForDriver(k_path, flags, &k_opt);
@@ -401,7 +401,7 @@ int taiStartKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt
     kargs.size = 0;
     sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
-      if (kargs.args <= MAX_ARGS_SIZE || opt != NULL) {
+      if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
         ret = sceKernelKernelUidForUserUid(pid, modid);
         if (ret >= 0) {
           modid = ret;
@@ -545,7 +545,7 @@ int taiStopUnloadKernelModuleForUser(SceUID modid, tai_module_args_t *args, void
     kargs.size = 0;
     sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
-      if (kargs.args <= MAX_ARGS_SIZE || opt != NULL) {
+      if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
         kid = sceKernelKernelUidForUserUid(pid, modid);
         if (kid >= 0) {
           ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
