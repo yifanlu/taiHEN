@@ -170,7 +170,7 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
       sceKernelCpuDcacheFlush((void *)vma_align, len);
       sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
-      hex_dump((uintptr_t)vma_align, vma_align, len);
+      hex_dump(vma_align, (char *)vma_align, len);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
     sceKernelCpuRestoreContext(my_context);
