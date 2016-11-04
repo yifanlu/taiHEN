@@ -56,6 +56,40 @@ typedef struct _tai_module_info {
 } tai_module_info_t;
 
 /**
+ * @brief      Pass hook arguments to kernel
+ */
+typedef struct _tai_hook_args {
+  size_t size;
+  const char *module;
+  uint32_t library_nid;
+  uint32_t func_nid;
+  const void *hook_func;
+} tai_hook_args_t;
+
+/**
+ * @brief      Pass offset arguments to kernel
+ */
+typedef struct _tai_offset_args {
+  size_t size;
+  SceUID modid;
+  int segidx;
+  uint32_t offset;
+  int thumb;
+  const void *source;
+  size_t source_size;
+} tai_offset_args_t;
+
+/**
+ * @brief      Pass module arguments to kernel
+ */
+typedef struct _tai_module_args {
+  size_t size;
+  size_t args;
+  void *argp;
+  int flags;
+} tai_module_args_t;
+
+/**
  * @defgroup   hook Hooks Interface
  * @brief      Patches functions.
  *
@@ -181,40 +215,6 @@ struct _tai_hook_user {
   void *func;
   void *old;
 };
-
-/**
- * @brief      Pass hook arguments to kernel
- */
-typedef struct _tai_hook_args {
-  size_t size;
-  const char *module;
-  uint32_t library_nid;
-  uint32_t func_nid;
-  const void *hook_func;
-} tai_hook_args_t;
-
-/**
- * @brief      Pass offset arguments to kernel
- */
-typedef struct _tai_offset_args {
-  size_t size;
-  SceUID modid;
-  int segidx;
-  uint32_t offset;
-  int thumb;
-  const void *source;
-  size_t source_size;
-} tai_offset_args_t;
-
-/**
- * @brief      Pass module arguments to kernel
- */
-typedef struct _tai_module_args {
-  size_t size;
-  size_t args;
-  void *argp;
-  int flags;
-} tai_module_args_t;
 
 #ifdef __VITA_KERNEL__
 /** @name Kernel Hooks

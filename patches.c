@@ -110,6 +110,28 @@ void patches_deinit(void) {
   g_hooks_lock = 0;
 }
 
+/**
+ * @brief      Dump data to log
+ *
+ * @param[in]  paddr  The paddr
+ * @param[in]  addr   The address
+ * @param[in]  size   The size to dump
+ */
+static inline void hex_dump(uintptr_t paddr, const char *addr, unsigned int size)
+{
+    unsigned int i;
+    for (i = 0; i < (size >> 4); i++)
+    {
+        LOG("0x%08X: %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X\n", 
+            paddr, 
+            addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], addr[6], addr[7], addr[8], 
+            addr[9], addr[10], addr[11], addr[12], addr[13], addr[14], addr[15]
+        );
+        paddr += 0x10;
+        addr += 0x10;
+    }
+}
+
 #ifdef __arm__
 /**
  * @brief      Flush L1 and L2 cache for an address
@@ -148,6 +170,7 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
       sceKernelCpuDcacheFlush((void *)vma_align, len);
       sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
+      hex_dump((uintptr_t)vma_align, vma_align, len);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
     sceKernelCpuRestoreContext(my_context);
