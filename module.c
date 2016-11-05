@@ -205,7 +205,7 @@ static int find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size_t 
     LOG("Error trying to get context for %x", pid);
     count = ret;
   }
-  if (size == 0) {
+  if (count >= size) {
     return -1;
   } else {
     return count;

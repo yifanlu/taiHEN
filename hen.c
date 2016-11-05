@@ -110,8 +110,11 @@ static tai_hook_ref_t g_package_check_2_hook;
 /** Hook reference to `load_user_libs` */
 static tai_hook_ref_t g_load_user_libs_hook;
 
+/** Hook reference to `nid_poison_hook` */
+static tai_hook_ref_t g_nid_poison_hook;
+
 /** References to the hooks */
-static SceUID g_hooks[9];
+static SceUID g_hooks[10];
 
 /** Memory reference to config read buffer */
 static SceUID g_config_blk;
@@ -329,12 +332,30 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
   if (g_config) {
     param.pid = pid;
     param.flags = 0x8000; // queue for load
-    taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
+    //taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
   } else {
     LOG("config not loaded, skipping plugin load");
   }
 
   return ret;
+}
+
+/**
+ * @brief      Patch to disable NID poisoning
+ * 
+ * This function is actually a memset of 32-bit width.
+ *
+ * @param[in]  dst   The destination in user address space
+ * @param[in]  set   What to write
+ * @param[in]  len   The length
+ *
+ * @return     Zero
+ */
+static int nid_poison_patched(uintptr_t dst, int set, size_t len) {
+  // we're breaking the rules here. we don't call TAI_CONTINUE
+  // because we do not want the effect to take place
+  LOG("patched out nid poison request: %p, %x, len: %x", dst, set, len);
+  return 0;
 }
 
 /**
@@ -507,6 +528,14 @@ int hen_add_patches(void) {
                                               load_user_libs_patched);
   if (g_hooks[8] < 0) goto fail;
   LOG("load_user_libs added");
+  g_hooks[9] = taiHookFunctionImportForKernel(KERNEL_PID, 
+                                              &g_nid_poison_hook, 
+                                              "SceKernelModulemgr", 
+                                              0x63A519E5, // SceSysmemForKernel
+                                              0xECF9435A, 
+                                              nid_poison_patched);
+  if (g_hooks[9] < 0) goto fail;
+  LOG("nid_poison_patched added");
 
   if (hen_load_config() < 0) goto fail;
 
@@ -538,6 +567,9 @@ fail:
   }
   if (g_hooks[8] >= 0) {
     taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
+  }
+  if (g_hooks[9] >= 0) {
+    taiHookReleaseForKernel(g_hooks[9], g_nid_poison_hook);
   }
   return TAI_ERROR_SYSTEM;
 }
