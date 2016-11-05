@@ -140,6 +140,7 @@ err2:
  * @return     Zero
  */
 static int sce_exe_free(SceUID write_res, SceUID exe_res) {
+    LOG("freeing slab %x, mirror %x", exe_res, write_res);
     sceKernelFreeMemBlockForKernel(write_res);
     sceKernelFreeMemBlockForKernel(exe_res);
     return 0;

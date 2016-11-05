@@ -10,21 +10,24 @@ project(taiHEN)
 set(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format -Wno-strict-aliasing -Wno-attributes -std=gnu99 -iquote ${CMAKE_CURRENT_SOURCE_DIR}/substitute/lib")
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
+set(HAVE_CTYPE NO)
+set(HAVE_STRING NO)
 
 include_directories(
 	substitute
 	taihen-parser/include
 )
 
-link_directories(
-	${CMAKE_CURRENT_BINARY_DIR}
-)
+option(ENABLE_LOGGING "Set on to enable verbose logging" OFF)
 
 add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
 add_definitions(-DNO_PTHREADS)
-add_definitions(-DENABLE_LOGGING)
 add_definitions(-D__VITA_KERNEL__)
-add_definitions(-DTRANSFORM_DIS_VERBOSE)
+
+if (ENABLE_LOGGING)
+	add_definitions(-DENABLE_LOGGING)
+	add_definitions(-DTRANSFORM_DIS_VERBOSE)
+endif(ENABLE_LOGGING)
 
 add_subdirectory(taihen-parser)
 
@@ -46,7 +49,7 @@ add_executable(taihen.elf
 )
 
 target_link_libraries(taihen.elf
-	taihenconfig
+	taihenparser
 	gcc
 	SceKernelThreadMgr_stub
 	SceSysmem_stub

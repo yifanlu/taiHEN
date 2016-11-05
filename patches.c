@@ -69,9 +69,13 @@ static int nop_func(void *dat) {
  * @return     Zero on success, < 0 on error
  */
 int patches_init(void) {
+  SceKernelMemPoolCreateOpt opt;
   int ret;
 
-  g_patch_pool = sceKernelMemPoolCreate("tai_patches", PATCHES_POOL_SIZE, NULL);
+  memset(&opt, 0, sizeof(opt));
+  opt.size = sizeof(opt);
+  opt.uselock = 1;
+  g_patch_pool = sceKernelMemPoolCreate("tai_patches", PATCHES_POOL_SIZE, &opt);
   LOG("sceKernelMemPoolCreate(tai_patches): 0x%08X", g_patch_pool);
   if (g_patch_pool < 0) {
     return g_patch_pool;
@@ -518,7 +522,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
 
   ret = hooks_add_hook(&patch->data.hooks, hook);
   if (ret < 0 && patch->data.hooks.head == NULL) {
-    LOG("failed to add hook and patch is now empty, freeing it");
+    LOG("failed to add hook and patch is now empty, freeing hook %p", hook);
     slab_free(patch->slab, hook);
     hook = NULL;
     proc_map_remove(g_map, patch);
@@ -532,6 +536,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
 err:
   // error and we have allocated a hook
   if (ret < 0 && patch && hook) {
+    LOG("freeing hook %p", hook);
     slab_free(patch->slab, hook);
   }
 

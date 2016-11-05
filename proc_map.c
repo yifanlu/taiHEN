@@ -8,6 +8,7 @@
 #include <psp2kern/types.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <psp2kern/kernel/threadmgr.h>
+#include <string.h>
 #include "taihen_internal.h"
 #include "proc_map.h"
 #include "slab.h"
@@ -35,7 +36,11 @@ static SceUID g_map_pool;
  * @return     Zero on success or memory allocation error code.
  */
 int proc_map_init(void) {
-  g_map_pool = sceKernelMemPoolCreate("tai_maps", MAP_POOL_SIZE, NULL);
+  SceKernelMemPoolCreateOpt opt;
+  memset(&opt, 0, sizeof(opt));
+  opt.size = sizeof(opt);
+  opt.uselock = 1;
+  g_map_pool = sceKernelMemPoolCreate("tai_maps", MAP_POOL_SIZE, &opt);
   if (g_map_pool < 0) {
     return g_map_pool;
   } else {

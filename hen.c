@@ -332,7 +332,7 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
   if (g_config) {
     param.pid = pid;
     param.flags = 0x8000; // queue for load
-    //taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
+    taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
   } else {
     LOG("config not loaded, skipping plugin load");
   }

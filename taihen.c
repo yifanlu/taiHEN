@@ -16,7 +16,7 @@
 #include "taihen_internal.h"
 
 /** For ordering log entries */
-int log_ctr = 0;
+unsigned char log_ctr = 0;
 
 /** From `hen.c` **/
 extern const char *g_config;
@@ -266,9 +266,10 @@ int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) 
  */
 int module_start(SceSize argc, const void *args) {
   int ret;
+  LOG("starting taihen...");
   ret = proc_map_init();
   if (ret < 0) {
-    LOG("procc map init failed: %x", ret);
+    LOG("proc map init failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
   ret = patches_init();
