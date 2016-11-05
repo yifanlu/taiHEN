@@ -372,6 +372,7 @@ static int hen_load_config(void) {
 
   g_config = NULL;
 
+  LOG("opening config %s", TAIHEN_CONFIG_FILE);
   fd = sceIoOpenForDriver(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
   if (fd < 0) {
     LOG("failed to open config %s", TAIHEN_CONFIG_FILE);
@@ -387,6 +388,7 @@ static int hen_load_config(void) {
 
   sceIoLseekForDriver(fd, 0, SCE_SEEK_SET);
 
+  LOG("allocating %d bytes for config", (len + 0xfff) & ~0xfff);
   g_config_blk = sceKernelAllocMemBlockForKernel("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
   if (g_config_blk < 0) {
     LOG("failed to allocate memory: %x", g_config_blk);
@@ -401,6 +403,7 @@ static int hen_load_config(void) {
     return ret;
   }
 
+  LOG("reading config to memory");
   rd = total = 0;
   while (total < len) {
     rd = sceIoReadForDriver(fd, config+total, len-total);
