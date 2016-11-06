@@ -516,7 +516,7 @@ int hen_add_patches(void) {
   LOG("package_check added");
   if (g_hooks[6] < 0) goto fail;
   g_hooks[7] = taiHookFunctionImportForKernel(KERNEL_PID, 
-                                              &g_package_check_hook, 
+                                              &g_package_check_2_hook, 
                                               "SceNpDrm", 
                                               0xFD00C69A, // SceSblAIMgrForDriver
                                               0xF4B98F66,
@@ -566,7 +566,7 @@ fail:
     taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
   }
   if (g_hooks[7] >= 0) {
-    taiHookReleaseForKernel(g_hooks[7], g_package_check_hook);
+    taiHookReleaseForKernel(g_hooks[7], g_package_check_2_hook);
   }
   if (g_hooks[8] >= 0) {
     taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
