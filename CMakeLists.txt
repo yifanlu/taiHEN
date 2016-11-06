@@ -51,13 +51,18 @@ add_executable(taihen.elf
 target_link_libraries(taihen.elf
 	taihenparser
 	gcc
-	SceKernelThreadMgr_stub
-	SceSysmem_stub
-	SceKernelModulemgr_stub
-	SceIofilemgr_stub
-	SceStdio_stub
-	SceSblSsMgr_stub
-	SceSblACMgr_stub
+	SceSysmemForDriver_stub
+	SceSysmemForKernel_stub
+	SceSysclibForDriver_stub
+	SceCpuForKernel_stub
+	SceCpuForDriver_stub
+	SceSysrootForKernel_stub
+	SceThreadmgrForKernel_stub
+	SceThreadmgrForDriver_stub
+	SceModulemgrForKernel_stub
+	SceModulemgrForDriver_stub
+	SceIofilemgrForDriver_stub
+	SceSblACMgrForDriver_stub
 )
 
 add_custom_target(taihen.skprx ALL
