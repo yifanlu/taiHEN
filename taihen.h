@@ -427,7 +427,7 @@ int taiUnloadKernelModule(SceUID modid, int flags);
  */
 HELPER int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
   tai_module_args_t argg;
-  argg.size = sizeof(args);
+  argg.size = sizeof(argg);
   argg.args = args;
   argg.argp = argp;
   argg.flags = flags;
@@ -446,7 +446,7 @@ HELPER int taiStartKernelModule(SceUID modid, int args, void *argp, int flags, v
  */
 HELPER SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, int flags) {
   tai_module_args_t argg;
-  argg.size = sizeof(args);
+  argg.size = sizeof(argg);
   argg.args = args;
   argg.argp = argp;
   argg.flags = flags;
@@ -466,7 +466,7 @@ HELPER SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, i
  */
 HELPER SceUID taiLoadStartModuleForPid(SceUID pid, const char *path, int args, void *argp, int flags) {
   tai_module_args_t argg;
-  argg.size = sizeof(args);
+  argg.size = sizeof(argg);
   argg.args = args;
   argg.argp = argp;
   argg.flags = flags;
@@ -487,7 +487,7 @@ HELPER SceUID taiLoadStartModuleForPid(SceUID pid, const char *path, int args, v
  */
 HELPER int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
   tai_module_args_t argg;
-  argg.size = sizeof(args);
+  argg.size = sizeof(argg);
   argg.args = args;
   argg.argp = argp;
   argg.flags = flags;
