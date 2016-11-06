@@ -7,7 +7,7 @@ set(CMAKE_RANLIB "arm-vita-eabi-ranlib")
 
 project(taiHEN)
 
-set(CMAKE_C_FLAGS "-Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format -Wno-strict-aliasing -Wno-attributes -std=gnu99 -iquote ${CMAKE_CURRENT_SOURCE_DIR}/substitute/lib")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format -Wno-strict-aliasing -Wno-attributes -std=gnu99 -iquote ${CMAKE_CURRENT_SOURCE_DIR}/substitute/lib")
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
 set(HAVE_CTYPE NO)
@@ -70,3 +70,21 @@ add_custom_target(taihen.skprx ALL
 	COMMAND vita-make-fself taihen.velf taihen.skprx
 )
 add_dependencies(taihen.skprx taihen.elf)
+
+add_custom_target(taihen-libs ALL
+	COMMAND vita-elf-export kernel taihen.elf ${CMAKE_SOURCE_DIR}/exports.yml taihen.json
+	COMMAND vita-libs-gen taihen.json taihen-libs
+	COMMAND make -C taihen-libs
+)
+
+add_dependencies(taihen-libs taihen.elf)
+
+install(DIRECTORY ${CMAKE_BINARY_DIR}/taihen-libs/
+		DESTINATION lib
+		FILES_MATCHING PATTERN "*.a")
+		
+install(FILES ${CMAKE_BINARY_DIR}/taihen.json
+		DESTINATION share/imports)
+
+install(FILES taihen.h
+		DESTINATION include)
