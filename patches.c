@@ -51,13 +51,32 @@ static SceUID g_hooks_lock;
 static SceClass g_taihen_class;
 
 /**
- * @brief      Does nothing. Used as a callback.
+ * @brief      Callback to initialize a patch
  *
- * @param      dat   Unused
+ * @param      dat   The patch to initialize
  *
  * @return     Zero
  */
-static int nop_func(void *dat) {
+static int init_patch(void *dat) {
+  tai_patch_t *patch;
+
+  patch = (tai_patch_t *)dat;
+  LOG("init of: %p", patch);
+  return 0;
+}
+
+/**
+ * @brief      Callback to free a patch
+ *
+ * @param      dat   The patch to free
+ *
+ * @return     Zero
+ */
+static int free_patch(void *dat) {
+  tai_patch_t *patch;
+
+  patch = (tai_patch_t *)dat;
+  LOG("cleanup of: %p", patch);
   return 0;
 }
 
@@ -90,7 +109,7 @@ int patches_init(void) {
   if (g_hooks_lock < 0) {
     return g_hooks_lock;
   }
-  ret = sceKernelCreateClass(&g_taihen_class, "taiHENClass", sceKernelGetUidClass(), sizeof(tai_patch_t), nop_func, nop_func);
+  ret = sceKernelCreateClass(&g_taihen_class, "taiHENClass", sceKernelGetUidClass(), sizeof(tai_patch_t), init_patch, free_patch);
   LOG("sceKernelCreateClass(taiHENClass): 0x%08X", ret);
   if (ret < 0) {
     return ret;
@@ -464,6 +483,7 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
  * @return     UID for the hook on success, < 0 on error
  */
 SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, const void *hook_func) {
+  SceCreateUidObjOpt opt;
   tai_patch_t *patch, *tmp;
   tai_hook_t *hook;
   int ret;
@@ -480,8 +500,14 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   }
 
   hook = NULL;
-  // TODO: create it for a PID to allow auto cleanup on process exit
-  ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
+  if (pid == KERNEL_PID) {
+    ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
+  } else {
+    memset(&opt, 0, sizeof(opt));
+    opt.flags = 8;
+    opt.pid = pid;
+    ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook_user", &opt, (SceObjectBase **)&patch);
+  }
   LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
   if (ret < 0) {
     return ret;
