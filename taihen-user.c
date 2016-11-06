@@ -358,8 +358,10 @@ SceUID taiLoadKernelModule(const char *path, int flags, void *opt) {
         k_opt.size = sizeof(k_opt);
         ret = sceKernelLoadModuleForDriver(k_path, flags, &k_opt);
         LOG("loaded %s: %x", k_path, ret);
-        ret = sceKernelCreateUserUid(pid, ret);
-        LOG("user uid: %x", ret);
+        if (ret >= 0) {
+          ret = sceKernelCreateUserUid(pid, ret);
+          LOG("user uid: %x", ret);
+        }
       } else {
         ret = TAI_ERROR_USER_MEMORY;
       }
