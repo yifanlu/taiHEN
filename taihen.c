@@ -286,6 +286,8 @@ int module_start(SceSize argc, const void *args) {
   return SCE_KERNEL_START_SUCCESS;
 }
 
+void _start() __attribute__ ((weak, alias ("module_start")));
+
 /**
  * @brief      Module cleanup
  *
