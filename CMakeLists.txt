@@ -63,6 +63,7 @@ target_link_libraries(taihen.elf
 	SceModulemgrForDriver_stub
 	SceIofilemgrForDriver_stub
 	SceSblACMgrForDriver_stub
+	SceDebugForDriver_stub
 )
 
 add_custom_target(taihen.skprx ALL
