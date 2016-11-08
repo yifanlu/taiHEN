@@ -91,5 +91,8 @@ install(FILES taihen.h
 		DESTINATION include)
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	if (NOT DEFINED ENV{VITASDK})
+		message(FATAL_ERROR "Error: the VITASDK environment variable is not set.")
+	endif()
 	set(CMAKE_INSTALL_PREFIX "$ENV{VITASDK}/arm-vita-eabi")
 endif()
