@@ -10,8 +10,8 @@ project(taiHEN)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format -Wno-strict-aliasing -Wno-attributes -std=gnu99 -iquote ${CMAKE_CURRENT_SOURCE_DIR}/substitute/lib")
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
-set(HAVE_CTYPE NO)
-set(HAVE_STRING NO)
+set(USE_INBUILT_CTYPE YES)
+set(USE_INBUILT_STRING YES)
 
 include_directories(
 	substitute
