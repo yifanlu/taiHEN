@@ -10,8 +10,11 @@ project(taiHEN)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wl,-q -Wall -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format -Wno-strict-aliasing -Wno-attributes -std=gnu99 -iquote ${CMAKE_CURRENT_SOURCE_DIR}/substitute/lib")
 set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=c++11 -fno-rtti -fno-exceptions")
-set(USE_INBUILT_CTYPE ON)
-set(USE_INBUILT_STRING ON)
+
+# taihen parser options
+set(INSTALL_ENABLED OFF CACHE BOOL "don't add parser to our install" FORCE)
+set(USE_INBUILT_CTYPE ON CACHE BOOL "use inbuilt ctype for parser" FORCE)
+set(USE_INBUILT_STRING ON CACHE BOOL "use inbuilt string for parser" FORCE)
 
 include_directories(
 	substitute
