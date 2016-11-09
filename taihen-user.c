@@ -554,7 +554,9 @@ int taiStopUnloadKernelModuleForUser(SceUID modid, tai_module_args_t *args, void
             if (res) {
               sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
             }
-            sceKernelDeleteUserUid(pid, modid);
+            if (ret >= 0) {
+              sceKernelDeleteUserUid(pid, modid);
+            }
           }
         } else {
           LOG("Error getting kernel uid for %x: %x", modid, kid);
@@ -595,7 +597,9 @@ int taiUnloadKernelModule(SceUID modid, int flags) {
     kid = sceKernelKernelUidForUserUid(pid, modid);
     if (kid >= 0) {
       ret = sceKernelUnloadModuleForDriver(kid, flags);
-      sceKernelDeleteUserUid(pid, modid);
+      if (ret >= 0) {
+        sceKernelDeleteUserUid(pid, modid);
+      }
     } else {
       LOG("Error getting kernel uid for %x: %x", modid, kid);
       ret = kid;
