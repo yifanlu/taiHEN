@@ -282,7 +282,7 @@ int module_start(SceSize argc, const void *args) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
-  // TODO: load plugins from configuration.
+  taiLoadPluginsForTitleForKernel(KERNEL_PID, "KERNEL", 0);
   return SCE_KERNEL_START_SUCCESS;
 }
 
