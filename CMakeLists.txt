@@ -86,9 +86,16 @@ add_dependencies(taihen-libs taihen.elf)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/taihen-libs/
 		DESTINATION lib
 		FILES_MATCHING PATTERN "*.a")
-		
+
 install(FILES ${CMAKE_BINARY_DIR}/taihen.json
 		DESTINATION share/imports)
 
 install(FILES taihen.h
 		DESTINATION include)
+
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+	if (NOT DEFINED ENV{VITASDK})
+		message(FATAL_ERROR "Error: the VITASDK environment variable is not set.")
+	endif()
+	set(CMAKE_INSTALL_PREFIX "$ENV{VITASDK}/arm-vita-eabi" CACHE PATH "default install path" FORCE)
+endif()
