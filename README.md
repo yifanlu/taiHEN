@@ -1,5 +1,7 @@
 大変
 ================================================================================
+[![Build Status](https://travis-ci.org/yifanlu/taiHEN.svg?branch=master)](https://travis-ci.org/yifanlu/taiHEN)
+
 taiHEN is a CFW framework for PS Vita&trade;. When loaded with a kernel exploit,
 it acts as a common substrate for patching the system. taiHEN provides three
 main facilities:
