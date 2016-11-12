@@ -36,9 +36,13 @@ deploy:
      - "taihen.tar.gz"
   skip_cleanup: true
   on:
-    tags: false
-    all_branches: true
+    tags: true
 
 branches:
   except:
     - /^*-v[0-9]/
+
+notifications:
+  irc:
+    - "chat.freenode.net#henkaku"
+    - "chat.freenode.net#vitasdk"
