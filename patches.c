@@ -205,48 +205,65 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
 #endif
 
 /**
- * @brief      Used by `user_hooking`
+ * @brief      Used by `do_hooking`
  */
-struct user_hook_args {
-  struct slab_chain *slab;
+struct hook_args {
+  SceUID pid;
   struct substitute_function_hook *hook;
   struct substitute_function_hook_record **saved;
 };
 
 /**
- * @brief      Run without interrupts for hooking user code
+ * @brief      Function that does the hooking
  *
  *             This is needed because the syscall stack is not large enough for
- *             substitute to run. We disable interrupts to prevent problems with
- *             the DACR being set back after an interrupt. For the future, we
- *             will modify libsubtitute to run safely without disabling
- *             interrupts for user.
+ *             substitute to run. For user hooks, we disable interrupts to
+ *             prevent problems with the DACR being set back after an interrupt.
+ *             For the future, we will modify libsubtitute to run safely without
+ *             disabling interrupts for user.
  *
  * @param      args  The arguments
  *
- * @return     Zero for success
+ * @return     Zero for success, < 0 on error
  */
-static int user_hooking(void *args) {
+static int do_hooking(void *args) {
   int flags;
   int ret;
   int my_context[3];
   int *other_context;
   int dacr;
-  struct user_hook_args *uargs = (struct user_hook_args *)args;
+  struct hook_args *uargs = (struct hook_args *)args;
 
-  flags = sceKernelCpuDisableInterrupts();
-  sceKernelCpuSaveContext(my_context);
-  ret = sceKernelGetPidContext(uargs->slab->pid, &other_context);
-  if (ret >= 0) {
-    sceKernelCpuRestoreContext(other_context);
-    asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
-    asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
+  if (uargs->pid == KERNEL_PID) {
     ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, 0);
-    asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
+  } else {
+    flags = sceKernelCpuDisableInterrupts();
+    sceKernelCpuSaveContext(my_context);
+    ret = sceKernelGetPidContext(uargs->pid, &other_context);
+    if (ret >= 0) {
+      sceKernelCpuRestoreContext(other_context);
+      asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
+      asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
+      ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, 0);
+      asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
+    }
+    sceKernelCpuRestoreContext(my_context);
+    sceKernelCpuEnableInterrupts(flags);
   }
-  sceKernelCpuRestoreContext(my_context);
-  sceKernelCpuEnableInterrupts(flags);
   return ret;
+}
+
+/**
+ * @brief      Function that does the unhooking
+ *
+ *             Same as above, we have to call this with a larger stack size.
+ *
+ * @param      saved  The saved record
+ *
+ * @return     Zero for success, < 0 on error
+ */
+static int do_unhooking(void *saved) {
+  return substitute_free_hooks((struct substitute_function_hook_record *)saved, 1);
 }
 
 /**
@@ -261,7 +278,7 @@ static int user_hooking(void *args) {
  * @return     Zero on success, < 0 on error
  */
 static int tai_hook_function(struct slab_chain *slab, void *target_func, const void *src_func, void **old, void **saved) {
-  struct user_hook_args uargs;
+  struct hook_args uargs;
   struct substitute_function_hook hook;
   int ret;
 
@@ -276,15 +293,11 @@ static int tai_hook_function(struct slab_chain *slab, void *target_func, const v
   hook.options = 0;
   hook.opt = slab;
   LOG("Calling substitute_hook_functions");
-  if (slab->pid != KERNEL_PID) {
-    // TODO: Take care of SHARED_PID
-    uargs.slab = slab;
-    uargs.hook = &hook;
-    uargs.saved = (struct substitute_function_hook_record **)saved;
-    ret = sceKernelRunWithStack(0x4000, user_hooking, &uargs);
-  } else {
-    ret = substitute_hook_functions(&hook, 1, (struct substitute_function_hook_record **)saved, 0);
-  }
+  // TODO: Take care of SHARED_PID
+  uargs.pid = slab->pid;
+  uargs.hook = &hook;
+  uargs.saved = (struct substitute_function_hook_record **)saved;
+  ret = sceKernelRunWithStack(0x4000, do_hooking, &uargs);
   LOG("Done hooking");
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
@@ -303,7 +316,7 @@ static int tai_hook_function(struct slab_chain *slab, void *target_func, const v
 static int tai_unhook_function(void *saved) {
   int ret;
   LOG("Calling substitute_free_hooks");
-  ret = substitute_free_hooks((struct substitute_function_hook_record *)saved, 1);
+  ret = sceKernelRunWithStack(0x4000, do_unhooking, saved);
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
     return TAI_ERROR_HOOK_ERROR;
