@@ -361,7 +361,7 @@ static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t s
  *
  * @return     Zero on success, < 0 on error
  */
-static int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size_t size) {
+int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size_t size) {
   int ret;
   if (src_pid == KERNEL_PID) {
     memcpy(dst, src, size);

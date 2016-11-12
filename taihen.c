@@ -94,19 +94,38 @@ SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const 
  *
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
- *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
- *             - TAI_ERROR_INVALID_KERNEL_ADDR if `pid` is kernel and address is in shared memory region
+ *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to
+ *               hook
+ *             - TAI_ERROR_INVALID_KERNEL_ADDR if `pid` is kernel and address is
+ *               in shared memory region
+ *             - TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved
+ *               yet. You should hook `sceKernelLoadStartModule`,
+ *               `sceSysmoduleLoadModule` or whatever the application uses to
+ *               start the imported module and add this hook after the module is
+ *               loaded. Be sure to also hook module unloading to remove the
+ *               hook BEFORE the imported module is unloaded!
  */
 SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
   int ret;
-  uintptr_t stub;
+  uintptr_t stubptr;
+  uint32_t stub[3];
 
-  ret = module_get_import_func(pid, module, import_library_nid, import_func_nid, &stub);
+  ret = module_get_import_func(pid, module, import_library_nid, import_func_nid, &stubptr);
   if (ret < 0) {
     LOG("Failed to find stub for %s, NID:0x%08X: 0x%08X", module, import_func_nid, ret);
     return ret;
   }
-  return taiHookFunctionAbs(pid, p_hook, (void *)stub, hook_func);
+  ret = tai_memcpy_to_kernel(pid, stub, (const void *)(stubptr & ~1), sizeof(stub));
+  if (ret < 0) {
+    LOG("Failed to read stub %p, %x", stubptr, ret);
+    return ret;
+  }
+  // FIXME: find a better way to do this
+  if (stub[0] == 0xE24FC008 && stub[1] == 0xE12FFF1E) {
+    LOG("stub for %p has not been resolved yet!", import_func_nid);
+    return TAI_ERROR_STUB_NOT_RESOLVED;
+  }
+  return taiHookFunctionAbs(pid, p_hook, (void *)stubptr, hook_func);
 }
 
 /**

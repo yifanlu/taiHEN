@@ -87,6 +87,12 @@ SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
  *               hook
  *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
  *             - TAI_ERROR_USER_MEMORY if pointers are incorrect
+ *             - TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved
+ *               yet. You should hook `sceKernelLoadStartModule`,
+ *               `sceSysmoduleLoadModule` or whatever the application uses to
+ *               start the imported module and add this hook after the module is
+ *               loaded. Be sure to also hook module unloading to remove the
+ *               hook BEFORE the imported module is unloaded!
  */
 SceUID taiHookFunctionImportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *args) {
   tai_hook_args_t kargs;
