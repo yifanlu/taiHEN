@@ -463,11 +463,15 @@ SceUID taiLoadStartKernelModuleForUser(const char *path, tai_module_args_t *args
       if (kargs.args <= MAX_ARGS_SIZE) {
         ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
         if (ret >= 0) {
-          ret = sceKernelLoadStartModuleForDriver(k_path, kargs.args, buf, kargs.flags, NULL, NULL);
-          LOG("loaded %s: %x", k_path, ret);
-          if (ret >= 0) {
-            ret = sceKernelCreateUserUid(pid, ret);
-            LOG("user uid: %x", ret);
+          if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
+            ret = sceKernelLoadStartModuleForDriver(k_path, kargs.args, buf, kargs.flags, NULL, NULL);
+            LOG("loaded %s: %x", k_path, ret);
+            if (ret >= 0) {
+              ret = sceKernelCreateUserUid(pid, ret);
+              LOG("user uid: %x", ret);
+            }
+          } else {
+            ret = TAI_ERROR_USER_MEMORY;
           }
         }
       } else {
@@ -511,11 +515,15 @@ SceUID taiLoadStartModuleForPidForUser(const char *path, tai_module_args_t *args
       if (kargs.args <= MAX_ARGS_SIZE) {
         ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
         if (ret >= 0) {
-          ret = sceKernelLoadStartModuleForPid(kargs.pid, k_path, kargs.args, buf, kargs.flags, NULL, NULL);
-          LOG("loaded %s: %x", k_path, ret);
-          if (ret >= 0) {
-            ret = sceKernelCreateUserUid(kargs.pid, ret);
-            LOG("user uid: %x", ret);
+          if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
+            ret = sceKernelLoadStartModuleForPid(kargs.pid, k_path, kargs.args, buf, kargs.flags, NULL, NULL);
+            LOG("loaded %s: %x", k_path, ret);
+            if (ret >= 0) {
+              ret = sceKernelCreateUserUid(kargs.pid, ret);
+              LOG("user uid: %x", ret);
+            }
+          } else {
+            ret = TAI_ERROR_USER_MEMORY;
           }
         }
       } else {
