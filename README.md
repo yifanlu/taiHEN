@@ -82,7 +82,8 @@ it is loaded in if it needs to do things differently.
 API
 --------------------------------------------------------------------------------
 taiHEN exports an API interface both to kernel and to user. This interface is
-found in the [documentation pages](@ref taihen). You can either download the
-release or build taiHEN yourself. After that, you can include `taihen.h` in your
-project and link with `libtaihen_stub.a` and use `taihen.json` with vita-
-toolchain.
+found in the [documentation pages](@ref taihen). You should also read the 
+[usage guide](USAGE.md) for more details. You can either download the release 
+or build taiHEN yourself. After that, you can include `taihen.h` in your 
+project and link with `libtaihen_stub.a` (for user modules) or 
+`libtaihen_kernel_stub.a` (for kernel modules).

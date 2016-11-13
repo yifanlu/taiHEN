@@ -25,7 +25,6 @@ option(ENABLE_LOGGING "Set on to enable verbose logging" OFF)
 
 add_definitions(-DNO_DYNAMIC_LINKER_STUFF)
 add_definitions(-DNO_PTHREADS)
-add_definitions(-D__VITA_KERNEL__)
 
 if (ENABLE_LOGGING)
 	add_definitions(-DENABLE_LOGGING)

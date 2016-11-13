@@ -217,7 +217,6 @@ struct _tai_hook_user {
   void *old;
 };
 
-#ifdef __VITA_KERNEL__
 /** @name Kernel Hooks
  * Hooks exports to kernel
  */
@@ -229,7 +228,6 @@ SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t *p_hook, SceUID
 int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t *info);
 int taiHookReleaseForKernel(SceUID tai_uid, tai_hook_ref_t hook);
 /** @} */
-#endif // __VITA_KERNEL__
 
 /** 
  * @name User Hooks
@@ -348,7 +346,6 @@ HELPER SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int se
  */
 /** @{ */
 
-#ifdef __VITA_KERNEL__
 /** @name Kernel Injections
  * Injection exports to kernel 
  */
@@ -357,7 +354,6 @@ SceUID taiInjectAbsForKernel(SceUID pid, void *dest, const void *src, size_t siz
 SceUID taiInjectDataForKernel(SceUID pid, SceUID modid, int segidx, uint32_t offset, const void *data, size_t size);
 int taiInjectReleaseForKernel(SceUID tai_uid);
 /** @} */
-#endif // !__VITA_KERNEL__
 
 /** 
  * @name User Injections
