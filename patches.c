@@ -764,20 +764,19 @@ int tai_inject_release(SceUID uid) {
  */
 int tai_try_cleanup_process(SceUID pid) {
   tai_patch_t *patch, *next;
-  tai_hook_t *hook, *nexthook;
   LOG("Calling patches cleanup for pid %x", pid);
   sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
   if (proc_map_remove_all_pid(g_map, pid, &patch) > 0) {
     while (patch != NULL) {
       next = patch->next;
-      if (patch->type == HOOKS) {
-        hook = patch->data.hooks.head;
-        while (hook != NULL) {
-          nexthook = hook->next;
-          slab_free(patch->slab, hook);
-          hook = nexthook;
-        }
+      if (patch->type == INJECTION) {
+        LOG("freeing injection saved data");
+        sceKernelMemPoolFree(g_patch_pool, patch->data.inject.saved);
+      } else if (patch->type == HOOKS) {
+        LOG("freeing hook saved data");
+        free(patch->data.hooks.saved);
       }
+      LOG("deleting patch: %x", patch->uid);
       sceKernelDeleteUid(patch->uid);
       patch = next;
     }

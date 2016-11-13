@@ -321,7 +321,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
   int i;
   int ret;
 
-  LOG("Getting export for pid:%x, modname:%s, libnid:%d, funcnid:%x", pid, modname, libnid, funcnid);
+  LOG("Getting export for pid:%x, modname:%s, libnid:%x, funcnid:%x", pid, modname, libnid, funcnid);
   info.size = sizeof(info);
   if (module_get_by_name_nid(pid, modname, TAI_ANY_LIBRARY, &info) < 0) {
     LOG("Failed to find module: %s", modname);
@@ -387,7 +387,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
   int i;
   int ret;
 
-  LOG("Getting import for pid:%x, modname:%s, target_libnid:%d, funcnid:%x", pid, modname, target_libnid, funcnid);
+  LOG("Getting import for pid:%x, modname:%s, target_libnid:%x, funcnid:%x", pid, modname, target_libnid, funcnid);
   info.size = sizeof(info);
   if (module_get_by_name_nid(pid, modname, TAI_ANY_LIBRARY, &info) < 0) {
     LOG("Failed to find module: %s", modname);
