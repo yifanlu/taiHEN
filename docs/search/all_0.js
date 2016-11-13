@@ -10,6 +10,7 @@ var searchData=
   ['_5ftai_5fmodule_5finfo',['_tai_module_info',['../struct__tai__module__info.html',1,'']]],
   ['_5ftai_5foffset_5fargs',['_tai_offset_args',['../struct__tai__offset__args.html',1,'']]],
   ['_5ftai_5fpatch',['_tai_patch',['../struct__tai__patch.html',1,'']]],
+  ['_5ftai_5fplugin_5fload',['_tai_plugin_load',['../struct__tai__plugin__load.html',1,'']]],
   ['_5ftai_5fproc',['_tai_proc',['../struct__tai__proc.html',1,'']]],
   ['_5ftai_5fproc_5fmap',['_tai_proc_map',['../struct__tai__proc__map.html',1,'']]]
 ];

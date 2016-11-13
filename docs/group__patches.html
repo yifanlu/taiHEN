@@ -125,6 +125,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gaf3dbb279cb05108c0678c0a2ad16fc88"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__patches.html#gaf3dbb279cb05108c0678c0a2ad16fc88">cache_flush</a> (SceUID pid, uintptr_t vma, size_t len)</td></tr>
 <tr class="memdesc:gaf3dbb279cb05108c0678c0a2ad16fc88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flush L1 and L2 cache for an address.  <a href="#gaf3dbb279cb05108c0678c0a2ad16fc88">More...</a><br /></td></tr>
 <tr class="separator:gaf3dbb279cb05108c0678c0a2ad16fc88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga13e00ee1ad852d71ed8a524c01f5cc07"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__patches.html#ga13e00ee1ad852d71ed8a524c01f5cc07">tai_memcpy_to_kernel</a> (SceUID src_pid, void *dst, const char *src, size_t size)</td></tr>
+<tr class="memdesc:ga13e00ee1ad852d71ed8a524c01f5cc07"><td class="mdescLeft">&#160;</td><td class="mdescRight">Memcpy from a process to kernel.  <a href="#ga13e00ee1ad852d71ed8a524c01f5cc07">More...</a><br /></td></tr>
+<tr class="separator:ga13e00ee1ad852d71ed8a524c01f5cc07"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaabeaed53094f6b911cfee247949df6f2"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__patches.html#gaabeaed53094f6b911cfee247949df6f2">tai_hook_func_abs</a> (<a class="el" href="group__hook.html#gac10ef3a300e9826453a63ed3c1f0cc3f">tai_hook_ref_t</a> *p_hook, SceUID pid, void *dest_func, const void *hook_func)</td></tr>
 <tr class="memdesc:gaabeaed53094f6b911cfee247949df6f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts a hook given an absolute address and PID of the function.  <a href="#gaabeaed53094f6b911cfee247949df6f2">More...</a><br /></td></tr>
 <tr class="separator:gaabeaed53094f6b911cfee247949df6f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -159,7 +162,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <p>Type of patch </p>
 
-<p>Definition at line <a class="el" href="taihen__internal_8h_source.html#l00039">39</a> of file <a class="el" href="taihen__internal_8h_source.html">taihen_internal.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen__internal_8h_source.html#l00040">40</a> of file <a class="el" href="taihen__internal_8h_source.html">taihen_internal.h</a>.</p>
 
 </div>
 </div>
@@ -207,7 +210,7 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00125">125</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00170">170</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -230,7 +233,7 @@ Functions</h2></td></tr>
 <p>Cleans up the patch system. </p>
 <p>Should be called before exit. </p>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00102">102</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00125">125</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -254,7 +257,7 @@ Functions</h2></td></tr>
 <p>Requires <code>proc_map_init</code> to be called first! Should be called on startup.</p>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00071">71</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00090">90</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -308,7 +311,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>UID for the hook on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00439">439</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00498">498</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -348,7 +351,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00528">528</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00595">595</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -405,7 +408,7 @@ Functions</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00579">579</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00646">646</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -434,7 +437,61 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00643">643</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00710">710</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+
+</div>
+</div>
+<a id="ga13e00ee1ad852d71ed8a524c01f5cc07"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga13e00ee1ad852d71ed8a524c01f5cc07">&sect;&nbsp;</a></span>tai_memcpy_to_kernel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int tai_memcpy_to_kernel </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>src_pid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>dst</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Memcpy from a process to kernel. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">src_pid</td><td>The source process (can be kernel) </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">dst</td><td>The target address </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">src</td><td>The source </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>The size</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
+
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00364">364</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>
@@ -464,7 +521,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero always </dd></dl>
 
-<p>Definition at line <a class="el" href="patches_8c_source.html#l00698">698</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
+<p>Definition at line <a class="el" href="patches_8c_source.html#l00765">765</a> of file <a class="el" href="patches_8c_source.html">patches.c</a>.</p>
 
 </div>
 </div>

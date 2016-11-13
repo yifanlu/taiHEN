@@ -4,7 +4,7 @@ var searchData=
   ['patch_20system',['Patch System',['../group__patches.html',1,'']]],
   ['patches_5fdeinit',['patches_deinit',['../group__patches.html#gafdfba119cff8a8d28ba4a873ad3e1dc0',1,'patches_deinit(void):&#160;patches.c'],['../group__patches.html#gafdfba119cff8a8d28ba4a873ad3e1dc0',1,'patches_deinit(void):&#160;patches.c']]],
   ['patches_5finit',['patches_init',['../group__patches.html#ga2339034285a3cc1ee8b357f647b80196',1,'patches_init(void):&#160;patches.c'],['../group__patches.html#ga2339034285a3cc1ee8b357f647b80196',1,'patches_init(void):&#160;patches.c']]],
-  ['pid',['pid',['../struct__tai__patch.html#ad4f5ab11dcec6ae61aa02043d9c86f4b',1,'_tai_patch::pid()'],['../struct__tai__proc.html#ad4f5ab11dcec6ae61aa02043d9c86f4b',1,'_tai_proc::pid()']]],
+  ['pid',['pid',['../struct__tai__plugin__load.html#ad4f5ab11dcec6ae61aa02043d9c86f4b',1,'_tai_plugin_load::pid()'],['../struct__tai__patch.html#ad4f5ab11dcec6ae61aa02043d9c86f4b',1,'_tai_patch::pid()'],['../struct__tai__proc.html#ad4f5ab11dcec6ae61aa02043d9c86f4b',1,'_tai_proc::pid()']]],
   ['process_20map_20interface',['Process Map Interface',['../group__proc__map.html',1,'']]],
   ['proc_5fmap_5falloc',['proc_map_alloc',['../group__proc__map.html#gad7ec61155a581c458091c52b1710e5ba',1,'proc_map_alloc(int nbuckets):&#160;proc_map.c'],['../group__proc__map.html#gad7ec61155a581c458091c52b1710e5ba',1,'proc_map_alloc(int nbuckets):&#160;proc_map.c']]],
   ['proc_5fmap_5fdeinit',['proc_map_deinit',['../group__proc__map.html#ga1e6a1d9f86e64b2838e0b473277d009b',1,'proc_map_deinit(void):&#160;proc_map.c'],['../group__proc__map.html#ga1e6a1d9f86e64b2838e0b473277d009b',1,'proc_map_deinit(void):&#160;proc_map.c']]],

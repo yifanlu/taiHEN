@@ -61,6 +61,9 @@ $(function() {
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Data Structures</a> &#124;
+<a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Homebrew Enabler</div>  </div>
@@ -70,28 +73,67 @@ $(function() {
 <p>Homebrew enabler patches.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__plugin__load.html">_tai_plugin_load</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arguments passed from taiHEN to config parser back to taiHEN.  <a href="struct__tai__plugin__load.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ga068ae59f31a919e89cb851b6c4fa7f67"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#ga068ae59f31a919e89cb851b6c4fa7f67">TAIHEN_CONFIG_FILE</a>&#160;&#160;&#160;&quot;ux0:tai/config.txt&quot;</td></tr>
+<tr class="separator:ga068ae59f31a919e89cb851b6c4fa7f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga397cb1285e43a69e6b01fc3f46a30c22"><td class="memItemLeft" align="right" valign="top"><a id="ga397cb1285e43a69e6b01fc3f46a30c22"></a>
+typedef struct <a class="el" href="struct__tai__plugin__load.html">_tai_plugin_load</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#ga397cb1285e43a69e6b01fc3f46a30c22">tai_plugin_load_t</a></td></tr>
+<tr class="memdesc:ga397cb1285e43a69e6b01fc3f46a30c22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Arguments passed from taiHEN to config parser back to taiHEN. <br /></td></tr>
+<tr class="separator:ga397cb1285e43a69e6b01fc3f46a30c22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga83e80ea89eff1253386aa400bc676c36"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#ga83e80ea89eff1253386aa400bc676c36">hen_patch_sigchecks</a> (void)</td></tr>
-<tr class="memdesc:ga83e80ea89eff1253386aa400bc676c36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add kernel patches to disable SELF signature checks.  <a href="#ga83e80ea89eff1253386aa400bc676c36">More...</a><br /></td></tr>
-<tr class="separator:ga83e80ea89eff1253386aa400bc676c36"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5573c76dcc87e95706dae8a8869bac73"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#ga5573c76dcc87e95706dae8a8869bac73">hen_restore_sigchecks</a> (void)</td></tr>
-<tr class="memdesc:ga5573c76dcc87e95706dae8a8869bac73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the kernel patches for SELF loading.  <a href="#ga5573c76dcc87e95706dae8a8869bac73">More...</a><br /></td></tr>
-<tr class="separator:ga5573c76dcc87e95706dae8a8869bac73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3915ab72104a06224955796f1211be49"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#ga3915ab72104a06224955796f1211be49">hen_load_plugin</a> (const char *module, void *param)</td></tr>
+<tr class="memdesc:ga3915ab72104a06224955796f1211be49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback to config parser to load a plugin.  <a href="#ga3915ab72104a06224955796f1211be49">More...</a><br /></td></tr>
+<tr class="separator:ga3915ab72104a06224955796f1211be49"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac8d35fe02a43e0168de9e94aa703a8d5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#gac8d35fe02a43e0168de9e94aa703a8d5">hen_add_patches</a> (void)</td></tr>
+<tr class="memdesc:gac8d35fe02a43e0168de9e94aa703a8d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add kernel patches to disable SELF signature checks.  <a href="#gac8d35fe02a43e0168de9e94aa703a8d5">More...</a><br /></td></tr>
+<tr class="separator:gac8d35fe02a43e0168de9e94aa703a8d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga73fabfcf7176236aaa5dfcd724eee3dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__hen.html#ga73fabfcf7176236aaa5dfcd724eee3dd">hen_remove_patches</a> (void)</td></tr>
+<tr class="memdesc:ga73fabfcf7176236aaa5dfcd724eee3dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Removes the kernel patches for SELF loading.  <a href="#ga73fabfcf7176236aaa5dfcd724eee3dd">More...</a><br /></td></tr>
+<tr class="separator:ga73fabfcf7176236aaa5dfcd724eee3dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Homebrew enabler patches. </p>
 <p>Patches kernel to enable homebrew loading</p>
 <p>Uses the taiHEN hooks system to inject hooks on SELF decryption functions to accept unsigned/unencrypted SELFs. </p>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="ga83e80ea89eff1253386aa400bc676c36"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga83e80ea89eff1253386aa400bc676c36">&sect;&nbsp;</a></span>hen_patch_sigchecks()</h2>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ga068ae59f31a919e89cb851b6c4fa7f67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga068ae59f31a919e89cb851b6c4fa7f67">&sect;&nbsp;</a></span>TAIHEN_CONFIG_FILE</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int hen_patch_sigchecks </td>
+          <td class="memname">#define TAIHEN_CONFIG_FILE&#160;&#160;&#160;&quot;ux0:tai/config.txt&quot;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Path to the taiHEN configuration file </p>
+
+<p>Definition at line <a class="el" href="hen_8h_source.html#l00017">17</a> of file <a class="el" href="hen_8h_source.html">hen.h</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="gac8d35fe02a43e0168de9e94aa703a8d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac8d35fe02a43e0168de9e94aa703a8d5">&sect;&nbsp;</a></span>hen_add_patches()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int hen_add_patches </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -103,18 +145,57 @@ Functions</h2></td></tr>
 <p>Add kernel patches to disable SELF signature checks. </p>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="hen_8c_source.html#l00330">330</a> of file <a class="el" href="hen_8c_source.html">hen.c</a>.</p>
+<p>Definition at line <a class="el" href="hen_8c_source.html#l00460">460</a> of file <a class="el" href="hen_8c_source.html">hen.c</a>.</p>
 
 </div>
 </div>
-<a id="ga5573c76dcc87e95706dae8a8869bac73"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga5573c76dcc87e95706dae8a8869bac73">&sect;&nbsp;</a></span>hen_restore_sigchecks()</h2>
+<a id="ga3915ab72104a06224955796f1211be49"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3915ab72104a06224955796f1211be49">&sect;&nbsp;</a></span>hen_load_plugin()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int hen_restore_sigchecks </td>
+          <td class="memname">void hen_load_plugin </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>param</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Callback to config parser to load a plugin. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>The path to load </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">param</td><td>The parameters </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="hen_8c_source.html#l00440">440</a> of file <a class="el" href="hen_8c_source.html">hen.c</a>.</p>
+
+</div>
+</div>
+<a id="ga73fabfcf7176236aaa5dfcd724eee3dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga73fabfcf7176236aaa5dfcd724eee3dd">&sect;&nbsp;</a></span>hen_remove_patches()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int hen_remove_patches </td>
           <td>(</td>
           <td class="paramtype">void&#160;</td>
           <td class="paramname"></td><td>)</td>
@@ -126,7 +207,7 @@ Functions</h2></td></tr>
 <p>Removes the kernel patches for SELF loading. </p>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="hen_8c_source.html#l00442">442</a> of file <a class="el" href="hen_8c_source.html">hen.c</a>.</p>
+<p>Definition at line <a class="el" href="hen_8c_source.html#l00585">585</a> of file <a class="el" href="hen_8c_source.html">hen.c</a>.</p>
 
 </div>
 </div>

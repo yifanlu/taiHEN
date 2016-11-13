@@ -64,7 +64,8 @@ $(function() {
 <div class="title">大変 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>taiHEN is a CFW framework for PS Vita&trade;. When loaded with a kernel exploit, it acts as a common substrate for patching the system. taiHEN provides three main facilities:</p>
+<div class="textblock"><p><a href="https://travis-ci.org/yifanlu/taiHEN"></a></p>
+<p>taiHEN is a CFW framework for PS Vita&trade;. When loaded with a kernel exploit, it acts as a common substrate for patching the system. taiHEN provides three main facilities:</p>
 <ol type="1">
 <li>It disables code signature checks to allow unsigned executables.</li>
 <li>It exposes kernel peek/poke syscalls to user applications and allows loading of kernel modules.</li>
@@ -85,7 +86,7 @@ $(function() {
 <li>In each section, there is a list of plugin paths that will be loaded in order. Paths can be anywhere but it is recommended that plugins reside in <code>ux0:tai</code> or <code>ux0:data/tai</code>. It is valid to have one plugin in multiple sections but the developer must ensure that the plugin knows which application it is loaded in if it needs to do things differently.</li>
 </ol>
 <h2>API </h2>
-<p>taiHEN exports an API interface both to kernel and to user. This interface is found in the <a class="el" href="group__taihen.html">documentation pages</a>. You can either download the release or build taiHEN yourself. After that, you can include <code><a class="el" href="taihen_8h_source.html">taihen.h</a></code> in your project and link with <code>libtaihen_stub.a</code> and use <code>taihen.json</code> with vita- toolchain. </p>
+<p>taiHEN exports an API interface both to kernel and to user. This interface is found in the <a class="el" href="group__taihen.html">documentation pages</a>. You should also read the <a class="el" href="md__u_s_a_g_e.html">usage guide</a> for more details. You can either download the release or build taiHEN yourself. After that, you can include <code><a class="el" href="taihen_8h_source.html">taihen.h</a></code> in your project and link with <code>libtaihen_stub.a</code> (for user modules) or <code>libtaihen_kernel_stub.a</code> (for kernel modules). </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

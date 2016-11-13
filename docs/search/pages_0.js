@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['大変',['大変',['../index.html',1,'']]]
+  ['usage',['Usage',['../md__u_s_a_g_e.html',1,'']]]
 ];

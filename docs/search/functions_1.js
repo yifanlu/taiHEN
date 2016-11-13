@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['hen_5fpatch_5fsigchecks',['hen_patch_sigchecks',['../group__hen.html#ga83e80ea89eff1253386aa400bc676c36',1,'hen_patch_sigchecks(void):&#160;hen.c'],['../group__hen.html#ga83e80ea89eff1253386aa400bc676c36',1,'hen_patch_sigchecks(void):&#160;hen.c']]],
-  ['hen_5frestore_5fsigchecks',['hen_restore_sigchecks',['../group__hen.html#ga5573c76dcc87e95706dae8a8869bac73',1,'hen_restore_sigchecks(void):&#160;hen.c'],['../group__hen.html#ga5573c76dcc87e95706dae8a8869bac73',1,'hen_restore_sigchecks(void):&#160;hen.c']]]
+  ['hen_5fadd_5fpatches',['hen_add_patches',['../group__hen.html#gac8d35fe02a43e0168de9e94aa703a8d5',1,'hen_add_patches(void):&#160;hen.c'],['../group__hen.html#gac8d35fe02a43e0168de9e94aa703a8d5',1,'hen_add_patches(void):&#160;hen.c']]],
+  ['hen_5fload_5fplugin',['hen_load_plugin',['../group__hen.html#ga3915ab72104a06224955796f1211be49',1,'hen_load_plugin(const char *path, void *param):&#160;hen.c'],['../group__hen.html#ga3915ab72104a06224955796f1211be49',1,'hen_load_plugin(const char *module, void *param):&#160;hen.c']]],
+  ['hen_5fremove_5fpatches',['hen_remove_patches',['../group__hen.html#ga73fabfcf7176236aaa5dfcd724eee3dd',1,'hen_remove_patches(void):&#160;hen.c'],['../group__hen.html#ga73fabfcf7176236aaa5dfcd724eee3dd',1,'hen_remove_patches(void):&#160;hen.c']]]
 ];

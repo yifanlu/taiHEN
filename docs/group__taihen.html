@@ -87,6 +87,15 @@ Data Structures</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__module__info.html">_tai_module_info</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extended module information.  <a href="struct__tai__module__info.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__hook__args.html">_tai_hook_args</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass hook arguments to kernel.  <a href="struct__tai__hook__args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__offset__args.html">_tai_offset_args</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass offset arguments to kernel.  <a href="struct__tai__offset__args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="struct__tai__module__args.html">_tai_module_args</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass module arguments to kernel.  <a href="struct__tai__module__args.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
@@ -102,6 +111,26 @@ Typedefs</h2></td></tr>
 <tr class="memitem:gaf8ec630dd11d7c647e9ca2cc2f5f08ad"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="struct__tai__module__info.html">_tai_module_info</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gaf8ec630dd11d7c647e9ca2cc2f5f08ad">tai_module_info_t</a></td></tr>
 <tr class="memdesc:gaf8ec630dd11d7c647e9ca2cc2f5f08ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extended module information.  <a href="#gaf8ec630dd11d7c647e9ca2cc2f5f08ad">More...</a><br /></td></tr>
 <tr class="separator:gaf8ec630dd11d7c647e9ca2cc2f5f08ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga80b69aa78bda55d9deaab853234f5b9b"><td class="memItemLeft" align="right" valign="top"><a id="ga80b69aa78bda55d9deaab853234f5b9b"></a>
+typedef struct <a class="el" href="struct__tai__hook__args.html">_tai_hook_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga80b69aa78bda55d9deaab853234f5b9b">tai_hook_args_t</a></td></tr>
+<tr class="memdesc:ga80b69aa78bda55d9deaab853234f5b9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass hook arguments to kernel. <br /></td></tr>
+<tr class="separator:ga80b69aa78bda55d9deaab853234f5b9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga11b170a95065811a28f4c96e3b98a1da"><td class="memItemLeft" align="right" valign="top"><a id="ga11b170a95065811a28f4c96e3b98a1da"></a>
+typedef struct <a class="el" href="struct__tai__offset__args.html">_tai_offset_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga11b170a95065811a28f4c96e3b98a1da">tai_offset_args_t</a></td></tr>
+<tr class="memdesc:ga11b170a95065811a28f4c96e3b98a1da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass offset arguments to kernel. <br /></td></tr>
+<tr class="separator:ga11b170a95065811a28f4c96e3b98a1da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7a6524d0523ce32c32a7bea3b37b29b2"><td class="memItemLeft" align="right" valign="top"><a id="ga7a6524d0523ce32c32a7bea3b37b29b2"></a>
+typedef struct <a class="el" href="struct__tai__module__args.html">_tai_module_args</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a></td></tr>
+<tr class="memdesc:ga7a6524d0523ce32c32a7bea3b37b29b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pass module arguments to kernel. <br /></td></tr>
+<tr class="separator:ga7a6524d0523ce32c32a7bea3b37b29b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Plugin loading</h2></td></tr>
+<tr><td class="ititle" colspan="2"><p><a class="anchor" id="amgrp1d9c12740d618ca87849a16141970ecb"></a>Kernel plugin loading plugins manually </p>
+</td></tr>
+<tr class="memitem:gaaf24ac3661fe4d1273725648528985dd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gaaf24ac3661fe4d1273725648528985dd">taiLoadPluginsForTitleForKernel</a> (SceUID pid, const char *titleid, int flags)</td></tr>
+<tr class="memdesc:gaaf24ac3661fe4d1273725648528985dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parses the taiHEN config and loads all plugins for a titleid to a process.  <a href="#gaaf24ac3661fe4d1273725648528985dd">More...</a><br /></td></tr>
+<tr class="separator:gaaf24ac3661fe4d1273725648528985dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Skprx Load</h2></td></tr>
@@ -110,21 +139,33 @@ Skprx Load</h2></td></tr>
 <tr class="memitem:gae0861bb9266d93450e227a2c0145cdac"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gae0861bb9266d93450e227a2c0145cdac">taiLoadKernelModule</a> (const char *path, int flags, void *opt)</td></tr>
 <tr class="memdesc:gae0861bb9266d93450e227a2c0145cdac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads a kernel module.  <a href="#gae0861bb9266d93450e227a2c0145cdac">More...</a><br /></td></tr>
 <tr class="separator:gae0861bb9266d93450e227a2c0145cdac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae72706b03612e3350c1bfa97ba83c64e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gae72706b03612e3350c1bfa97ba83c64e">taiStartKernelModuleForUser</a> (SceUID modid, <a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
+<tr class="memitem:gae72706b03612e3350c1bfa97ba83c64e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gae72706b03612e3350c1bfa97ba83c64e">taiStartKernelModuleForUser</a> (SceUID modid, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
 <tr class="memdesc:gae72706b03612e3350c1bfa97ba83c64e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts a kernel module.  <a href="#gae72706b03612e3350c1bfa97ba83c64e">More...</a><br /></td></tr>
 <tr class="separator:gae72706b03612e3350c1bfa97ba83c64e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0332487af80b232ee7475fa5817f7f0a"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga0332487af80b232ee7475fa5817f7f0a">taiLoadStartKernelModuleForUser</a> (const char *path, <a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args)</td></tr>
+<tr class="memitem:ga0332487af80b232ee7475fa5817f7f0a"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga0332487af80b232ee7475fa5817f7f0a">taiLoadStartKernelModuleForUser</a> (const char *path, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args)</td></tr>
 <tr class="memdesc:ga0332487af80b232ee7475fa5817f7f0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and starts a kernel module.  <a href="#ga0332487af80b232ee7475fa5817f7f0a">More...</a><br /></td></tr>
 <tr class="separator:ga0332487af80b232ee7475fa5817f7f0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2c3f06b763fc266b02d09e0e82e86d76"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga2c3f06b763fc266b02d09e0e82e86d76">taiLoadStartModuleForPidForUser</a> (SceUID pid, const char *path, <a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args)</td></tr>
-<tr class="memdesc:ga2c3f06b763fc266b02d09e0e82e86d76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and starts a user module for another process.  <a href="#ga2c3f06b763fc266b02d09e0e82e86d76">More...</a><br /></td></tr>
-<tr class="separator:ga2c3f06b763fc266b02d09e0e82e86d76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2beb400045e294a1de4ce459a9855753"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga2beb400045e294a1de4ce459a9855753">taiStopUnloadKernelModuleForUser</a> (SceUID modid, <a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
+<tr class="memitem:ga8626136905a6020f195d06f7fc0f1fae"><td class="memItemLeft" align="right" valign="top">SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga8626136905a6020f195d06f7fc0f1fae">taiLoadStartModuleForPidForUser</a> (const char *path, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args)</td></tr>
+<tr class="memdesc:ga8626136905a6020f195d06f7fc0f1fae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads and starts a user module for another process.  <a href="#ga8626136905a6020f195d06f7fc0f1fae">More...</a><br /></td></tr>
+<tr class="separator:ga8626136905a6020f195d06f7fc0f1fae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaed415c335db7d046980c8ed50c785b3d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gaed415c335db7d046980c8ed50c785b3d">taiStopKernelModuleForUser</a> (SceUID modid, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
+<tr class="memdesc:gaed415c335db7d046980c8ed50c785b3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops a kernel module.  <a href="#gaed415c335db7d046980c8ed50c785b3d">More...</a><br /></td></tr>
+<tr class="separator:gaed415c335db7d046980c8ed50c785b3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8539929a60185f3d533e9162227dd5fd"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga8539929a60185f3d533e9162227dd5fd">taiUnloadKernelModule</a> (SceUID modid, int flags, void *opt)</td></tr>
+<tr class="memdesc:ga8539929a60185f3d533e9162227dd5fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unloads a kernel module directly.  <a href="#ga8539929a60185f3d533e9162227dd5fd">More...</a><br /></td></tr>
+<tr class="separator:ga8539929a60185f3d533e9162227dd5fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2beb400045e294a1de4ce459a9855753"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga2beb400045e294a1de4ce459a9855753">taiStopUnloadKernelModuleForUser</a> (SceUID modid, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
 <tr class="memdesc:ga2beb400045e294a1de4ce459a9855753"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops and unloads a kernel module.  <a href="#ga2beb400045e294a1de4ce459a9855753">More...</a><br /></td></tr>
 <tr class="separator:ga2beb400045e294a1de4ce459a9855753"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga10cf4da3303bd994173a0c32ab8c3ff0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga10cf4da3303bd994173a0c32ab8c3ff0">taiUnloadKernelModule</a> (SceUID modid, int flags)</td></tr>
-<tr class="memdesc:ga10cf4da3303bd994173a0c32ab8c3ff0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unloads a kernel module directly.  <a href="#ga10cf4da3303bd994173a0c32ab8c3ff0">More...</a><br /></td></tr>
-<tr class="separator:ga10cf4da3303bd994173a0c32ab8c3ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0939a64fde908d7825f79b19d2ead562"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga0939a64fde908d7825f79b19d2ead562">taiStopModuleForPidForUser</a> (SceUID modid, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
+<tr class="memdesc:ga0939a64fde908d7825f79b19d2ead562"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops a user module for another process.  <a href="#ga0939a64fde908d7825f79b19d2ead562">More...</a><br /></td></tr>
+<tr class="separator:ga0939a64fde908d7825f79b19d2ead562"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga826cca665284dc5e8b019adbb7e1ba64"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga826cca665284dc5e8b019adbb7e1ba64">taiUnloadModuleForPid</a> (SceUID pid, SceUID modid, int flags, void *opt)</td></tr>
+<tr class="memdesc:ga826cca665284dc5e8b019adbb7e1ba64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unloads a user module for a process directly.  <a href="#ga826cca665284dc5e8b019adbb7e1ba64">More...</a><br /></td></tr>
+<tr class="separator:ga826cca665284dc5e8b019adbb7e1ba64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga600d0f017eb11510c1202357cceea81e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga600d0f017eb11510c1202357cceea81e">taiStopUnloadModuleForPidForUser</a> (SceUID modid, <a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *args, void *opt, int *res)</td></tr>
+<tr class="memdesc:ga600d0f017eb11510c1202357cceea81e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops and unloads a user module for a process.  <a href="#ga600d0f017eb11510c1202357cceea81e">More...</a><br /></td></tr>
+<tr class="separator:ga600d0f017eb11510c1202357cceea81e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafda2efa479c8df265cd0556fcc06a8fc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gafda2efa479c8df265cd0556fcc06a8fc">taiStartKernelModule</a> (SceUID modid, int args, void *argp, int flags, void *opt, int *res)</td></tr>
 <tr class="memdesc:gafda2efa479c8df265cd0556fcc06a8fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#gae72706b03612e3350c1bfa97ba83c64e" title="Starts a kernel module. ">taiStartKernelModuleForUser</a>.  <a href="#gafda2efa479c8df265cd0556fcc06a8fc">More...</a><br /></td></tr>
 <tr class="separator:gafda2efa479c8df265cd0556fcc06a8fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -132,11 +173,20 @@ Skprx Load</h2></td></tr>
 <tr class="memdesc:gac6b46824d87ba7038d565f83d03cef14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#ga0332487af80b232ee7475fa5817f7f0a" title="Loads and starts a kernel module. ">taiLoadStartKernelModuleForUser</a>.  <a href="#gac6b46824d87ba7038d565f83d03cef14">More...</a><br /></td></tr>
 <tr class="separator:gac6b46824d87ba7038d565f83d03cef14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad7e821f7b628bd473db67ea67e98dd79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> SceUID&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gad7e821f7b628bd473db67ea67e98dd79">taiLoadStartModuleForPid</a> (SceUID pid, const char *path, int args, void *argp, int flags)</td></tr>
-<tr class="memdesc:gad7e821f7b628bd473db67ea67e98dd79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#ga2c3f06b763fc266b02d09e0e82e86d76" title="Loads and starts a user module for another process. ">taiLoadStartModuleForPidForUser</a>.  <a href="#gad7e821f7b628bd473db67ea67e98dd79">More...</a><br /></td></tr>
+<tr class="memdesc:gad7e821f7b628bd473db67ea67e98dd79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#ga8626136905a6020f195d06f7fc0f1fae" title="Loads and starts a user module for another process. ">taiLoadStartModuleForPidForUser</a>.  <a href="#gad7e821f7b628bd473db67ea67e98dd79">More...</a><br /></td></tr>
 <tr class="separator:gad7e821f7b628bd473db67ea67e98dd79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d">taiStopKernelModule</a> (SceUID modid, int args, void *argp, int flags, void *opt, int *res)</td></tr>
+<tr class="memdesc:ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#gaed415c335db7d046980c8ed50c785b3d" title="Stops a kernel module. ">taiStopKernelModuleForUser</a>.  <a href="#ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d">More...</a><br /></td></tr>
+<tr class="separator:ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga67a49148e4d3f41e14c68d347af60f69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga67a49148e4d3f41e14c68d347af60f69">taiStopUnloadKernelModule</a> (SceUID modid, int args, void *argp, int flags, void *opt, int *res)</td></tr>
 <tr class="memdesc:ga67a49148e4d3f41e14c68d347af60f69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#ga2beb400045e294a1de4ce459a9855753" title="Stops and unloads a kernel module. ">taiStopUnloadKernelModuleForUser</a>.  <a href="#ga67a49148e4d3f41e14c68d347af60f69">More...</a><br /></td></tr>
 <tr class="separator:ga67a49148e4d3f41e14c68d347af60f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa7530bb2aeb64959ec832ace46ccdb67"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gaa7530bb2aeb64959ec832ace46ccdb67">taiStopModuleForPid</a> (SceUID pid, SceUID modid, int args, void *argp, int flags, void *opt, int *res)</td></tr>
+<tr class="memdesc:gaa7530bb2aeb64959ec832ace46ccdb67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#ga0939a64fde908d7825f79b19d2ead562" title="Stops a user module for another process. ">taiStopModuleForPidForUser</a>.  <a href="#gaa7530bb2aeb64959ec832ace46ccdb67">More...</a><br /></td></tr>
+<tr class="separator:gaa7530bb2aeb64959ec832ace46ccdb67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacef6be9f99c8240267440b2e42d51920"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gacef6be9f99c8240267440b2e42d51920">taiStopUnloadModuleForPid</a> (SceUID pid, SceUID modid, int args, void *argp, int flags, void *opt, int *res)</td></tr>
+<tr class="memdesc:gacef6be9f99c8240267440b2e42d51920"><td class="mdescLeft">&#160;</td><td class="mdescRight">Helper function for <a class="el" href="group__taihen.html#ga600d0f017eb11510c1202357cceea81e" title="Stops and unloads a user module for a process. ">taiStopUnloadModuleForPidForUser</a>.  <a href="#gacef6be9f99c8240267440b2e42d51920">More...</a><br /></td></tr>
+<tr class="separator:gacef6be9f99c8240267440b2e42d51920"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Peek/Poke</h2></td></tr>
@@ -272,7 +322,57 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00346">346</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00352">352</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="gaaf24ac3661fe4d1273725648528985dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaaf24ac3661fe4d1273725648528985dd">&sect;&nbsp;</a></span>taiLoadPluginsForTitleForKernel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int taiLoadPluginsForTitleForKernel </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>pid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>titleid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Parses the taiHEN config and loads all plugins for a titleid to a process. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid to load to </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">titleid</td><td>The title to read from the config </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_SYSTEM if the config file is invalid </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00261">261</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -326,7 +426,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00439">439</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00448">448</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -345,7 +445,7 @@ Peek/Poke</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
           <td class="paramname"><em>args</em>&#160;</td>
         </tr>
         <tr>
@@ -370,7 +470,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00442">442</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00448">448</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -418,8 +518,8 @@ Peek/Poke</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Helper function for <a class="el" href="group__taihen.html#ga2c3f06b763fc266b02d09e0e82e86d76" title="Loads and starts a user module for another process. ">taiLoadStartModuleForPidForUser</a>. </p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__taihen.html#ga2c3f06b763fc266b02d09e0e82e86d76" title="Loads and starts a user module for another process. ">taiLoadStartModuleForPidForUser</a></dd></dl>
+<p>Helper function for <a class="el" href="group__taihen.html#ga8626136905a6020f195d06f7fc0f1fae" title="Loads and starts a user module for another process. ">taiLoadStartModuleForPidForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__taihen.html#ga8626136905a6020f195d06f7fc0f1fae" title="Loads and starts a user module for another process. ">taiLoadStartModuleForPidForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid to load to </td></tr>
@@ -431,12 +531,12 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00459">459</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00468">468</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
-<a id="ga2c3f06b763fc266b02d09e0e82e86d76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2c3f06b763fc266b02d09e0e82e86d76">&sect;&nbsp;</a></span>taiLoadStartModuleForPidForUser()</h2>
+<a id="ga8626136905a6020f195d06f7fc0f1fae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8626136905a6020f195d06f7fc0f1fae">&sect;&nbsp;</a></span>taiLoadStartModuleForPidForUser()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -444,19 +544,13 @@ Peek/Poke</h2></td></tr>
         <tr>
           <td class="memname">SceUID taiLoadStartModuleForPidForUser </td>
           <td>(</td>
-          <td class="paramtype">SceUID&#160;</td>
-          <td class="paramname"><em>pid</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const char *&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
           <td class="paramname"><em>args</em>&#160;</td>
         </tr>
         <tr>
@@ -470,7 +564,6 @@ Peek/Poke</h2></td></tr>
 <p>Loads and starts a user module for another process. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid to load to </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">path</td><td>The path of the skprx </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The arguments</td></tr>
   </table>
@@ -482,7 +575,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00482">482</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00501">501</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -534,7 +627,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00652">652</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00895">895</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -584,7 +677,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00620">620</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00863">863</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -652,7 +745,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00420">420</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00429">429</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -671,7 +764,7 @@ Peek/Poke</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
           <td class="paramname"><em>args</em>, </td>
         </tr>
         <tr>
@@ -710,7 +803,266 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00389">389</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00395">395</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga2dfe7d10d9f4f8d5d9a7bfdb1fd29b1d">&sect;&nbsp;</a></span>taiStopKernelModule()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int taiStopKernelModule </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>argp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Helper function for <a class="el" href="group__taihen.html#gaed415c335db7d046980c8ed50c785b3d" title="Stops a kernel module. ">taiStopKernelModuleForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__taihen.html#gaed415c335db7d046980c8ed50c785b3d" title="Stops a kernel module. ">taiStopKernelModuleForUser</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The size of the arguments to <code>module_stop</code> </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">argp</td><td>The arguments to <code>module_stop</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Optional arguments, set to NULL </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">res</td><td>Return value of <code>module_stop</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00490">490</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+
+</div>
+</div>
+<a id="gaed415c335db7d046980c8ed50c785b3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaed415c335db7d046980c8ed50c785b3d">&sect;&nbsp;</a></span>taiStopKernelModuleForUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int taiStopKernelModuleForUser </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stops a kernel module. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The arguments </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Optional arguments, set to NULL </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">res</td><td>Return value of <code>module_stop</code></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_INVALID_ARGS if <code>args</code> is too large or <code>opt</code> is not NULL</li>
+<li>TAI_ERROR_NOT_ALLOWED if caller does not have permission </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00555">555</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="gaa7530bb2aeb64959ec832ace46ccdb67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa7530bb2aeb64959ec832ace46ccdb67">&sect;&nbsp;</a></span>taiStopModuleForPid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int taiStopModuleForPid </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>pid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>argp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Helper function for <a class="el" href="group__taihen.html#ga0939a64fde908d7825f79b19d2ead562" title="Stops a user module for another process. ">taiStopModuleForPidForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__taihen.html#ga0939a64fde908d7825f79b19d2ead562" title="Stops a user module for another process. ">taiStopModuleForPidForUser</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The size of the arguments to <code>module_stop</code> </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">argp</td><td>The arguments to <code>module_stop</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Optional arguments, set to NULL </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">res</td><td>Return value of <code>module_stop</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00533">533</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+
+</div>
+</div>
+<a id="ga0939a64fde908d7825f79b19d2ead562"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga0939a64fde908d7825f79b19d2ead562">&sect;&nbsp;</a></span>taiStopModuleForPidForUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int taiStopModuleForPidForUser </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stops a user module for another process. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The arguments </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Optional arguments, set to NULL </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">res</td><td>Return value of <code>module_stop</code></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_INVALID_ARGS if <code>args</code> is too large or <code>opt</code> is not NULL</li>
+<li>TAI_ERROR_NOT_ALLOWED if caller does not have permission </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00713">713</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -778,7 +1130,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00480">480</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00511">511</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -797,7 +1149,7 @@ Peek/Poke</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__hook.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
           <td class="paramname"><em>args</em>, </td>
         </tr>
         <tr>
@@ -836,12 +1188,145 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00532">532</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00654">654</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
-<a id="ga10cf4da3303bd994173a0c32ab8c3ff0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga10cf4da3303bd994173a0c32ab8c3ff0">&sect;&nbsp;</a></span>taiUnloadKernelModule()</h2>
+<a id="gacef6be9f99c8240267440b2e42d51920"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacef6be9f99c8240267440b2e42d51920">&sect;&nbsp;</a></span>taiStopUnloadModuleForPid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a> int taiStopUnloadModuleForPid </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>pid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>argp</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Helper function for <a class="el" href="group__taihen.html#ga600d0f017eb11510c1202357cceea81e" title="Stops and unloads a user module for a process. ">taiStopUnloadModuleForPidForUser</a>. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__taihen.html#ga600d0f017eb11510c1202357cceea81e" title="Stops and unloads a user module for a process. ">taiStopUnloadModuleForPidForUser</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The size of the arguments to <code>module_stop</code> </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">argp</td><td>The arguments to <code>module_stop</code> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Optional arguments, set to NULL </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">res</td><td>Return value of <code>module_stop</code> </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00556">556</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+
+</div>
+</div>
+<a id="ga600d0f017eb11510c1202357cceea81e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga600d0f017eb11510c1202357cceea81e">&sect;&nbsp;</a></span>taiStopUnloadModuleForPidForUser()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int taiStopUnloadModuleForPidForUser </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__taihen.html#ga7a6524d0523ce32c32a7bea3b37b29b2">tai_module_args_t</a> *&#160;</td>
+          <td class="paramname"><em>args</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>res</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stops and unloads a user module for a process. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">args</td><td>The arguments </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Optional arguments, set to NULL </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">res</td><td>Return value of <code>module_stop</code></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_INVALID_ARGS if <code>args</code> is too large or <code>opt</code> is not NULL</li>
+<li>TAI_ERROR_NOT_ALLOWED if caller does not have permission </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00808">808</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="ga8539929a60185f3d533e9162227dd5fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8539929a60185f3d533e9162227dd5fd">&sect;&nbsp;</a></span>taiUnloadKernelModule()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -856,7 +1341,13 @@ Peek/Poke</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>flags</em>&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -870,7 +1361,8 @@ Peek/Poke</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Set to <code>NULL</code></td></tr>
   </table>
   </dd>
 </dl>
@@ -879,7 +1371,63 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00586">586</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00612">612</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+
+</div>
+</div>
+<a id="ga826cca665284dc5e8b019adbb7e1ba64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga826cca665284dc5e8b019adbb7e1ba64">&sect;&nbsp;</a></span>taiUnloadModuleForPid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int taiUnloadModuleForPid </td>
+          <td>(</td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>pid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">SceUID&#160;</td>
+          <td class="paramname"><em>modid</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>flags</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>opt</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Unloads a user module for a process directly. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">modid</td><td>The loaded module reference </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">flags</td><td>The flags </td></tr>
+    <tr><td class="paramdir"></td><td class="paramname">opt</td><td>Set to <code>NULL</code></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_NOT_ALLOWED if caller does not have permission </li>
+</ul>
+</dd></dl>
+
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00768">768</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
