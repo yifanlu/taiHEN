@@ -85,7 +85,8 @@ SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
  *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to
  *               hook
- *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
+ *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory
+ *               region. You should hook an import from another module instead.
  *             - TAI_ERROR_USER_MEMORY if pointers are incorrect
  *             - TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved
  *               yet. You should hook `sceKernelLoadStartModule`,

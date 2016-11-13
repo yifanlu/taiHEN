@@ -311,3 +311,11 @@ int module_stop(SceSize argc, const void *args) {
   return SCE_KERNEL_STOP_SUCCESS;
 }
 ```
+
+### Hooking a function while it is being called
+
+There is currently a [bug](https://github.com/yifanlu/taiHEN/issues/12) in the
+implementation where a crash may happen if you are hooking a function while it
+is being used. Usually this doesn't happen (except by chance), but some
+functions might be called in a tight loop. A temporary workaround is listed in 
+the [issue tracker](https://github.com/yifanlu/taiHEN/issues/12).

@@ -234,7 +234,7 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
   int ret;
 
   count = MOD_LIST_SIZE;
-  ret = sceKernelGetModuleListForKernel(pid, 0x80000001, 1, modlist, &count);
+  ret = sceKernelGetModuleListForKernel(pid, 0xff, 1, modlist, &count);
   LOG("sceKernelGetModuleListForKernel(%x): 0x%08X, count: %d", pid, ret, count);
   if (ret < 0) {
     return ret;
