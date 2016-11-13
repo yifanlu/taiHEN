@@ -263,6 +263,11 @@ use that to cleanup your kernel plugin. Instead, your kernel plugin's
 automatically after running. In the case that it is not possible, you should be
 careful not to load the same kernel module twice.
 
+It it important to remember to always clean up hooks and injections in
+`module_stop` for kernel modules. You should be doing this for user modules as
+well, but patches in user-space will be cleaned up by taiHEN when the process
+exits. Patches in kernel will not be cleaned up automatically.
+
 ### Syscall stack limitations
 
 When writing a kernel module that exposes new syscalls, know that the syscall

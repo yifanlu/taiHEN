@@ -14,6 +14,7 @@
 #include "error.h"
 #include "hen.h"
 #include "module.h"
+#include "patches.h"
 #include "taihen_internal.h"
 
 /** The Vita supports a max of 8 segments for ET_SCE_RELEXEC type */
@@ -110,11 +111,14 @@ static tai_hook_ref_t g_package_check_2_hook;
 /** Hook reference to `load_user_libs` */
 static tai_hook_ref_t g_load_user_libs_hook;
 
-/** Hook reference to `nid_poison_hook` */
+/** Hook reference to `nid_poison` */
 static tai_hook_ref_t g_nid_poison_hook;
 
+/** Hook reference to `unload_process` */
+static tai_hook_ref_t g_unload_process_hook;
+
 /** References to the hooks */
-static SceUID g_hooks[10];
+static SceUID g_hooks[11];
 
 /** Memory reference to config read buffer */
 static SceUID g_config_blk;
@@ -327,7 +331,7 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
   ret = TAI_CONTINUE(int, g_load_user_libs_hook, pid, args, flags);
 
   sceKernelGetProcessTitleIdForKernel(pid, titleid, 32);
-  LOG("title started: %s", titleid);
+  LOG("title started: %s, pid: %x", titleid, pid);
 
   if (g_config) {
     param.pid = pid;
@@ -356,6 +360,25 @@ static int nid_poison_patched(uintptr_t dst, int set, size_t len) {
   // because we do not want the effect to take place
   LOG("patched out nid poison request: %p, %x, len: %x", dst, set, len);
   return 0;
+}
+
+/**
+ * @brief      Patch for unloading a process
+ *
+ * @param[in]  pid    The process being unloaded
+ *
+ * @return     Zero on success, < 0 on error
+ */
+static int unload_process_patched(SceUID pid) {
+  int ret;
+
+  LOG("unloading pid:%x", pid);
+  ret = tai_try_cleanup_process(pid);
+  LOG("cleanup: %x", ret);
+  ret = TAI_CONTINUE(int, g_unload_process_hook, pid);
+  LOG("process unloaded: %x", ret);
+
+  return ret;
 }
 
 /**
@@ -539,6 +562,14 @@ int hen_add_patches(void) {
                                               nid_poison_patched);
   if (g_hooks[9] < 0) goto fail;
   LOG("nid_poison_patched added");
+  g_hooks[10] = taiHookFunctionImportForKernel(KERNEL_PID, 
+                                              &g_unload_process_hook, 
+                                              "SceProcessmgr", 
+                                              0xC445FA63, // SceModulemgrForKernel
+                                              0x0E33258E, 
+                                              unload_process_patched);
+  if (g_hooks[10] < 0) goto fail;
+  LOG("unload_process_patched added");
 
   if (hen_load_config() < 0) goto fail;
 
@@ -574,6 +605,9 @@ fail:
   if (g_hooks[9] >= 0) {
     taiHookReleaseForKernel(g_hooks[9], g_nid_poison_hook);
   }
+  if (g_hooks[10] >= 0) {
+    taiHookReleaseForKernel(g_hooks[10], g_unload_process_hook);
+  }
   return TAI_ERROR_SYSTEM;
 }
 
@@ -597,5 +631,7 @@ int hen_remove_patches(void) {
   ret |= taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
   ret |= taiHookReleaseForKernel(g_hooks[7], g_package_check_2_hook);
   ret |= taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[9], g_nid_poison_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[10], g_unload_process_hook);
   return ret;
 }
