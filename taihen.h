@@ -84,6 +84,7 @@ typedef struct _tai_offset_args {
  */
 typedef struct _tai_module_args {
   size_t size;
+  SceUID pid;
   size_t args;
   void *argp;
   int flags;
@@ -409,9 +410,13 @@ int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags);
 SceUID taiLoadKernelModule(const char *path, int flags, void *opt);
 int taiStartKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
 SceUID taiLoadStartKernelModuleForUser(const char *path, tai_module_args_t *args);
-SceUID taiLoadStartModuleForPidForUser(SceUID pid, const char *path, tai_module_args_t *args);
+SceUID taiLoadStartModuleForPidForUser(const char *path, tai_module_args_t *args);
+int taiStopKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
+int taiUnloadKernelModule(SceUID modid, int flags, void *opt);
 int taiStopUnloadKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
-int taiUnloadKernelModule(SceUID modid, int flags);
+int taiStopModuleForPidForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
+int taiUnloadModuleForPid(SceUID pid, SceUID modid, int flags, void *opt);
+int taiStopUnloadModuleForPidForUser(SceUID modid, tai_module_args_t *args, void *opt, int *res);
 
 /**
  * @brief      Helper function for #taiStartKernelModuleForUser
@@ -467,10 +472,32 @@ HELPER SceUID taiLoadStartKernelModule(const char *path, int args, void *argp, i
 HELPER SceUID taiLoadStartModuleForPid(SceUID pid, const char *path, int args, void *argp, int flags) {
   tai_module_args_t argg;
   argg.size = sizeof(argg);
+  argg.pid = pid;
   argg.args = args;
   argg.argp = argp;
   argg.flags = flags;
-  return taiLoadStartModuleForPidForUser(pid, path, &argg);
+  return taiLoadStartModuleForPidForUser(path, &argg);
+}
+
+/**
+ * @brief      Helper function for #taiStopKernelModuleForUser
+ *
+ * @see        taiStopKernelModuleForUser
+ *
+ * @param[in]  modid  The loaded module reference
+ * @param[in]  args   The size of the arguments to `module_stop`
+ * @param      argp   The arguments to `module_stop`
+ * @param[in]  flags  The flags
+ * @param      opt    Optional arguments, set to NULL
+ * @param      res    Return value of `module_stop`
+ */
+HELPER int taiStopKernelModule(SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  tai_module_args_t argg;
+  argg.size = sizeof(argg);
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiStopKernelModuleForUser(modid, &argg, opt, res);
 }
 
 /**
@@ -492,6 +519,52 @@ HELPER int taiStopUnloadKernelModule(SceUID modid, int args, void *argp, int fla
   argg.argp = argp;
   argg.flags = flags;
   return taiStopUnloadKernelModuleForUser(modid, &argg, opt, res);
+}
+
+/**
+ * @brief      Helper function for #taiStopModuleForPidForUser
+ *
+ * @see        taiStopModuleForPidForUser
+ *
+ * @param[in]  pid    The pid
+ * @param[in]  modid  The loaded module reference
+ * @param[in]  args   The size of the arguments to `module_stop`
+ * @param      argp   The arguments to `module_stop`
+ * @param[in]  flags  The flags
+ * @param      opt    Optional arguments, set to NULL
+ * @param      res    Return value of `module_stop`
+ */
+HELPER int taiStopModuleForPid(SceUID pid, SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  tai_module_args_t argg;
+  argg.size = sizeof(argg);
+  argg.pid = pid;
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiStopModuleForPidForUser(modid, &argg, opt, res);
+}
+
+/**
+ * @brief      Helper function for #taiStopUnloadModuleForPidForUser
+ *
+ * @see        taiStopUnloadModuleForPidForUser
+ *
+ * @param[in]  pid    The pid
+ * @param[in]  modid  The loaded module reference
+ * @param[in]  args   The size of the arguments to `module_stop`
+ * @param      argp   The arguments to `module_stop`
+ * @param[in]  flags  The flags
+ * @param      opt    Optional arguments, set to NULL
+ * @param      res    Return value of `module_stop`
+ */
+HELPER int taiStopUnloadModuleForPid(SceUID pid, SceUID modid, int args, void *argp, int flags, void *opt, int *res) {
+  tai_module_args_t argg;
+  argg.size = sizeof(argg);
+  argg.pid = pid;
+  argg.args = args;
+  argg.argp = argp;
+  argg.flags = flags;
+  return taiStopUnloadModuleForPidForUser(modid, &argg, opt, res);
 }
 
 /** @} */

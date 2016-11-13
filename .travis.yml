@@ -44,5 +44,4 @@ branches:
 
 notifications:
   irc:
-    - "chat.freenode.net#henkaku"
     - "chat.freenode.net#vitasdk"
