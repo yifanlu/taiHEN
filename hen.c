@@ -358,7 +358,7 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
 static int nid_poison_patched(uintptr_t dst, int set, size_t len) {
   // we're breaking the rules here. we don't call TAI_CONTINUE
   // because we do not want the effect to take place
-  LOG("patched out nid poison request: %p, %x, len: %x", dst, set, len);
+  //LOG("patched out nid poison request: %p, %x, len: %x", dst, set, len);
   return 0;
 }
 
