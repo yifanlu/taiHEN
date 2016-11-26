@@ -124,7 +124,7 @@ static SceUID g_hooks[11];
 static SceUID g_config_blk;
 
 /** Buffer for the config data */
-const char *g_config;
+char *g_config = NULL;
 
 /** Is the current decryption a homebrew? */
 static int g_is_homebrew;
@@ -384,16 +384,17 @@ static int unload_process_patched(SceUID pid) {
 /**
  * @brief      Load tai config file
  *
+ *             Allocates memory if a config has not been loaded before.
+ *             Otherwise, the memory will be reused.
+ *
  * @return     Zero on success, < 0 on error
  */
-static int hen_load_config(void) {
+int hen_load_config(void) {
   SceUID fd;
   SceOff len;
   int ret;
   char *config;
   int rd, total;
-
-  g_config = NULL;
 
   LOG("opening config %s", TAIHEN_CONFIG_FILE);
   fd = sceIoOpenForDriver(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
@@ -411,19 +412,23 @@ static int hen_load_config(void) {
 
   sceIoLseekForDriver(fd, 0, SCE_SEEK_SET);
 
-  LOG("allocating %d bytes for config", (len + 0xfff) & ~0xfff);
-  g_config_blk = sceKernelAllocMemBlockForKernel("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
-  if (g_config_blk < 0) {
-    LOG("failed to allocate memory: %x", g_config_blk);
-    sceIoCloseForDriver(fd);
-    return g_config_blk;
-  }
+  if (!g_config) {
+    LOG("allocating %d bytes for config", (len + 0xfff) & ~0xfff);
+    g_config_blk = sceKernelAllocMemBlockForKernel("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
+    if (g_config_blk < 0) {
+      LOG("failed to allocate memory: %x", g_config_blk);
+      sceIoCloseForDriver(fd);
+      return g_config_blk;
+    }
 
-  ret = sceKernelGetMemBlockBaseForKernel(g_config_blk, (void **)&config);
-  if (ret < 0) {
-    LOG("failed to get base for %x: %x", g_config_blk, ret);
-    sceIoCloseForDriver(fd);
-    return ret;
+    ret = sceKernelGetMemBlockBaseForKernel(g_config_blk, (void **)&config);
+    if (ret < 0) {
+      LOG("failed to get base for %x: %x", g_config_blk, ret);
+      sceIoCloseForDriver(fd);
+      return ret;
+    }
+  } else {
+    config = g_config;
   }
 
   LOG("reading config to memory");
@@ -455,7 +460,21 @@ static int hen_load_config(void) {
 }
 
 /**
+ * @brief      Frees tai config file
+ *
+ * @return     Zero on success
+ */
+int hen_free_config(void) {
+  if (g_config) {
+    sceKernelFreeMemBlockForKernel(g_config_blk);
+  }
+  return 0;
+}
+
+/**
  * @brief      Callback to config parser to load a plugin
+ *
+ *             If no config is loaded, will return without doing anything.
  *
  * @param[in]  path   The path to load
  * @param[in]  param  The parameters
@@ -464,6 +483,11 @@ void hen_load_plugin(const char *path, void *param) {
   tai_plugin_load_t *load = (tai_plugin_load_t *)param;
   int ret;
   int result;
+
+  if (!g_config) {
+    LOG("no config loaded! skipping plugin load");
+    return;
+  }
 
   LOG("pid:%x loading module %s (flags:%x)", load->pid, path, load->flags);
   if ((load->flags & 0x8000) == 0x8000) {
@@ -571,8 +595,6 @@ int hen_add_patches(void) {
   if (g_hooks[10] < 0) goto fail;
   LOG("unload_process_patched added");
 
-  if (hen_load_config() < 0) goto fail;
-
   return TAI_SUCCESS;
 fail:
   if (g_hooks[0] >= 0) {
@@ -619,9 +641,6 @@ fail:
 int hen_remove_patches(void) {
   int ret;
 
-  if (g_config) {
-    sceKernelFreeMemBlockForKernel(g_config_blk);
-  }
   ret = taiHookReleaseForKernel(g_hooks[0], g_parse_headers_hook);
   ret |= taiHookReleaseForKernel(g_hooks[1], g_setup_buffer_hook);
   ret |= taiHookReleaseForKernel(g_hooks[2], g_decrypt_buffer_hook);

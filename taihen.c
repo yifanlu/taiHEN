@@ -301,6 +301,11 @@ int module_start(SceSize argc, const void *args) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
+  ret = hen_load_config();
+  if (ret < 0) {
+    LOG("HEN config load failed: %x", ret);
+    return SCE_KERNEL_START_FAILED;
+  }
   taiLoadPluginsForTitleForKernel(KERNEL_PID, "KERNEL", 0);
   return SCE_KERNEL_START_SUCCESS;
 }

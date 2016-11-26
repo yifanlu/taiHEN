@@ -25,6 +25,8 @@ typedef struct _tai_plugin_load {
 } tai_plugin_load_t;
 
 void hen_load_plugin(const char *module, void *param);
+int hen_load_config(void);
+int hen_free_config(void);
 int hen_add_patches(void);
 int hen_remove_patches(void);
 
