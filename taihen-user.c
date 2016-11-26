@@ -916,18 +916,13 @@ int taiMemcpyKernelToUser(void *user_dst, const void *kernel_src, size_t len) {
  * @brief      Reloads config.txt from the default path
  *
  * @return     Zero on success, < 0 on error
- *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
  */
 int taiReloadConfig(void) {
   uint32_t state;
   int ret;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
-    ret = hen_load_config();
-  } else {
-    ret = TAI_ERROR_NOT_ALLOWED;
-  }
+  ret = hen_load_config();
   EXIT_SYSCALL(state);
   return ret;
 }
