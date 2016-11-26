@@ -235,7 +235,7 @@ static int do_hooking(void *args) {
   struct hook_args *uargs = (struct hook_args *)args;
 
   if (uargs->pid == KERNEL_PID) {
-    ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, 0);
+    ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, SUBSTITUTE_RELAXED);
   } else {
     flags = sceKernelCpuDisableInterrupts();
     sceKernelCpuSaveContext(my_context);
@@ -244,7 +244,7 @@ static int do_hooking(void *args) {
       sceKernelCpuRestoreContext(other_context);
       asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
-      ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, 0);
+      ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, SUBSTITUTE_RELAXED);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
     sceKernelCpuRestoreContext(my_context);

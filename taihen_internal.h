@@ -15,7 +15,7 @@ extern unsigned char log_ctr;
 
 /** Logging function */
 #ifdef ENABLE_LOGGING
-#define LOG(fmt, ...) printf("%02X [%s:%d] " fmt "\n", log_ctr++, __FILE__, __LINE__, ##__VA_ARGS__)
+#define LOG(fmt, ...) printf("%02X [%s:%d] " fmt "\n", log_ctr++, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
 #define LOG(fmt, ...)
 #endif
