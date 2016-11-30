@@ -75,8 +75,8 @@ add_custom_target(taihen.skprx ALL
 add_dependencies(taihen.skprx taihen.elf)
 
 add_custom_target(taihen-libs ALL
-	COMMAND vita-elf-export kernel taihen.elf ${CMAKE_SOURCE_DIR}/exports.yml taihen.json
-	COMMAND vita-libs-gen taihen.json taihen-libs
+	COMMAND vita-elf-export kernel taihen.elf ${CMAKE_SOURCE_DIR}/exports.yml taihen.yml
+	COMMAND vita-libs-gen taihen.yml taihen-libs
 	COMMAND make -C taihen-libs
 )
 
@@ -86,7 +86,7 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/taihen-libs/
 		DESTINATION lib
 		FILES_MATCHING PATTERN "*.a")
 
-install(FILES ${CMAKE_BINARY_DIR}/taihen.json
+install(FILES ${CMAKE_BINARY_DIR}/taihen.yml
 		DESTINATION share/imports)
 
 install(FILES taihen.h
