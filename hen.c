@@ -164,7 +164,7 @@ static int parse_headers_patched(int ctx, const void *headers, size_t len, void 
   }
   ret = TAI_CONTINUE(int, g_parse_headers_hook, ctx, headers, len, args);
   if (ctx == 1) { // as of 3.60, only one decrypt context exists
-    if (ret == 0x800f0624 || ret == 0x800f0616 || ret == 0x800f0024 || ret == 0x800f0b3a || ret == 0x800f0b32 || ret == 0x800f0b34) {
+    if (ret == 0x800f0624 || ret == 0x800f0616 || ret == 0x800f0024 || ((unsigned)ret >= 0x800f0b30 && (unsigned)ret <= 0x800f0b3f)) {
       g_is_homebrew = 1;
       // we only do this patch if another hook hasn't modified it already
       if (*(uint32_t *)(args + OFFSET_PATCH_ARG) == 0) {

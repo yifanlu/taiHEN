@@ -70,7 +70,7 @@ target_link_libraries(taihen.elf
 
 add_custom_target(taihen.skprx ALL
 	COMMAND vita-elf-create -e ${CMAKE_SOURCE_DIR}/exports.yml taihen.elf taihen.velf
-	COMMAND vita-make-fself taihen.velf taihen.skprx
+	COMMAND vita-make-fself -c taihen.velf taihen.skprx
 )
 add_dependencies(taihen.skprx taihen.elf)
 
