@@ -16,7 +16,7 @@ script:
   - mkdir -p output/lib
   - mkdir -p output/include
   - cp taihen.h output/include
-  - cp build/taihen-libs/*.a output/lib/
+  - cp build/taihen-stubs/*.a output/lib/
   - tar -C output -zcvf $PWD/taihen.tar.gz  .
 env:
  global:
