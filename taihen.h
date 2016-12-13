@@ -36,6 +36,12 @@ extern "C" {
 /** Fake library NID indicating that any library NID would match. */
 #define TAI_ANY_LIBRARY 0xFFFFFFFF
 
+/** Fake module NID indicating that any module NID would match. */
+#define TAI_IGNORE_MODULE_NID 0xFFFFFFFF
+
+/** Fake module name indicating the current process's main module. */
+#define TAI_MAIN_MODULE ((void *)0)
+
 /** Functions for calling the syscalls with arguments */
 #define HELPER inline static __attribute__((unused))
 
@@ -243,14 +249,24 @@ int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook);
 /**
  * @brief      Helper function for #taiHookFunctionExportForUser
  *
+ *             You can use the macro `TAI_MAIN_MODULE` for `module` to specify
+ *             the main module. This is usually the module that is loaded first
+ *             and is usually the eboot.bin. This will only work if there is
+ *             only one module loaded in the main memory space. Not all
+ *             processes have this property! Make sure you check the return
+ *             value.
+ *
  * @see        taiHookFunctionExportForUser
  *
  * @param[out] p_hook       A reference that can be used by the hook function
- * @param[in]  module       Name of the target module.
+ * @param[in]  module       Name of the target module or `TAI_MAIN_MODULE`.
  * @param[in]  library_nid  Optional. NID of the target library.
- * @param[in]  func_nid     The function NID. If `library_nid` is 0, then the
- *                          first export with the NID will be hooked.
+ * @param[in]  func_nid     The function NID. If `library_nid` is
+ *                          `TAI_ANY_LIBRARY`, then the first export with the
+ *                          NID will be hooked.
  * @param[in]  hook_func    The hook function
+ *
+ * @return     { description_of_the_return_value }
  */
 HELPER SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
   tai_hook_args_t args;
@@ -265,11 +281,19 @@ HELPER SceUID taiHookFunctionExport(tai_hook_ref_t *p_hook, const char *module, 
 /**
  * @brief      Helper function for #taiHookFunctionImportForUser
  *
+ *             You can use the macro `TAI_MAIN_MODULE` for `module` to specify
+ *             the main module. This is usually the module that is loaded first
+ *             and is usually the eboot.bin. This will only work if there is
+ *             only one module loaded in the main memory space. Not all
+ *             processes have this property! Make sure you check the return
+ *             value.
+ *
  * @see        taiHookFunctionImportForUser
  *
  * @param[out] p_hook              A reference that can be used by the hook
  *                                 function
- * @param[in]  module              Name of the target module.
+ * @param[in]  module              Name of the target module or
+ *                                 `TAI_MAIN_MODULE`.
  * @param[in]  import_library_nid  The imported library from the target module
  * @param[in]  import_func_nid     The function NID of the import
  * @param[in]  hook_func           The hook function

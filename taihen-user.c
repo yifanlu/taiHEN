@@ -38,6 +38,8 @@
  *               hook
  *             - TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region
  *             - TAI_ERROR_USER_MEMORY if pointers are incorrect
+ *             - TAI_ERROR_INVALID_MODULE if `TAI_MAIN_MODULE` is specified and
+ *               there are multiple main modules
  */
 SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *args) {
   tai_hook_args_t kargs;
@@ -45,6 +47,7 @@ SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
   const void *hook_func;
   uint32_t state;
   char k_module[MAX_NAME_LEN];
+  int main_mod;
   tai_hook_ref_t k_ref;
   SceUID kid, ret;
   SceUID pid;
@@ -54,8 +57,9 @@ SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
   sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
   if (kargs.size == sizeof(kargs)) {
     pid = sceKernelGetProcessId();
-    if (sceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
-      kid = taiHookFunctionExportForKernel(pid, &k_ref, k_module, kargs.library_nid, kargs.func_nid, kargs.hook_func);
+    main_mod = (kargs.module == TAI_MAIN_MODULE);
+    if (main_mod || sceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+      kid = taiHookFunctionExportForKernel(pid, &k_ref, main_mod ? kargs.module : k_module, kargs.library_nid, kargs.func_nid, kargs.hook_func);
       if (kid >= 0) {
         sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
         ret = sceKernelCreateUserUid(pid, kid);
@@ -95,11 +99,14 @@ SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
  *               start the imported module and add this hook after the module is
  *               loaded. Be sure to also hook module unloading to remove the
  *               hook BEFORE the imported module is unloaded!
+ *             - TAI_ERROR_INVALID_MODULE if `TAI_MAIN_MODULE` is specified and
+ *               there are multiple main modules
  */
 SceUID taiHookFunctionImportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *args) {
   tai_hook_args_t kargs;
   uint32_t state;
   char k_module[MAX_NAME_LEN];
+  int main_mod;
   tai_hook_ref_t k_ref;
   SceUID kid, ret;
   SceUID pid;
@@ -108,8 +115,9 @@ SceUID taiHookFunctionImportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
   sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
   if (kargs.size == sizeof(kargs)) {
     pid = sceKernelGetProcessId();
-    if (sceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
-      kid = taiHookFunctionImportForKernel(pid, &k_ref, k_module, kargs.library_nid, kargs.func_nid, kargs.hook_func);
+    main_mod = (kargs.module == TAI_MAIN_MODULE);
+    if (main_mod || sceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+      kid = taiHookFunctionImportForKernel(pid, &k_ref, main_mod ? kargs.module : k_module, kargs.library_nid, kargs.func_nid, kargs.hook_func);
       if (kid >= 0) {
         sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
         ret = sceKernelCreateUserUid(pid, kid);
@@ -180,16 +188,26 @@ SceUID taiHookFunctionOffsetForUser(tai_hook_ref_t *p_hook, tai_offset_args_t *a
 /**
  * @brief      Gets information on a currently loaded module
  *
+ *             You can use the macro `TAI_MAIN_MODULE` for `module` to specify
+ *             the main module. This is usually the module that is loaded first
+ *             and is usually the eboot.bin. This will only work if there is
+ *             only one module loaded in the main memory space. Not all
+ *             processes have this property! Make sure you check the return
+ *             value.
+ *
  * @see        taiGetModuleInfoForKernel
  *
- * @param[in]  module  The name of the module
+ * @param[in]  module  The name of the module or `TAI_MAIN_MODULE`.
  * @param[out] info    The information to fill
  *
  * @return     Zero on success, < 0 on error
  *             - TAI_ERROR_USER_MEMORY if `info->size` is too small or large or
  *               `module` is invalid
+ *             - TAI_ERROR_INVALID_MODULE if `TAI_MAIN_MODULE` is specified and
+ *               there are multiple main modules
  */
 int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
+  int main_mod;
   char k_module[MAX_NAME_LEN];
   uint32_t state;
   SceUID pid;
@@ -198,10 +216,11 @@ int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
 
   ENTER_SYSCALL(state);
   pid = sceKernelGetProcessId();
-  if (sceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+  main_mod = (module == TAI_MAIN_MODULE);
+  if (main_mod || sceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
     sceKernelMemcpyUserToKernel(&k_info, (uintptr_t)info, sizeof(size_t));
     if (k_info.size == sizeof(k_info)) {
-      ret = taiGetModuleInfoForKernel(pid, k_module, &k_info);
+      ret = taiGetModuleInfoForKernel(pid, main_mod ? module : k_module, &k_info);
       sceKernelMemcpyKernelToUser((uintptr_t)info, &k_info, k_info.size);
     } else {
       ret = TAI_ERROR_USER_MEMORY;

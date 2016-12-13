@@ -217,29 +217,40 @@ static int find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size_t 
  *
  *             If `name` is NULL, then only the NID is used to locate the loaded
  *             module. If `name` is not NULL then it will be used to lookup the
- *             loaded module. If NID is not `TAI_ANY_LIBRARY`, then it will be
- *             used in the lookup too.
+ *             loaded module. If NID is not `TAI_IGNORE_MODULE_NID`, then it
+ *             will be used in the lookup too. If `name` is NULL and NID is
+ *             `TAI_IGNORE_MODULE_NID` then if there is only one main module, it
+ *             will be returned.
  *
  * @param[in]  pid   The pid
  * @param[in]  name  The name to lookup. Can be NULL.
- * @param[in]  nid   The nid to lookup. Can be `TAI_ANY_LIBRARY`.
+ * @param[in]  nid   The nid to lookup. Can be `TAI_IGNORE_MODULE_NID`.
  * @param[out] info  The information
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_INVALID_MODULE if both `name` and NID are undefined
+ *               and there are multiple main modules. KERNEL_PID will always
+ *               return this error.
  */
 int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_module_info_t *info) {
   SceUID modlist[MOD_LIST_SIZE];
   void *sceinfo;
   size_t count;
   int ret;
+  int get_cur;
 
+  get_cur = (name == NULL && nid == TAI_IGNORE_MODULE_NID);
   count = MOD_LIST_SIZE;
-  ret = sceKernelGetModuleListForKernel(pid, 0xff, 1, modlist, &count);
+  ret = sceKernelGetModuleListForKernel(pid, get_cur ? 1 : 0xff, 1, modlist, &count);
   LOG("sceKernelGetModuleListForKernel(%x): 0x%08X, count: %d", pid, ret, count);
   if (ret < 0) {
     return ret;
   }
-  for (int i = 0; i < count; i++) {
+  if (get_cur && count > 1) {
+    LOG("Cannot use TAI_MAIN_MODULE since there are multiple main modules");
+    return TAI_ERROR_INVALID_MODULE;
+  }
+  for (int i = count-1; i >= 0; i--) {
     ret = sceKernelGetModuleInternal(modlist[i], &sceinfo);
     //LOG("sceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
     if (ret < 0) {
@@ -250,11 +261,11 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
       continue;
     }
     if (name != NULL && strncmp(name, info->name, 27) == 0) {
-      if (nid == TAI_ANY_LIBRARY || info->modid == nid) {
+      if (nid == TAI_IGNORE_MODULE_NID || info->modid == nid) {
         LOG("Found module %s, NID:0x%08X", name, info->modid);
         return TAI_SUCCESS;
       }
-    } else if (name == NULL && info->modid == nid) {
+    } else if (name == NULL && (get_cur || info->modid == nid)) {
       LOG("Found module %s, NID:0x%08X", info->name, info->modid);
       return TAI_SUCCESS;
     }
@@ -323,7 +334,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
 
   LOG("Getting export for pid:%x, modname:%s, libnid:%x, funcnid:%x", pid, modname, libnid, funcnid);
   info.size = sizeof(info);
-  if (module_get_by_name_nid(pid, modname, TAI_ANY_LIBRARY, &info) < 0) {
+  if (module_get_by_name_nid(pid, modname, TAI_IGNORE_MODULE_NID, &info) < 0) {
     LOG("Failed to find module: %s", modname);
     return TAI_ERROR_NOT_FOUND;
   }
@@ -389,7 +400,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
 
   LOG("Getting import for pid:%x, modname:%s, target_libnid:%x, funcnid:%x", pid, modname, target_libnid, funcnid);
   info.size = sizeof(info);
-  if (module_get_by_name_nid(pid, modname, TAI_ANY_LIBRARY, &info) < 0) {
+  if (module_get_by_name_nid(pid, modname, TAI_IGNORE_MODULE_NID, &info) < 0) {
     LOG("Failed to find module: %s", modname);
     return TAI_ERROR_NOT_FOUND;
   }

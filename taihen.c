@@ -54,15 +54,20 @@ SceUID taiHookFunctionAbs(SceUID pid, tai_hook_ref_t *p_hook, void *dest_func, c
  * @param[out] p_hook       A reference that can be used by the hook function
  * @param[in]  module       Name of the target module.
  * @param[in]  library_nid  Optional. NID of the target library.
- * @param[in]  func_nid     The function NID. If `library_nid` is 0, then the
- *                          first export with the NID will be hooked.
+ * @param[in]  func_nid     The function NID. If `library_nid` is
+ *                          `TAI_ANY_LIBRARY`, then the first export with the
+ *                          NID will be hooked.
  * @param[in]  hook_func    The hook function (must be in the target address
  *                          space)
  *
  * @return     A tai patch reference on success, < 0 on error
  *             - TAI_ERROR_PATCH_EXISTS if the address is already patched
- *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook
- *             - TAI_ERROR_INVALID_KERNEL_ADDR if `pid` is kernel and address is in shared memory region
+ *             - TAI_ERROR_HOOK_ERROR if an internal error occurred trying to
+ *               hook
+ *             - TAI_ERROR_INVALID_KERNEL_ADDR if `pid` is kernel and address is
+ *               in shared memory region
+ *             - TAI_ERROR_INVALID_MODULE if `module` is `TAI_MAIN_MODULE`
+ *               and `pid` is kernel
  */
 SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t library_nid, uint32_t func_nid, const void *hook_func) {
   int ret;
@@ -104,6 +109,8 @@ SceUID taiHookFunctionExportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const 
  *               start the imported module and add this hook after the module is
  *               loaded. Be sure to also hook module unloading to remove the
  *               hook BEFORE the imported module is unloaded!
+ *             - TAI_ERROR_INVALID_MODULE if `module` is `TAI_MAIN_MODULE`
+ *               and `pid` is kernel
  */
 SceUID taiHookFunctionImportForKernel(SceUID pid, tai_hook_ref_t *p_hook, const char *module, uint32_t import_library_nid, uint32_t import_func_nid, const void *hook_func) {
   int ret;
@@ -178,9 +185,11 @@ SceUID taiHookFunctionOffsetForKernel(SceUID pid, tai_hook_ref_t *p_hook, SceUID
  * @param[out] info    The information to fill
  *
  * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_INVALID_MODULE if `module` is `TAI_MAIN_MODULE`
+ *               and `pid` is kernel
  */
 int taiGetModuleInfoForKernel(SceUID pid, const char *module, tai_module_info_t *info) {
-  return module_get_by_name_nid(pid, module, TAI_ANY_LIBRARY, info);
+  return module_get_by_name_nid(pid, module, TAI_IGNORE_MODULE_NID, info);
 }
 
 /**
