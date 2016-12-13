@@ -103,6 +103,10 @@ Macros</h2></td></tr>
 <tr class="separator:ga504edcb943700beca9c23eba3fca56cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacd164ffaddd77a07b09309a1a7bc84ec"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gacd164ffaddd77a07b09309a1a7bc84ec">TAI_ANY_LIBRARY</a>&#160;&#160;&#160;0xFFFFFFFF</td></tr>
 <tr class="separator:gacd164ffaddd77a07b09309a1a7bc84ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabc990b41164792a825cbcbb2877ccfff"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gabc990b41164792a825cbcbb2877ccfff">TAI_IGNORE_MODULE_NID</a>&#160;&#160;&#160;0xFFFFFFFF</td></tr>
+<tr class="separator:gabc990b41164792a825cbcbb2877ccfff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaea89b7747e5f63ca473147c8d2cc8e26"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#gaea89b7747e5f63ca473147c8d2cc8e26">TAI_MAIN_MODULE</a>&#160;&#160;&#160;((void *)0)</td></tr>
+<tr class="separator:gaea89b7747e5f63ca473147c8d2cc8e26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5cde8e1b2cda53e38dbb028451c84074"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__taihen.html#ga5cde8e1b2cda53e38dbb028451c84074">HELPER</a>&#160;&#160;&#160;inline static <a class="el" href="struct____attribute____.html">__attribute__</a>((unused))</td></tr>
 <tr class="separator:ga5cde8e1b2cda53e38dbb028451c84074"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -218,7 +222,7 @@ Peek/Poke</h2></td></tr>
 </div><div class="memdoc">
 <p>Functions for calling the syscalls with arguments </p>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00040">40</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00046">46</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -253,6 +257,40 @@ Peek/Poke</h2></td></tr>
 <p>Fake library NID indicating that any library NID would match. </p>
 
 <p>Definition at line <a class="el" href="taihen_8h_source.html#l00037">37</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+
+</div>
+</div>
+<a id="gabc990b41164792a825cbcbb2877ccfff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gabc990b41164792a825cbcbb2877ccfff">&sect;&nbsp;</a></span>TAI_IGNORE_MODULE_NID</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define TAI_IGNORE_MODULE_NID&#160;&#160;&#160;0xFFFFFFFF</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Fake module NID indicating that any module NID would match. </p>
+
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00040">40</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+
+</div>
+</div>
+<a id="gaea89b7747e5f63ca473147c8d2cc8e26"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaea89b7747e5f63ca473147c8d2cc8e26">&sect;&nbsp;</a></span>TAI_MAIN_MODULE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define TAI_MAIN_MODULE&#160;&#160;&#160;((void *)0)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Fake module name indicating the current process's main module. </p>
+
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00043">43</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -322,7 +360,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00352">352</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00373">373</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -372,7 +410,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00261">261</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00270">270</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -426,7 +464,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00448">448</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00472">472</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -470,7 +508,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00448">448</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00469">469</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -531,7 +569,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00468">468</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00492">492</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -575,7 +613,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00501">501</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00522">522</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -627,7 +665,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00895">895</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00916">916</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -677,7 +715,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00863">863</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00884">884</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -745,7 +783,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00429">429</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00453">453</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -803,7 +841,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00395">395</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00416">416</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -871,7 +909,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00490">490</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00514">514</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -929,7 +967,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00555">555</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00576">576</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -1004,7 +1042,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00533">533</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00557">557</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -1062,7 +1100,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00713">713</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00734">734</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -1130,7 +1168,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00511">511</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00535">535</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -1188,7 +1226,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00654">654</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00675">675</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -1263,7 +1301,7 @@ Peek/Poke</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00556">556</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00580">580</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -1321,7 +1359,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00808">808</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00829">829</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -1371,7 +1409,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00612">612</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00633">633</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -1427,7 +1465,7 @@ Peek/Poke</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00768">768</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00789">789</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>

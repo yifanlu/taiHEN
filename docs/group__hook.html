@@ -185,7 +185,7 @@ User Hooks</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">({ \</div><div class="line">  struct <a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *cur, *<a class="code" href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">next</a>; \</div><div class="line">  cur = (<span class="keyword">struct </span><a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *)(hook); \</div><div class="line">  next = (<span class="keyword">struct </span><a class="code" href="struct__tai__hook__user.html">_tai_hook_user</a> *)cur-&gt;<a class="code" href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">next</a>; \</div><div class="line">  (next == NULL) ? \</div><div class="line">    ((type(*)())cur-&gt;old)(__VA_ARGS__) \</div><div class="line">  : \</div><div class="line">    ((type(*)())next-&gt;func)(__VA_ARGS__) \</div><div class="line">  ; \</div><div class="line">})</div><div class="ttc" id="struct__tai__proc_html_a230a61dbce373574d8414910ca2a837e"><div class="ttname"><a href="struct__tai__proc.html#a230a61dbce373574d8414910ca2a837e">_tai_proc::next</a></div><div class="ttdeci">struct _tai_proc * next</div><div class="ttdoc">Next process in this map bucket. </div><div class="ttdef"><b>Definition:</b> <a href="taihen__internal_8h_source.html#l00107">taihen_internal.h:107</a></div></div>
-<div class="ttc" id="struct__tai__hook__user_html"><div class="ttname"><a href="struct__tai__hook__user.html">_tai_hook_user</a></div><div class="ttdoc">Internal structure. </div><div class="ttdef"><b>Definition:</b> <a href="taihen_8h_source.html#l00214">taihen.h:214</a></div></div>
+<div class="ttc" id="struct__tai__hook__user_html"><div class="ttname"><a href="struct__tai__hook__user.html">_tai_hook_user</a></div><div class="ttdoc">Internal structure. </div><div class="ttdef"><b>Definition:</b> <a href="taihen_8h_source.html#l00220">taihen.h:220</a></div></div>
 </div><!-- fragment -->
 <p>Calls the next function in the chain. </p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -197,7 +197,7 @@ User Hooks</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Return value from the hook chain </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00321">321</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00345">345</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -217,7 +217,7 @@ User Hooks</h2></td></tr>
 <p>Hook information. </p>
 <p>This reference is created on new hooks and is up to the caller to keep track of. The client is responsible for cleanup by passing the reference back to taiHEN when needed. </p>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00209">209</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00215">215</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -249,20 +249,22 @@ User Hooks</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets information on a currently loaded module. </p>
+<p>You can use the macro <code>TAI_MAIN_MODULE</code> for <code>module</code> to specify the main module. This is usually the module that is loaded first and is usually the eboot.bin. This will only work if there is only one module loaded in the main memory space. Not all processes have this property! Make sure you check the return value.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#gaf58dd77a0a2ebc64a1e76e9df521f230" title="Gets information on a currently loaded module. ">taiGetModuleInfoForKernel</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>The name of the module </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>The name of the module or <code>TAI_MAIN_MODULE</code>. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>The information to fill</td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
-<li>TAI_ERROR_USER_MEMORY if <code>info-&gt;size</code> is too small or large or <code>module</code> is invalid </li>
+<li>TAI_ERROR_USER_MEMORY if <code>info-&gt;size</code> is too small or large or <code>module</code> is invalid</li>
+<li>TAI_ERROR_INVALID_MODULE if <code>TAI_MAIN_MODULE</code> is specified and there are multiple main modules </li>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00190">190</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00209">209</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -308,9 +310,12 @@ User Hooks</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_INVALID_MODULE if <code>module</code> is <code>TAI_MAIN_MODULE</code> and <code>pid</code> is kernel </li>
+</ul>
+</dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00182">182</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00191">191</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -419,19 +424,21 @@ User Hooks</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Helper function for <a class="el" href="group__hook.html#ga098c20b5ba68878729da8dc6ef4238fb" title="Add a hook to a module function export for the calling process. ">taiHookFunctionExportForUser</a>. </p>
+<p>You can use the macro <code>TAI_MAIN_MODULE</code> for <code>module</code> to specify the main module. This is usually the module that is loaded first and is usually the eboot.bin. This will only work if there is only one module loaded in the main memory space. Not all processes have this property! Make sure you check the return value.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#ga098c20b5ba68878729da8dc6ef4238fb" title="Add a hook to a module function export for the calling process. ">taiHookFunctionExportForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module or <code>TAI_MAIN_MODULE</code>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">library_nid</td><td>Optional. NID of the target library. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">func_nid</td><td>The function NID. If <code>library_nid</code> is 0, then the first export with the NID will be hooked. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">func_nid</td><td>The function NID. If <code>library_nid</code> is <code>TAI_ANY_LIBRARY</code>, then the first export with the NID will be hooked. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>{ description_of_the_return_value } </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00255">255</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00271">271</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -493,7 +500,7 @@ User Hooks</h2></td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">library_nid</td><td>Optional. NID of the target library. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">func_nid</td><td>The function NID. If <code>library_nid</code> is 0, then the first export with the NID will be hooked. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">func_nid</td><td>The function NID. If <code>library_nid</code> is <code>TAI_ANY_LIBRARY</code>, then the first export with the NID will be hooked. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function (must be in the target address space)</td></tr>
   </table>
   </dd>
@@ -501,11 +508,12 @@ User Hooks</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
 <li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
 <li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
-<li>TAI_ERROR_INVALID_KERNEL_ADDR if <code>pid</code> is kernel and address is in shared memory region </li>
+<li>TAI_ERROR_INVALID_KERNEL_ADDR if <code>pid</code> is kernel and address is in shared memory region</li>
+<li>TAI_ERROR_INVALID_MODULE if <code>module</code> is <code>TAI_MAIN_MODULE</code> and <code>pid</code> is kernel </li>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00067">67</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00072">72</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -548,11 +556,12 @@ User Hooks</h2></td></tr>
 <li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
 <li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
 <li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
-<li>TAI_ERROR_USER_MEMORY if pointers are incorrect </li>
+<li>TAI_ERROR_USER_MEMORY if pointers are incorrect</li>
+<li>TAI_ERROR_INVALID_MODULE if <code>TAI_MAIN_MODULE</code> is specified and there are multiple main modules </li>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00041">41</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00044">44</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -601,11 +610,12 @@ User Hooks</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Helper function for <a class="el" href="group__hook.html#ga942b2d3c0bec6e670417949cfaf9b182" title="Add a hook to a module function import for the calling process. ">taiHookFunctionImportForUser</a>. </p>
+<p>You can use the macro <code>TAI_MAIN_MODULE</code> for <code>module</code> to specify the main module. This is usually the module that is loaded first and is usually the eboot.bin. This will only work if there is only one module loaded in the main memory space. Not all processes have this property! Make sure you check the return value.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__hook.html#ga942b2d3c0bec6e670417949cfaf9b182" title="Add a hook to a module function import for the calling process. ">taiHookFunctionImportForUser</a></dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[out]</td><td class="paramname">p_hook</td><td>A reference that can be used by the hook function </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">module</td><td>Name of the target module or <code>TAI_MAIN_MODULE</code>. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">import_library_nid</td><td>The imported library from the target module </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">import_func_nid</td><td>The function NID of the import </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">hook_func</td><td>The hook function </td></tr>
@@ -613,7 +623,7 @@ User Hooks</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00277">277</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00301">301</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -684,11 +694,12 @@ User Hooks</h2></td></tr>
 <li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
 <li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
 <li>TAI_ERROR_INVALID_KERNEL_ADDR if <code>pid</code> is kernel and address is in shared memory region</li>
-<li>TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved yet. You should hook <code>sceKernelLoadStartModule</code>, <code>sceSysmoduleLoadModule</code> or whatever the application uses to start the imported module and add this hook after the module is loaded. Be sure to also hook module unloading to remove the hook BEFORE the imported module is unloaded! </li>
+<li>TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved yet. You should hook <code>sceKernelLoadStartModule</code>, <code>sceSysmoduleLoadModule</code> or whatever the application uses to start the imported module and add this hook after the module is loaded. Be sure to also hook module unloading to remove the hook BEFORE the imported module is unloaded!</li>
+<li>TAI_ERROR_INVALID_MODULE if <code>module</code> is <code>TAI_MAIN_MODULE</code> and <code>pid</code> is kernel </li>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00108">108</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00115">115</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -730,13 +741,14 @@ User Hooks</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>A tai patch reference on success, &lt; 0 on error<ul>
 <li>TAI_ERROR_PATCH_EXISTS if the address is already patched</li>
 <li>TAI_ERROR_HOOK_ERROR if an internal error occurred trying to hook</li>
-<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region</li>
+<li>TAI_ERROR_NOT_IMPLEMENTED if address is in shared memory region. You should hook an import from another module instead.</li>
 <li>TAI_ERROR_USER_MEMORY if pointers are incorrect</li>
-<li>TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved yet. You should hook <code>sceKernelLoadStartModule</code>, <code>sceSysmoduleLoadModule</code> or whatever the application uses to start the imported module and add this hook after the module is loaded. Be sure to also hook module unloading to remove the hook BEFORE the imported module is unloaded! </li>
+<li>TAI_ERROR_STUB_NOT_RESOLVED if the import has not been resolved yet. You should hook <code>sceKernelLoadStartModule</code>, <code>sceSysmoduleLoadModule</code> or whatever the application uses to start the imported module and add this hook after the module is loaded. Be sure to also hook module unloading to remove the hook BEFORE the imported module is unloaded!</li>
+<li>TAI_ERROR_INVALID_MODULE if <code>TAI_MAIN_MODULE</code> is specified and there are multiple main modules </li>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00097">97</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00105">105</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -804,7 +816,7 @@ User Hooks</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="taihen_8h_source.html#l00300">300</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8h_source.html#l00324">324</a> of file <a class="el" href="taihen_8h_source.html">taihen.h</a>.</p>
 
 </div>
 </div>
@@ -885,7 +897,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00152">152</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00159">159</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>
@@ -932,7 +944,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00145">145</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00155">155</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -976,7 +988,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00225">225</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen-user_8c_source.html#l00246">246</a> of file <a class="el" href="taihen-user_8c_source.html">taihen-user.c</a>.</p>
 
 </div>
 </div>
@@ -1019,7 +1031,7 @@ User Hooks</h2></td></tr>
 </ul>
 </dd></dl>
 
-<p>Definition at line <a class="el" href="taihen_8c_source.html#l00195">195</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
+<p>Definition at line <a class="el" href="taihen_8c_source.html#l00204">204</a> of file <a class="el" href="taihen_8c_source.html">taihen.c</a>.</p>
 
 </div>
 </div>

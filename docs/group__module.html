@@ -127,19 +127,22 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Gets a loaded module by name or NID or both. </p>
-<p>If <code>name</code> is NULL, then only the NID is used to locate the loaded module. If <code>name</code> is not NULL then it will be used to lookup the loaded module. If NID is not <code>TAI_ANY_LIBRARY</code>, then it will be used in the lookup too.</p>
+<p>If <code>name</code> is NULL, then only the NID is used to locate the loaded module. If <code>name</code> is not NULL then it will be used to lookup the loaded module. If NID is not <code>TAI_IGNORE_MODULE_NID</code>, then it will be used in the lookup too. If <code>name</code> is NULL and NID is <code>TAI_IGNORE_MODULE_NID</code> then if there is only one main module, it will be returned.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pid</td><td>The pid </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">name</td><td>The name to lookup. Can be NULL. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">nid</td><td>The nid to lookup. Can be <code>TAI_ANY_LIBRARY</code>. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">nid</td><td>The nid to lookup. Can be <code>TAI_IGNORE_MODULE_NID</code>. </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">info</td><td>The information</td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error<ul>
+<li>TAI_ERROR_INVALID_MODULE if both <code>name</code> and NID are undefined and there are multiple main modules. KERNEL_PID will always return this error. </li>
+</ul>
+</dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00230">230</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00235">235</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
@@ -200,7 +203,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00315">315</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00326">326</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
@@ -261,7 +264,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00381">381</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00392">392</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
@@ -322,7 +325,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Zero on success, &lt; 0 on error </dd></dl>
 
-<p>Definition at line <a class="el" href="module_8c_source.html#l00277">277</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
+<p>Definition at line <a class="el" href="module_8c_source.html#l00288">288</a> of file <a class="el" href="module_8c_source.html">module.c</a>.</p>
 
 </div>
 </div>
