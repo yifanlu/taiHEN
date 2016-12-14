@@ -74,6 +74,7 @@ target_link_libraries(taihen
 
 vita_create_self(taihen.skprx taihen
   CONFIG ${CMAKE_SOURCE_DIR}/exports.yml
+  UNSAFE
 )
 vita_create_stubs(taihen-stubs taihen ${CMAKE_SOURCE_DIR}/exports.yml
   KERNEL
