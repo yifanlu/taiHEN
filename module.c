@@ -328,7 +328,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
   tai_module_info_t info;
   sce_module_exports_t *export;
   uintptr_t cur;
-  size_t found;
+  int found;
   int i;
   int ret;
 
@@ -394,7 +394,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
   tai_module_info_t info;
   sce_module_imports_t *import;
   uintptr_t cur;
-  size_t found;
+  int found;
   int i;
   int ret;
 
