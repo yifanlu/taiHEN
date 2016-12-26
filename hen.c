@@ -330,7 +330,7 @@ static int load_user_libs_patched(SceUID pid, void *args, int flags) {
 
   ret = TAI_CONTINUE(int, g_load_user_libs_hook, pid, args, flags);
 
-  sceKernelGetProcessTitleIdForKernel(pid, titleid, 32);
+  ksceKernelGetProcessTitleId(pid, titleid, 32);
   LOG("title started: %s, pid: %x", titleid, pid);
 
   if (g_config) {
@@ -397,34 +397,34 @@ int hen_load_config(void) {
   int rd, total;
 
   LOG("opening config %s", TAIHEN_CONFIG_FILE);
-  fd = sceIoOpenForDriver(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
+  fd = ksceIoOpen(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
   if (fd < 0) {
     LOG("failed to open config %s", TAIHEN_CONFIG_FILE);
     return fd;
   }
 
-  len = sceIoLseekForDriver(fd, 0, SCE_SEEK_END);
+  len = ksceIoLseek(fd, 0, SCE_SEEK_END);
   if (len < 0) {
     LOG("failed to seek config");
-    sceIoCloseForDriver(fd);
+    ksceIoClose(fd);
     return TAI_ERROR_SYSTEM;
   }
 
-  sceIoLseekForDriver(fd, 0, SCE_SEEK_SET);
+  ksceIoLseek(fd, 0, SCE_SEEK_SET);
 
   if (!g_config) {
     LOG("allocating %d bytes for config", (len + 0xfff) & ~0xfff);
-    g_config_blk = sceKernelAllocMemBlockForKernel("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
+    g_config_blk = ksceKernelAllocMemBlock("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
     if (g_config_blk < 0) {
       LOG("failed to allocate memory: %x", g_config_blk);
-      sceIoCloseForDriver(fd);
+      ksceIoClose(fd);
       return g_config_blk;
     }
 
-    ret = sceKernelGetMemBlockBaseForKernel(g_config_blk, (void **)&config);
+    ret = ksceKernelGetMemBlockBase(g_config_blk, (void **)&config);
     if (ret < 0) {
       LOG("failed to get base for %x: %x", g_config_blk, ret);
-      sceIoCloseForDriver(fd);
+      ksceIoClose(fd);
       return ret;
     }
   } else {
@@ -434,7 +434,7 @@ int hen_load_config(void) {
   LOG("reading config to memory");
   rd = total = 0;
   while (total < len) {
-    rd = sceIoReadForDriver(fd, config+total, len-total);
+    rd = ksceIoRead(fd, config+total, len-total);
     if (rd < 0) {
       LOG("failed to read config: rd %x, total %x, len %x", rd, total, len);
       ret = rd;
@@ -443,15 +443,15 @@ int hen_load_config(void) {
     total += rd;
   }
 
-  sceIoCloseForDriver(fd);
+  ksceIoClose(fd);
   if (ret < 0) {
-    sceKernelFreeMemBlockForKernel(g_config_blk);
+    ksceKernelFreeMemBlock(g_config_blk);
     return ret;
   }
 
   if ((ret = taihen_config_validate(config)) != 0) {
     LOG("config parsing failed: %x", ret);
-    sceKernelFreeMemBlockForKernel(g_config_blk);
+    ksceKernelFreeMemBlock(g_config_blk);
     return ret;
   }
 
@@ -466,7 +466,7 @@ int hen_load_config(void) {
  */
 int hen_free_config(void) {
   if (g_config) {
-    sceKernelFreeMemBlockForKernel(g_config_blk);
+    ksceKernelFreeMemBlock(g_config_blk);
   }
   return 0;
 }
@@ -491,10 +491,10 @@ void hen_load_plugin(const char *path, void *param) {
 
   LOG("pid:%x loading module %s (flags:%x)", load->pid, path, load->flags);
   if ((load->flags & 0x8000) == 0x8000) {
-    ret = sceKernelLoadModuleForPid(load->pid, path, load->flags, NULL);
+    ret = ksceKernelLoadModuleForPid(load->pid, path, load->flags, NULL);
     result = ret;
   } else {
-    ret = sceKernelLoadStartModuleForPid(load->pid, path, 0, NULL, load->flags, NULL, &result);
+    ret = ksceKernelLoadStartModuleForPid(load->pid, path, 0, NULL, load->flags, NULL, &result);
   }
   LOG("load result: %x", ret);
 }

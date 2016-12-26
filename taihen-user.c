@@ -54,15 +54,15 @@ SceUID taiHookFunctionExportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
 
   ENTER_SYSCALL(state);
   kargs.size = 0;
-  sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+  ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
   if (kargs.size == sizeof(kargs)) {
-    pid = sceKernelGetProcessId();
+    pid = ksceKernelGetProcessId();
     main_mod = (kargs.module == TAI_MAIN_MODULE);
-    if (main_mod || sceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    if (main_mod || ksceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
       kid = taiHookFunctionExportForKernel(pid, &k_ref, main_mod ? kargs.module : k_module, kargs.library_nid, kargs.func_nid, kargs.hook_func);
       if (kid >= 0) {
-        sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
-        ret = sceKernelCreateUserUid(pid, kid);
+        ksceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
+        ret = ksceKernelCreateUserUid(pid, kid);
         LOG("kernel uid: %x, user uid: %x", kid, ret);
       } else {
         ret = kid;
@@ -112,15 +112,15 @@ SceUID taiHookFunctionImportForUser(tai_hook_ref_t *p_hook, tai_hook_args_t *arg
   SceUID pid;
 
   ENTER_SYSCALL(state);
-  sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+  ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
   if (kargs.size == sizeof(kargs)) {
-    pid = sceKernelGetProcessId();
+    pid = ksceKernelGetProcessId();
     main_mod = (kargs.module == TAI_MAIN_MODULE);
-    if (main_mod || sceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    if (main_mod || ksceKernelStrncpyUserToKernel(k_module, (uintptr_t)kargs.module, MAX_NAME_LEN) < MAX_NAME_LEN) {
       kid = taiHookFunctionImportForKernel(pid, &k_ref, main_mod ? kargs.module : k_module, kargs.library_nid, kargs.func_nid, kargs.hook_func);
       if (kid >= 0) {
-        sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
-        ret = sceKernelCreateUserUid(pid, kid);
+        ksceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
+        ret = ksceKernelCreateUserUid(pid, kid);
         LOG("kernel uid: %x, user uid: %x", kid, ret);
       } else {
         ret = kid;
@@ -162,15 +162,15 @@ SceUID taiHookFunctionOffsetForUser(tai_hook_ref_t *p_hook, tai_offset_args_t *a
 
   ENTER_SYSCALL(state);
   kargs.size = 0;
-  sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+  ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
   if (kargs.size == sizeof(kargs)) {
-    pid = sceKernelGetProcessId();
-    kid = sceKernelKernelUidForUserUid(pid, kargs.modid);
+    pid = ksceKernelGetProcessId();
+    kid = ksceKernelKernelUidForUserUid(pid, kargs.modid);
     if (kid >= 0) {
       ret = taiHookFunctionOffsetForKernel(pid, &k_ref, kid, kargs.segidx, kargs.offset, kargs.thumb, kargs.source);
       if (ret >= 0) {
-        sceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
-        ret = sceKernelCreateUserUid(pid, ret);
+        ksceKernelMemcpyKernelToUser((uintptr_t)p_hook, &k_ref, sizeof(*p_hook));
+        ret = ksceKernelCreateUserUid(pid, ret);
         LOG("user uid: %x", ret);
       }
     } else {
@@ -215,13 +215,13 @@ int taiGetModuleInfo(const char *module, tai_module_info_t *info) {
   int ret;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
+  pid = ksceKernelGetProcessId();
   main_mod = (module == TAI_MAIN_MODULE);
-  if (main_mod || sceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
-    sceKernelMemcpyUserToKernel(&k_info, (uintptr_t)info, sizeof(size_t));
+  if (main_mod || ksceKernelStrncpyUserToKernel(k_module, (uintptr_t)module, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    ksceKernelMemcpyUserToKernel(&k_info, (uintptr_t)info, sizeof(size_t));
     if (k_info.size == sizeof(k_info)) {
       ret = taiGetModuleInfoForKernel(pid, main_mod ? module : k_module, &k_info);
-      sceKernelMemcpyKernelToUser((uintptr_t)info, &k_info, k_info.size);
+      ksceKernelMemcpyKernelToUser((uintptr_t)info, &k_info, k_info.size);
     } else {
       ret = TAI_ERROR_USER_MEMORY;
     }
@@ -249,11 +249,11 @@ int taiHookRelease(SceUID tai_uid, tai_hook_ref_t hook) {
   int ret;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  kid = sceKernelKernelUidForUserUid(pid, tai_uid);
+  pid = ksceKernelGetProcessId();
+  kid = ksceKernelKernelUidForUserUid(pid, tai_uid);
   if (kid >= 0) {
     ret = taiHookReleaseForKernel(kid, hook);
-    sceKernelDeleteUserUid(pid, tai_uid);
+    ksceKernelDeleteUserUid(pid, tai_uid);
   } else {
     ret = kid;
   }
@@ -280,10 +280,10 @@ SceUID taiInjectAbs(void *dest, const void *src, size_t size) {
   SceUID pid;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
+  pid = ksceKernelGetProcessId();
   ret = taiInjectAbsForKernel(pid, dest, src, size);
   if (ret >= 0) {
-    ret = sceKernelCreateUserUid(pid, ret);
+    ret = ksceKernelCreateUserUid(pid, ret);
     LOG("user uid: %x", ret);
   }
   EXIT_SYSCALL(state);
@@ -310,15 +310,15 @@ SceUID taiInjectDataForUser(tai_offset_args_t *args) {
 
   ENTER_SYSCALL(state);
   kargs.size = 0;
-  sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+  ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
   if (kargs.size == sizeof(kargs)) {
-    pid = sceKernelGetProcessId();
-    ret = sceKernelKernelUidForUserUid(pid, kargs.modid);
+    pid = ksceKernelGetProcessId();
+    ret = ksceKernelKernelUidForUserUid(pid, kargs.modid);
     if (ret >= 0) {
       kargs.modid = ret;
       ret = taiInjectDataForKernel(pid, kargs.modid, kargs.segidx, kargs.offset, kargs.source, kargs.source_size);
       if (ret >= 0) {
-        ret = sceKernelCreateUserUid(pid, ret);
+        ret = ksceKernelCreateUserUid(pid, ret);
         LOG("user uid: %x", ret);
       }
     } else {
@@ -347,11 +347,11 @@ int taiInjectRelease(SceUID tai_uid) {
   int ret;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  kid = sceKernelKernelUidForUserUid(pid, tai_uid);
+  pid = ksceKernelGetProcessId();
+  kid = ksceKernelKernelUidForUserUid(pid, tai_uid);
   if (kid >= 0) {
     ret = taiInjectReleaseForKernel(kid);
-    sceKernelDeleteUserUid(pid, tai_uid);
+    ksceKernelDeleteUserUid(pid, tai_uid);
   } else {
     ret = kid;
   }
@@ -377,14 +377,14 @@ SceUID taiLoadKernelModule(const char *path, int flags, void *opt) {
   int ret;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  if (sceSblACMgrIsShell(0)) {
+  pid = ksceKernelGetProcessId();
+  if (ksceSblACMgrIsShell(0)) {
     if (opt == NULL) {
-      if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
-        ret = sceKernelLoadModuleForDriver(k_path, flags, NULL);
+      if (ksceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
+        ret = ksceKernelLoadModule(k_path, flags, NULL);
         LOG("loaded %s: %x", k_path, ret);
         if (ret >= 0) {
-          ret = sceKernelCreateUserUid(pid, ret);
+          ret = ksceKernelCreateUserUid(pid, ret);
           LOG("user uid: %x", ret);
         }
       } else {
@@ -422,21 +422,21 @@ int taiStartKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt
   SceUID pid;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  if (sceSblACMgrIsShell(0)) {
+  pid = ksceKernelGetProcessId();
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
-        ret = sceKernelKernelUidForUserUid(pid, modid);
+        ret = ksceKernelKernelUidForUserUid(pid, modid);
         if (ret >= 0) {
           modid = ret;
-          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
           if (ret >= 0) {
             k_res = 0;
-            ret = sceKernelStartModuleForDriver(modid, kargs.args, buf, kargs.flags, NULL, &k_res);
+            ret = ksceKernelStartModule(modid, kargs.args, buf, kargs.flags, NULL, &k_res);
             if (res) {
-              sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+              ksceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
             }
           }
         } else {
@@ -476,19 +476,19 @@ SceUID taiLoadStartKernelModuleForUser(const char *path, tai_module_args_t *args
   SceUID pid;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  if (sceSblACMgrIsShell(0)) {
+  pid = ksceKernelGetProcessId();
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE) {
-        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+        ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
         if (ret >= 0) {
-          if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
-            ret = sceKernelLoadStartModuleForDriver(k_path, kargs.args, buf, kargs.flags, NULL, NULL);
+          if (ksceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
+            ret = ksceKernelLoadStartModule(k_path, kargs.args, buf, kargs.flags, NULL, NULL);
             LOG("loaded %s: %x", k_path, ret);
             if (ret >= 0) {
-              ret = sceKernelCreateUserUid(pid, ret);
+              ret = ksceKernelCreateUserUid(pid, ret);
               LOG("user uid: %x", ret);
             }
           } else {
@@ -529,18 +529,18 @@ SceUID taiLoadStartModuleForPidForUser(const char *path, tai_module_args_t *args
 
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE) {
-        ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+        ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
         if (ret >= 0) {
-          if (sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
-            ret = sceKernelLoadStartModuleForPid(kargs.pid, k_path, kargs.args, buf, kargs.flags, NULL, NULL);
+          if (ksceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, MAX_NAME_LEN) < MAX_NAME_LEN) {
+            ret = ksceKernelLoadStartModuleForPid(kargs.pid, k_path, kargs.args, buf, kargs.flags, NULL, NULL);
             LOG("loaded %s: %x", k_path, ret);
             if (ret >= 0) {
-              ret = sceKernelCreateUserUid(kargs.pid, ret);
+              ret = ksceKernelCreateUserUid(kargs.pid, ret);
               LOG("user uid: %x", ret);
             }
           } else {
@@ -583,23 +583,23 @@ int taiStopKernelModuleForUser(SceUID modid, tai_module_args_t *args, void *opt,
   SceUID kid;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  if (sceSblACMgrIsShell(0)) {
+  pid = ksceKernelGetProcessId();
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
-        kid = sceKernelKernelUidForUserUid(pid, modid);
+        kid = ksceKernelKernelUidForUserUid(pid, modid);
         if (kid >= 0) {
-          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
           if (ret >= 0) {
             k_res = 0;
-            ret = sceKernelStopModuleForDriver(kid, kargs.args, buf, kargs.flags, NULL, &k_res);
+            ret = ksceKernelStopModule(kid, kargs.args, buf, kargs.flags, NULL, &k_res);
             if (res) {
-              sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+              ksceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
             }
             if (ret >= 0) {
-              sceKernelDeleteUserUid(pid, modid);
+              ksceKernelDeleteUserUid(pid, modid);
             }
           }
         } else {
@@ -637,14 +637,14 @@ int taiUnloadKernelModule(SceUID modid, int flags, void *opt) {
   int ret;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  if (sceSblACMgrIsShell(0)) {
+  pid = ksceKernelGetProcessId();
+  if (ksceSblACMgrIsShell(0)) {
     if (opt == NULL) {
-      kid = sceKernelKernelUidForUserUid(pid, modid);
+      kid = ksceKernelKernelUidForUserUid(pid, modid);
       if (kid >= 0) {
-        ret = sceKernelUnloadModuleForDriver(kid, flags, NULL);
+        ret = ksceKernelUnloadModule(kid, flags, NULL);
         if (ret >= 0) {
-          sceKernelDeleteUserUid(pid, modid);
+          ksceKernelDeleteUserUid(pid, modid);
         }
       } else {
         LOG("Error getting kernel uid for %x: %x", modid, kid);
@@ -682,23 +682,23 @@ int taiStopUnloadKernelModuleForUser(SceUID modid, tai_module_args_t *args, void
   SceUID kid;
 
   ENTER_SYSCALL(state);
-  pid = sceKernelGetProcessId();
-  if (sceSblACMgrIsShell(0)) {
+  pid = ksceKernelGetProcessId();
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
-        kid = sceKernelKernelUidForUserUid(pid, modid);
+        kid = ksceKernelKernelUidForUserUid(pid, modid);
         if (kid >= 0) {
-          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
           if (ret >= 0) {
             k_res = 0;
-            ret = sceKernelStopUnloadModuleForDriver(kid, kargs.args, buf, kargs.flags, NULL, &k_res);
+            ret = ksceKernelStopUnloadModule(kid, kargs.args, buf, kargs.flags, NULL, &k_res);
             if (res) {
-              sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+              ksceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
             }
             if (ret >= 0) {
-              sceKernelDeleteUserUid(pid, modid);
+              ksceKernelDeleteUserUid(pid, modid);
             }
           }
         } else {
@@ -740,22 +740,22 @@ int taiStopModuleForPidForUser(SceUID modid, tai_module_args_t *args, void *opt,
   SceUID kid;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
-        kid = sceKernelKernelUidForUserUid(kargs.pid, modid);
+        kid = ksceKernelKernelUidForUserUid(kargs.pid, modid);
         if (kid >= 0) {
-          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
           if (ret >= 0) {
             k_res = 0;
-            ret = sceKernelStopModuleForPid(kargs.pid, kid, kargs.args, buf, kargs.flags, NULL, &k_res);
+            ret = ksceKernelStopModuleForPid(kargs.pid, kid, kargs.args, buf, kargs.flags, NULL, &k_res);
             if (res) {
-              sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+              ksceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
             }
             if (ret >= 0) {
-              sceKernelDeleteUserUid(kargs.pid, modid);
+              ksceKernelDeleteUserUid(kargs.pid, modid);
             }
           }
         } else {
@@ -792,13 +792,13 @@ int taiUnloadModuleForPid(SceUID pid, SceUID modid, int flags, void *opt) {
   int ret;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     if (opt == NULL) {
-      kid = sceKernelKernelUidForUserUid(pid, modid);
+      kid = ksceKernelKernelUidForUserUid(pid, modid);
       if (kid >= 0) {
-        ret = sceKernelUnloadModuleForPid(pid, kid, flags, NULL);
+        ret = ksceKernelUnloadModuleForPid(pid, kid, flags, NULL);
         if (ret >= 0) {
-          sceKernelDeleteUserUid(pid, modid);
+          ksceKernelDeleteUserUid(pid, modid);
         }
       } else {
         LOG("Error getting kernel uid for %x: %x", modid, kid);
@@ -835,22 +835,22 @@ int taiStopUnloadModuleForPidForUser(SceUID modid, tai_module_args_t *args, void
   SceUID kid;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     kargs.size = 0;
-    sceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
+    ksceKernelMemcpyUserToKernel(&kargs, (uintptr_t)args, sizeof(kargs));
     if (kargs.size == sizeof(kargs)) {
       if (kargs.args <= MAX_ARGS_SIZE && opt == NULL) {
-        kid = sceKernelKernelUidForUserUid(kargs.pid, modid);
+        kid = ksceKernelKernelUidForUserUid(kargs.pid, modid);
         if (kid >= 0) {
-          ret = sceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
+          ret = ksceKernelMemcpyUserToKernel(buf, (uintptr_t)kargs.argp, kargs.args);
           if (ret >= 0) {
             k_res = 0;
-            ret = sceKernelStopUnloadModuleForPid(kargs.pid, kid, kargs.args, buf, kargs.flags, NULL, &k_res);
+            ret = ksceKernelStopUnloadModuleForPid(kargs.pid, kid, kargs.args, buf, kargs.flags, NULL, &k_res);
             if (res) {
-              sceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
+              ksceKernelMemcpyKernelToUser((uintptr_t)res, &k_res, sizeof(*res));
             }
             if (ret >= 0) {
-              sceKernelDeleteUserUid(kargs.pid, modid);
+              ksceKernelDeleteUserUid(kargs.pid, modid);
             }
           }
         } else {
@@ -886,14 +886,14 @@ int taiMemcpyUserToKernel(void *kernel_dst, const void *user_src, size_t len) {
   int ret;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     ret = 0;
   } else {
     ret = TAI_ERROR_NOT_ALLOWED;
   }
   EXIT_SYSCALL(state);
   if (ret == 0) {
-    return sceKernelMemcpyUserToKernel(kernel_dst, (uintptr_t)user_src, len);
+    return ksceKernelMemcpyUserToKernel(kernel_dst, (uintptr_t)user_src, len);
   } else {
     return ret;
   }
@@ -918,14 +918,14 @@ int taiMemcpyKernelToUser(void *user_dst, const void *kernel_src, size_t len) {
   int ret;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     ret = 0;
   } else {
     ret = TAI_ERROR_NOT_ALLOWED;
   }
   EXIT_SYSCALL(state);
   if (ret == 0) {
-    return sceKernelMemcpyKernelToUser((uintptr_t)user_dst, kernel_src, len);
+    return ksceKernelMemcpyKernelToUser((uintptr_t)user_dst, kernel_src, len);
   } else {
     return ret;
   }
@@ -942,7 +942,7 @@ int taiReloadConfig(void) {
   int ret;
 
   ENTER_SYSCALL(state);
-  if (sceSblACMgrIsShell(0)) {
+  if (ksceSblACMgrIsShell(0)) {
     ret = hen_load_config();
   } else {
     ret = TAI_ERROR_NOT_ALLOWED;

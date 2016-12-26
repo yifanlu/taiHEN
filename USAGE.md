@@ -47,7 +47,7 @@ SceUID hook_user_open(const char *path, int flags, SceMode mode, void *args) {
   SceUID fd;
   fd = TAI_CONTINUE(SceUID, open_ref, path, flags, mode, args);
   // we need to copy the user pointer to kernel space
-  sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, 256);
+  ksceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, 256);
   // do some logging
   printf("opening: %s, res: %x\n", k_path, fd);
   return fd;
@@ -78,7 +78,7 @@ SceUID hook_user_open_differently(const char *path, int flags, SceMode mode, voi
   SceUID fd;
   fd = TAI_CONTINUE(SceUID, another_open_ref, path, flags, mode, args);
   // we need to copy the user pointer to kernel space
-  sceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, 256);
+  ksceKernelStrncpyUserToKernel(k_path, (uintptr_t)path, 256);
   // filter out certain paths
   if (strcmp(k_path, "ux0:hidden_file.bin") == 0 && fd >= 0) {
     sceIoClose(fd); // close the handle
@@ -272,7 +272,7 @@ exits. Patches in kernel will not be cleaned up automatically.
 
 When writing a kernel module that exposes new syscalls, know that the syscall
 stack is only 4096 bytes. That means you might easily run out of space. You
-should use `sceKernelRunWithStack` to increase the stack size if needed.
+should use `ksceKernelRunWithStack` to increase the stack size if needed.
 
 ### Unloading a kernel module that exposes syscalls
 

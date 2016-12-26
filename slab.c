@@ -80,21 +80,21 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
         opt.attr |= 0x80080;
         opt.pid = pid;
     }
-    *exe_res = sceKernelAllocMemBlockForKernel("taislab", type, size, &opt);
-    LOG("sceKernelAllocMemBlockForKernel(taislab): 0x%08X", *exe_res);
+    *exe_res = ksceKernelAllocMemBlock("taislab", type, size, &opt);
+    LOG("ksceKernelAllocMemBlock(taislab): 0x%08X", *exe_res);
     if (*exe_res < 0) {
         return *exe_res;
     }
-    res = sceKernelGetMemBlockBaseForKernel(*exe_res, (void **)exe_addr);
-    LOG("sceKernelGetMemBlockBaseForKernel(%x): 0x%08X, addr: 0x%08X", *exe_res, res, *exe_addr);
+    res = ksceKernelGetMemBlockBase(*exe_res, (void **)exe_addr);
+    LOG("ksceKernelGetMemBlockBase(%x): 0x%08X, addr: 0x%08X", *exe_res, res, *exe_addr);
     if (res < 0) {
         goto err2;
     }
 
     // TODO: Perhaps move this to execmem seal?
     if (pid != KERNEL_PID) {
-        res = sceKernelMapBlockUserVisible(*exe_res);
-        LOG("sceKernelMapBlockUserVisible: %x", res);
+        res = ksceKernelMapBlockUserVisible(*exe_res);
+        LOG("ksceKernelMapBlockUserVisible: %x", res);
         if (res < 0) {
             goto err2;
         }
@@ -110,14 +110,14 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
     opt.size = sizeof(opt);
     opt.attr = 0x1000040;
     opt.mirror_blkid = *exe_res;
-    res = sceKernelAllocMemBlockForKernel("taimirror", SCE_KERNEL_MEMBLOCK_TYPE_RW_UNK0, 0, &opt);
-    LOG("sceKernelAllocMemBlockForKernel(taimirror): 0x%08X", res);
+    res = ksceKernelAllocMemBlock("taimirror", SCE_KERNEL_MEMBLOCK_TYPE_RW_UNK0, 0, &opt);
+    LOG("ksceKernelAllocMemBlock(taimirror): 0x%08X", res);
     if (res < 0) {
         goto err2;
     }
     blkid = res;
-    res = sceKernelGetMemBlockBaseForKernel(blkid, ptr);
-    LOG("sceKernelGetMemBlockBaseForKernel(%x): 0x%08X, addr: 0x%08X", blkid, res, *ptr);
+    res = ksceKernelGetMemBlockBase(blkid, ptr);
+    LOG("ksceKernelGetMemBlockBase(%x): 0x%08X, addr: 0x%08X", blkid, res, *ptr);
     if (res < 0) {
         goto err1;
     }
@@ -125,9 +125,9 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
     return blkid;
 
 err1:
-    sceKernelFreeMemBlockForKernel(blkid);
+    ksceKernelFreeMemBlock(blkid);
 err2:
-    sceKernelFreeMemBlockForKernel(*exe_res);
+    ksceKernelFreeMemBlock(*exe_res);
     return res;
 }
 
@@ -141,8 +141,8 @@ err2:
  */
 static int sce_exe_free(SceUID write_res, SceUID exe_res) {
     LOG("freeing slab %x, mirror %x", exe_res, write_res);
-    sceKernelFreeMemBlockForKernel(write_res);
-    sceKernelFreeMemBlockForKernel(exe_res);
+    ksceKernelFreeMemBlock(write_res);
+    ksceKernelFreeMemBlock(exe_res);
     return 0;
 }
 

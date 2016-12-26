@@ -102,7 +102,7 @@ typedef struct _tai_module_args {
  *
  *  A function hook allows a plugin to run code before and after a
  *  any function call. As an example, say we wish to hook
- *  `sceIoOpenForDriver`
+ *  `ksceIoOpen`
  *
  *  ```c
  *  static tai_hook_ref_t open_ref;
@@ -189,7 +189,7 @@ typedef struct _tai_module_args {
  *    SceUID fd;
  *    ret = TAI_CONTINUE(SceUID, open_ref, path, flags, mode);
  *    if (path != log && strncmp(path, "ux0:", 4) == 0) {
- *      fd = sceIoOpenForDriver(log, SCE_O_WRONLY, 0);
+ *      fd = ksceIoOpen(log, SCE_O_WRONLY, 0);
  *      sceIoWrite(fd, path, 256);
  *      sceIoClose(fd);
  *    }
@@ -197,7 +197,7 @@ typedef struct _tai_module_args {
  *  }
  *  ```
  *
- *  Note that calling the original `sceIoOpenForDriver` will recurse
+ *  Note that calling the original `ksceIoOpen` will recurse
  *  back to `recurse_open_hook` so it is _very important_ to avoid an
  *  infinite recursion. In this case, we check that the parameter is
  *  not the same, but more complex checks may be needed for other 

@@ -36,7 +36,7 @@ static SceUID g_done_lock;
 static SceUID g_wait_lock;
 
 /** Built in PRNG */
-int sceKernelGetRandomNumberForDriver(void *out, size_t len);
+int ksceKernelGetRandomNumber(void *out, size_t len);
 
 /**
  * @brief      Creates a random permutation of integers 0..limit-2
@@ -133,8 +133,8 @@ int test_scenario_1(const char *name, int flavor) {
 int test_scenario_1_test_hooks(const char *name) {
   int ret, i;
 
-  ret = sceIoOpenForDriver("ux0:bad", 0, 0);
-  TEST_MSG("sceIoOpenForDriver: %x", ret);
+  ret = ksceIoOpen("ux0:bad", 0, 0);
+  TEST_MSG("ksceIoOpen: %x", ret);
   for (i = 0; i < TEST_1_NUM_HOOKS; i++) {
     if (!g_refs[i] || g_passed[i] > 0) {
       TEST_MSG("HOOKS PASSED: %d, called: %d", i, g_passed[i]);
@@ -174,7 +174,7 @@ int test_scenario_1_cleanup(const char *name, int flavor) {
     g_refs[i] = 0;
     g_hooks[i] = 0;
   }
-  ret = sceIoOpenForDriver("ux0:bad", 0, 0);
+  ret = ksceIoOpen("ux0:bad", 0, 0);
   for (i = 0; i < TEST_1_NUM_HOOKS; i++) {
     if (g_passed[i] == 0) {
       TEST_MSG("RELEASE PASSED: %d, called: 0", i);
@@ -246,7 +246,7 @@ int test_scenario_2(const char *name, int flavor) {
  */
 int test_scenario_2_test_inject(const char *name) {
   int ret;
-  ret = sceIoOpenForDriver(name, 0, 0);
+  ret = ksceIoOpen(name, 0, 0);
   TEST_MSG("open after inject: %x", ret);
   if (ret != (int)name) return -1;
   TEST_MSG("INJECT PASS");
@@ -355,12 +355,12 @@ int start_test(SceSize args, void *argp) {
     TEST_MSG("TEST FAILED: %x", ret);
   }
 wait:
-  sceKernelLockMutexForKernel(g_done_lock, 1, NULL);
+  ksceKernelLockMutex(g_done_lock, 1, NULL);
   g_done_count++;
-  sceKernelUnlockMutexForKernel(g_done_lock, 1);
+  ksceKernelUnlockMutex(g_done_lock, 1);
   TEST_MSG("test start phase complete, waiting for others");
-  sceKernelLockMutexForKernel(g_wait_lock, 1, NULL);
-  sceKernelUnlockMutexForKernel(g_wait_lock, 1);
+  ksceKernelLockMutex(g_wait_lock, 1, NULL);
+  ksceKernelUnlockMutex(g_wait_lock, 1);
   TEST_MSG("starting cleanup phase");
   if (ret >= 0 && !skip) {
     if (flavor % 2) {
@@ -393,31 +393,31 @@ static int multi_threaded(int type) {
   SceUID threads[TEST_NUM_THREADS];
   struct thread_args args[TEST_NUM_THREADS];
 
-  g_wait_lock = sceKernelCreateMutexForKernel("wait", 0, 0, NULL);
-  g_done_lock = sceKernelCreateMutexForKernel("done", 0, 0, NULL);
+  g_wait_lock = ksceKernelCreateMutex("wait", 0, 0, NULL);
+  g_done_lock = ksceKernelCreateMutex("done", 0, 0, NULL);
 
   for (i = 0; i < TEST_NUM_THREADS; i++) {
-    threads[i] = sceKernelCreateThreadForKernel("test", start_test, 64, 0x2000, 0, 0x10000, 0);
+    threads[i] = ksceKernelCreateThread("test", start_test, 64, 0x2000, 0, 0x10000, 0);
     TEST_MSG("create thread %d: %x", i, threads[i]);
-    sceKernelGetRandomNumberForDriver(&args[i].flavor, sizeof(int));
+    ksceKernelGetRandomNumber(&args[i].flavor, sizeof(int));
     args[i].prefix = type ? "hook" : "inject";
     args[i].index = i;
     args[i].flavor = (args[i].flavor << 1) | type;
   }
 
   g_done_count = 0;
-  sceKernelLockMutexForKernel(g_wait_lock, 1, NULL);
+  ksceKernelLockMutex(g_wait_lock, 1, NULL);
   for (i = 0; i < TEST_NUM_THREADS; i++) {
-    ret = sceKernelStartThreadForKernel(threads[i], sizeof(args[i]), &args[i]);
+    ret = ksceKernelStartThread(threads[i], sizeof(args[i]), &args[i]);
     TEST_MSG("started thread %d: %x", i, ret);
   }
 
   TEST_MSG("wait for threads to hit checkpoint");
   int done, last = 0;
   while (1) {
-    sceKernelLockMutexForKernel(g_done_lock, 1, NULL);
+    ksceKernelLockMutex(g_done_lock, 1, NULL);
     done = g_done_count;
-    sceKernelUnlockMutexForKernel(g_done_lock, 1);
+    ksceKernelUnlockMutex(g_done_lock, 1);
     if (done != last) {
       TEST_MSG("done: %d", done);
       last = done;
@@ -433,19 +433,19 @@ static int multi_threaded(int type) {
     ret = test_scenario_2_test_inject(name);
   }
   TEST_MSG("starting cleanup phase");
-  sceKernelUnlockMutexForKernel(g_wait_lock, 1);
+  ksceKernelUnlockMutex(g_wait_lock, 1);
 
   TEST_MSG("waiting for threads to complete");
   for (i = 0; i < TEST_NUM_THREADS; i++) {
-    if (sceKernelWaitThreadEndForKernel(threads[i], &ret, NULL) < 0) {
+    if (ksceKernelWaitThreadEnd(threads[i], &ret, NULL) < 0) {
       TEST_MSG("wait %d timed out", i);
     }
     TEST_MSG("thread %d returned %x", i, ret);
-    sceKernelDeleteThreadForKernel(threads[i]);
+    ksceKernelDeleteThread(threads[i]);
   }
 
-  sceKernelDeleteMutexForKernel(g_wait_lock);
-  sceKernelDeleteMutexForKernel(g_done_lock);
+  ksceKernelDeleteMutex(g_wait_lock);
+  ksceKernelDeleteMutex(g_done_lock);
   return ret;
 }
 
@@ -454,14 +454,14 @@ static int single_threaded(void) {
   int flavor;
   int ret;
 
-  sceKernelGetRandomNumberForDriver(&flavor, sizeof(int));
+  ksceKernelGetRandomNumber(&flavor, sizeof(int));
   ret = test_scenario_1("st-hook-uniform", flavor);
   if (ret < 0) return ret;
   ret = test_scenario_1_test_hooks("st-hook-uniform");
   if (ret < 0) return ret;
   ret = test_scenario_1_cleanup("st-hook-uniform", flavor);
   if (ret < 0) return ret;
-  sceKernelGetRandomNumberForDriver(&flavor, sizeof(int));
+  ksceKernelGetRandomNumber(&flavor, sizeof(int));
   ret = test_scenario_2("st-inject", flavor);
   if (ret < 0) return ret;
   ret = test_scenario_2_test_inject("st-inject");

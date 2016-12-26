@@ -30,23 +30,23 @@ pthread_mutex_t lock_lock = PTHREAD_MUTEX_INITIALIZER;
 
 const size_t g_exe_slab_item_size = sizeof(tai_hook_t);
 
-SceUID sceKernelMemPoolCreate(const char *name, SceSize size, void *opt) {
+SceUID ksceKernelMemPoolCreate(const char *name, SceSize size, SceKernelMemPoolCreateOpt *opt) {
   return 1;
 }
 
-int sceKernelMemPoolDestroy(SceUID pool) {
+int ksceKernelMemPoolDestroy(SceUID pool) {
   return 0;
 }
 
-void *sceKernelMemPoolAlloc(SceUID pool, SceSize size) {
+void *ksceKernelMemPoolAlloc(SceUID pool, SceSize size) {
   return malloc(size);
 }
 
-void sceKernelMemPoolFree(SceUID pool, void *ptr) {
+void ksceKernelMemPoolFree(SceUID pool, void *ptr) {
   return free(ptr);
 }
 
-SceUID sceKernelCreateMutexForKernel(const char *name, SceUInt attr, int initCount, SceKernelMutexOptParam *option) {
+SceUID ksceKernelCreateMutex(const char *name, SceUInt attr, int initCount, SceKernelMutexOptParam *option) {
   static pthread_mutexattr_t recattr;
   static int recattr_init = 0;
   int id;
@@ -68,16 +68,16 @@ SceUID sceKernelCreateMutexForKernel(const char *name, SceUInt attr, int initCou
   if (id >= 0) {
     pthread_mutex_init(&mutex[id], ((attr & SCE_KERNEL_MUTEX_ATTR_RECURSIVE) == SCE_KERNEL_MUTEX_ATTR_RECURSIVE) ? &recattr : NULL);
   } else {
-    fprintf(stderr, "sceKernelCreateMutexForKernel: failed for %s\n", name);
+    fprintf(stderr, "ksceKernelCreateMutex: failed for %s\n", name);
     assert(0);
   }
   pthread_mutex_unlock(&lock_lock);
   return id;
 }
 
-int sceKernelDeleteMutexForKernel(SceUID mutexid) {
+int ksceKernelDeleteMutex(SceUID mutexid) {
   if (mutexid < 0) {
-    fprintf(stderr, "sceKernelDeleteMutexForKernel: invalid mutex\n");
+    fprintf(stderr, "ksceKernelDeleteMutex: invalid mutex\n");
     assert(0);
     return -1;
   }
@@ -88,32 +88,32 @@ int sceKernelDeleteMutexForKernel(SceUID mutexid) {
   return 0;
 }
 
-int sceKernelLockMutexForKernel(SceUID mutexid, int lockCount, unsigned int *timeout) {
+int ksceKernelLockMutex(SceUID mutexid, int lockCount, unsigned int *timeout) {
   if (lockCount != 1) {
-    fprintf(stderr, "sceKernelLockMutexForKernel not implemented for lockCount != 1\n");
+    fprintf(stderr, "ksceKernelLockMutex not implemented for lockCount != 1\n");
     return -1;
   }
   if (timeout != NULL) {
-    fprintf(stderr, "sceKernelLockMutexForKernel not implemented for timeout != NULL\n");
+    fprintf(stderr, "ksceKernelLockMutex not implemented for timeout != NULL\n");
     return -1;
   }
   return pthread_mutex_lock(&mutex[mutexid]);
 }
 
-int sceKernelUnlockMutexForKernel(SceUID mutexid, int unlockCount) {
+int ksceKernelUnlockMutex(SceUID mutexid, int unlockCount) {
   if (unlockCount != 1) {
-    fprintf(stderr, "sceKernelLockMutexForKernel not implemented for unlockCount != 1\n");
+    fprintf(stderr, "ksceKernelLockMutex not implemented for unlockCount != 1\n");
     return -1;
   }
   return pthread_mutex_unlock(&mutex[mutexid]);
 }
 
-SceUID sceKernelAllocMemBlockForKernel(const char *name, SceKernelMemBlockType type, int size, SceKernelAllocMemBlockKernelOpt *optp) {
+SceUID ksceKernelAllocMemBlock(const char *name, SceKernelMemBlockType type, int size, SceKernelAllocMemBlockKernelOpt *optp) {
   size_t align = sizeof(void *);
   void *addr;
   int ret;
   int id;
-  fprintf(stderr, "sceKernelAllocMemBlockForKernel(%s, %x, %x, %p)\n", name, type, size, optp);
+  fprintf(stderr, "ksceKernelAllocMemBlock(%s, %x, %x, %p)\n", name, type, size, optp);
   if (optp != NULL && optp->size == sizeof(*optp)) {
     if (optp->alignment > 0) {
       align = optp->alignment;
@@ -139,20 +139,20 @@ SceUID sceKernelAllocMemBlockForKernel(const char *name, SceKernelMemBlockType t
     }
   }
   if (id < 0) {
-    fprintf(stderr, "sceKernelAllocMemBlockForKernel: failed for %s\n", name);
+    fprintf(stderr, "ksceKernelAllocMemBlock: failed for %s\n", name);
     assert(0);
   }
   pthread_mutex_unlock(&lock_lock);
   return id;
 }
 
-int sceKernelGetMemBlockBaseForKernel(SceUID uid, void **ptr) {
+int ksceKernelGetMemBlockBase(SceUID uid, void **ptr) {
   *ptr = blocks_used[uid & ~MIRROR_FLAG];
-  fprintf(stderr, "sceKernelGetMemBlockBaseForKernel(%x): %p\n", uid, *ptr);
+  fprintf(stderr, "ksceKernelGetMemBlockBase(%x): %p\n", uid, *ptr);
   return 0;
 }
 
-int sceKernelFreeMemBlockForKernel(SceUID uid) {
+int ksceKernelFreeMemBlock(SceUID uid) {
   pthread_mutex_lock(&lock_lock);
   if (uid & MIRROR_FLAG) {
     fprintf(stderr, "freeing mirror mapping, ignored\n");
@@ -169,8 +169,8 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
   fprintf(stderr, "called flush for pid %x, vma %lx, len %zx\n", pid, vma, len);
 }
 
-int sceKernelCpuUnrestrictedMemcpy(void *dst, const void *src, size_t len) {
-  fprintf(stderr, "sceKernelCpuUnrestrictedMemcpy(%p, %p, %zx)\n", dst, src, len);
+int ksceKernelCpuUnrestrictedMemcpy(void *dst, const void *src, size_t len) {
+  fprintf(stderr, "ksceKernelCpuUnrestrictedMemcpy(%p, %p, %zx)\n", dst, src, len);
   memcpy(dst, src, len);
   return 0;
 }
@@ -182,22 +182,22 @@ typedef struct {
   SceClassCallback destroy;
 } _SceClass;
 
-int sceKernelCreateClass(SceClass *cls, const char *name, void *uidclass, size_t itemsize, SceClassCallback create, SceClassCallback destroy) {
+int ksceKernelCreateClass(SceClass *cls, const char *name, void *uidclass, size_t itemsize, SceClassCallback create, SceClassCallback destroy) {
   _SceClass *clz = (_SceClass *)cls;
 
   clz->name = name;
   clz->itemsize = itemsize;
   clz->create = create;
   clz->destroy = destroy;
-  fprintf(stderr, "sceKernelCreateClass(%s)\n", name);
+  fprintf(stderr, "ksceKernelCreateClass(%s)\n", name);
   return 0;
 }
 
-SceUID sceKernelCreateUidObj(SceClass *cls, const char *name, void *opt, SceObjectBase **obj) {
+SceUID ksceKernelCreateUidObj(SceClass *cls, const char *name, SceCreateUidObjOpt *opt, SceObjectBase **obj) {
   _SceClass *clz = (_SceClass *)cls;
   void *ptr;
   int id;
-  fprintf(stderr, "sceKernelCreateUidObj(%s, %s)\n", clz->name, name);
+  fprintf(stderr, "ksceKernelCreateUidObj(%s, %s)\n", clz->name, name);
   ptr = malloc(clz->itemsize);
   if (ptr == NULL) {
     fprintf(stderr, "out of memory\n");
@@ -214,23 +214,23 @@ SceUID sceKernelCreateUidObj(SceClass *cls, const char *name, void *opt, SceObje
     }
   }
   if (id < 0) {
-    fprintf(stderr, "sceKernelCreateUidObj: failed for %s\n", name);
+    fprintf(stderr, "ksceKernelCreateUidObj: failed for %s\n", name);
     assert(0);
   }
   pthread_mutex_unlock(&lock_lock);
   (*obj)->sce_reserved[0] = id;
   return id;
 }
-int sceKernelGetObjForUid(SceUID uid, SceClass *cls, SceObjectBase **obj) {
+int ksceKernelGetObjForUid(SceUID uid, SceClass *cls, SceObjectBase **obj) {
   *obj = (SceObjectBase *)tai_used[uid];
   return 0;
 }
 
-SceClass *sceKernelGetUidClass(void) {
+SceClass *ksceKernelGetUidClass(void) {
   return NULL;
 }
 
-int sceKernelDeleteUid(SceUID uid) {
+int ksceKernelDeleteUid(SceUID uid) {
   void *ptr;
   pthread_mutex_lock(&lock_lock);
   ptr = tai_used[uid];
@@ -240,13 +240,13 @@ int sceKernelDeleteUid(SceUID uid) {
   return 0;
 }
 
-int sceKernelMemcpyUserToKernelForPid(SceUID pid, void *dst, uintptr_t src, size_t len) {
-  fprintf(stderr, "stubbed out sceKernelMemcpyUserToKernelForPid(%x, %p, %p, %zx)\n", pid, dst, (void *)src, len);
+int ksceKernelMemcpyUserToKernelForPid(SceUID pid, void *dst, uintptr_t src, size_t len) {
+  fprintf(stderr, "stubbed out ksceKernelMemcpyUserToKernelForPid(%x, %p, %p, %zx)\n", pid, dst, (void *)src, len);
   return 0;
 }
 
-int sceKernelRxMemcpyKernelToUserForPid(SceUID pid, uintptr_t dst, const void *src, size_t len) {
-  fprintf(stderr, "stubbed out sceKernelRxMemcpyKernelToUserForPid(%x, %p, %p, %zx)\n", pid, (void *)dst, src, len);
+int ksceKernelRxMemcpyKernelToUserForPid(SceUID pid, uintptr_t dst, const void *src, size_t len) {
+  fprintf(stderr, "stubbed out ksceKernelRxMemcpyKernelToUserForPid(%x, %p, %p, %zx)\n", pid, (void *)dst, src, len);
   return 0;
 }
 

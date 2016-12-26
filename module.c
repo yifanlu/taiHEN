@@ -100,7 +100,7 @@ static uint32_t fw_version = 0;
  *             change in different firmware versions.
  *
  * @param[in]  pid      The pid
- * @param[in]  sceinfo  Return from `sceKernelGetModuleInternal`
+ * @param[in]  sceinfo  Return from `ksceKernelGetModuleInternal`
  * @param[out] taiinfo  Output data structure
  *
  * @return     Zero on success, < 0 on error
@@ -111,12 +111,12 @@ static int sce_to_tai_module_info(SceUID pid, void *sceinfo, tai_module_info_t *
 
   if (fw_version == 0) {
     fwinfo.size = sizeof(fwinfo);
-    if (sceKernelGetSystemSwVersion(&fwinfo) < 0) {
+    if (ksceKernelGetSystemSwVersion(&fwinfo) < 0) {
       fw_version = DEFAULT_FW_VERSION;
     } else {
       fw_version = fwinfo.version;
     }
-    LOG("sceKernelGetSystemSwVersion: 0x%08X", fw_version);
+    LOG("ksceKernelGetSystemSwVersion: 0x%08X", fw_version);
   }
 
   if (taiinfo->size < sizeof(tai_module_info_t)) {
@@ -186,11 +186,11 @@ static int find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size_t 
     return 0;
   }
   size = end-src;
-  flags = sceKernelCpuDisableInterrupts();
-  sceKernelCpuSaveContext(my_context);
-  ret = sceKernelGetPidContext(pid, &other_context);
+  flags = ksceKernelCpuDisableInterrupts();
+  ksceKernelCpuSaveContext(my_context);
+  ret = ksceKernelGetPidContext(pid, &other_context);
   if (ret >= 0) {
-    sceKernelCpuRestoreContext(other_context);
+    ksceKernelCpuRestoreContext(other_context);
     while (count < size) {
       asm ("ldrt %0, [%1]" : "=r" (data) : "r" (src+count));
       if (data == needle) {
@@ -199,8 +199,8 @@ static int find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size_t 
       count += 4;
     }
   }
-  sceKernelCpuRestoreContext(my_context);
-  sceKernelCpuEnableInterrupts(flags);
+  ksceKernelCpuRestoreContext(my_context);
+  ksceKernelCpuEnableInterrupts(flags);
   if (ret < 0) {
     LOG("Error trying to get context for %x", pid);
     count = ret;
@@ -241,8 +241,8 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
 
   get_cur = (name == NULL && nid == TAI_IGNORE_MODULE_NID);
   count = MOD_LIST_SIZE;
-  ret = sceKernelGetModuleListForKernel(pid, get_cur ? 1 : 0xff, 1, modlist, &count);
-  LOG("sceKernelGetModuleListForKernel(%x): 0x%08X, count: %d", pid, ret, count);
+  ret = ksceKernelGetModuleList(pid, get_cur ? 1 : 0xff, 1, modlist, &count);
+  LOG("ksceKernelGetModuleList(%x): 0x%08X, count: %d", pid, ret, count);
   if (ret < 0) {
     return ret;
   }
@@ -251,8 +251,8 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
     return TAI_ERROR_INVALID_MODULE;
   }
   for (int i = count-1; i >= 0; i--) {
-    ret = sceKernelGetModuleInternal(modlist[i], &sceinfo);
-    //LOG("sceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
+    ret = ksceKernelGetModuleInternal(modlist[i], &sceinfo);
+    //LOG("ksceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
     if (ret < 0) {
       LOG("Error getting info for mod: %x, ret: %x", modlist[i], ret);
       continue;
@@ -296,8 +296,8 @@ int module_get_offset(SceUID pid, SceUID modid, int segidx, size_t offset, uintp
   }
   LOG("Getting offset for pid:%x, modid:%x, segidx:%d, offset:%x", pid, modid, segidx, offset);
   sceinfo.size = sizeof(sceinfo);
-  ret = sceKernelGetModuleInfoForKernel(pid, modid, &sceinfo);
-  LOG("sceKernelGetModuleInfoForKernel(%x, %x): 0x%08X", pid, modid, ret);
+  ret = ksceKernelGetModuleInfo(pid, modid, &sceinfo);
+  LOG("ksceKernelGetModuleInfo(%x, %x): 0x%08X", pid, modid, ret);
   if (ret < 0) {
     LOG("Error getting segment info for %d", modid);
     return ret;
@@ -343,7 +343,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
     if (pid == KERNEL_PID) {
       export = (sce_module_exports_t *)cur;
     } else {
-      if ((ret = sceKernelMemcpyUserToKernelForPid(pid, &local, cur, sizeof(local))) < 0) {
+      if ((ret = ksceKernelMemcpyUserToKernelForPid(pid, &local, cur, sizeof(local))) < 0) {
         LOG("Error trying to read address %p for %x: %x", cur, pid, ret);
         return ret;
       }
@@ -362,7 +362,7 @@ int module_get_export_func(SceUID pid, const char *modname, uint32_t libnid, uin
       } else {
         found = find_int_for_user(pid, (uintptr_t)export->nid_table, funcnid, export->num_functions * 4);
         if (found >= 0) {
-          if ((ret = sceKernelMemcpyUserToKernelForPid(pid, func, (uintptr_t)export->entry_table + found, 4)) < 0) {
+          if ((ret = ksceKernelMemcpyUserToKernelForPid(pid, func, (uintptr_t)export->entry_table + found, 4)) < 0) {
             LOG("Error trying to read address %p for %x: %x", (uintptr_t)export->entry_table + found, pid, ret);
             return ret;
           }
@@ -409,12 +409,12 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
     if (pid == KERNEL_PID) {
       import = (sce_module_imports_t *)cur;
     } else {
-      if ((ret = sceKernelMemcpyUserToKernelForPid(pid, &local.size, cur, sizeof(local.size))) < 0) {
+      if ((ret = ksceKernelMemcpyUserToKernelForPid(pid, &local.size, cur, sizeof(local.size))) < 0) {
         LOG("Error trying to read address %p for %x: %x", cur, pid, ret);
         return ret;
       }
       if (local.size <= sizeof(local)) {
-        if ((ret = sceKernelMemcpyUserToKernelForPid(pid, &local, cur, local.size)) < 0) {
+        if ((ret = ksceKernelMemcpyUserToKernelForPid(pid, &local, cur, local.size)) < 0) {
           LOG("Error trying to read address %p for %x: %x", cur, pid, ret);
           return ret;
         }
@@ -436,7 +436,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
         } else {
           found = find_int_for_user(pid, (uintptr_t)import->type1.func_nid_table, funcnid, import->type1.num_functions * 4);
           if (found >= 0) {
-            if ((ret = sceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type1.func_entry_table + found, 4)) < 0) {
+            if ((ret = ksceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type1.func_entry_table + found, 4)) < 0) {
               LOG("Error trying to read address %p for %x: %x", (uintptr_t)import->type1.func_entry_table + found, pid, ret);
               return ret;
             }
@@ -458,7 +458,7 @@ int module_get_import_func(SceUID pid, const char *modname, uint32_t target_libn
         } else {
           found = find_int_for_user(pid, (uintptr_t)import->type2.func_nid_table, funcnid, import->type2.num_functions * 4);
           if (found >= 0) {
-            if ((ret = sceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type2.func_entry_table + found, 4)) < 0) {
+            if ((ret = ksceKernelMemcpyUserToKernelForPid(pid, stub, (uintptr_t)import->type2.func_entry_table + found, 4)) < 0) {
               LOG("Error trying to read address %p for %x: %x", (uintptr_t)import->type2.func_entry_table + found, pid, ret);
               return ret;
             }

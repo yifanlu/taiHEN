@@ -40,7 +40,7 @@ int proc_map_init(void) {
   memset(&opt, 0, sizeof(opt));
   opt.size = sizeof(opt);
   opt.uselock = 1;
-  g_map_pool = sceKernelMemPoolCreate("tai_maps", MAP_POOL_SIZE, &opt);
+  g_map_pool = ksceKernelMemPoolCreate("tai_maps", MAP_POOL_SIZE, &opt);
   if (g_map_pool < 0) {
     return g_map_pool;
   } else {
@@ -54,7 +54,7 @@ int proc_map_init(void) {
  *             Should be called before exit.
  */
 void proc_map_deinit(void) {
-  sceKernelMemPoolDestroy(g_map_pool);
+  ksceKernelMemPoolDestroy(g_map_pool);
   g_map_pool = 0;
 }
 
@@ -69,12 +69,12 @@ void proc_map_deinit(void) {
 tai_proc_map_t *proc_map_alloc(int nbuckets) {
   tai_proc_map_t *map;
 
-  map = sceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_map_t) + sizeof(tai_proc_t *) * nbuckets);
+  map = ksceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_map_t) + sizeof(tai_proc_t *) * nbuckets);
   if (map == NULL) {
     return NULL;
   }
   map->nbuckets = nbuckets;
-  map->lock = sceKernelCreateMutexForKernel("tai_map", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
+  map->lock = ksceKernelCreateMutex("tai_map", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
   for (int i = 0; i < nbuckets; i++) {
     map->buckets[i] = NULL;
   }
@@ -87,8 +87,8 @@ tai_proc_map_t *proc_map_alloc(int nbuckets) {
  * @param      map   The map
  */
 void proc_map_free(tai_proc_map_t *map) {
-  sceKernelDeleteMutexForKernel(map->lock);
-  sceKernelMemPoolFree(g_map_pool, map);
+  ksceKernelDeleteMutex(map->lock);
+  ksceKernelMemPoolFree(g_map_pool, map);
 }
 
 /**
@@ -121,7 +121,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
   *existing = NULL;
 
   // get proc structure if found
-  sceKernelLockMutexForKernel(map->lock, 1, NULL);
+  ksceKernelLockMutex(map->lock, 1, NULL);
   item = &map->buckets[idx];
   while (*item != NULL && (*item)->pid < patch->pid) {
     item = &(*item)->next;
@@ -131,7 +131,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
     proc = *item;
   } else {
     // new block
-    proc = sceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_t));
+    proc = ksceKernelMemPoolAlloc(g_map_pool, sizeof(tai_proc_t));
     proc->pid = patch->pid;
     proc->head = NULL;
     proc->next = *item;
@@ -174,7 +174,7 @@ int proc_map_try_insert(tai_proc_map_t *map, tai_patch_t *patch, tai_patch_t **e
     patch->slab = &proc->slab;
     *cur = patch;
   }
-  sceKernelUnlockMutexForKernel(map->lock, 1);
+  ksceKernelUnlockMutex(map->lock, 1);
   return !overlap;
 }
 
@@ -205,7 +205,7 @@ int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
 
   idx = pid % map->nbuckets;
   *head = NULL;
-  sceKernelLockMutexForKernel(map->lock, 1, NULL);
+  ksceKernelLockMutex(map->lock, 1, NULL);
   cur = &map->buckets[idx];
   while (*cur != NULL && (*cur)->pid < pid) {
     cur = &(*cur)->next;
@@ -215,9 +215,9 @@ int proc_map_remove_all_pid(tai_proc_map_t *map, SceUID pid, tai_patch_t **head)
     *cur = tmp->next;
     *head = tmp->head;
     slab_destroy(&tmp->slab);
-    sceKernelMemPoolFree(g_map_pool, tmp);
+    ksceKernelMemPoolFree(g_map_pool, tmp);
   }
-  sceKernelUnlockMutexForKernel(map->lock, 1);
+  ksceKernelUnlockMutex(map->lock, 1);
   return *head != NULL;
 }
 
@@ -238,7 +238,7 @@ int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
 
   idx = patch->pid % map->nbuckets;
   found = 0;
-  sceKernelLockMutexForKernel(map->lock, 1, NULL);
+  ksceKernelLockMutex(map->lock, 1, NULL);
   proc = &map->buckets[idx];
   while (*proc != NULL && (*proc)->pid < patch->pid) {
     proc = &(*proc)->next;
@@ -257,9 +257,9 @@ int proc_map_remove(tai_proc_map_t *map, tai_patch_t *patch) {
     patch->slab = NULL; // remove reference
     next = (*proc)->next;
     slab_destroy(&(*proc)->slab);
-    sceKernelMemPoolFree(g_map_pool, *proc);
+    ksceKernelMemPoolFree(g_map_pool, *proc);
     *proc = next;
   }
-  sceKernelUnlockMutexForKernel(map->lock, 1);
+  ksceKernelUnlockMutex(map->lock, 1);
   return found;
 }

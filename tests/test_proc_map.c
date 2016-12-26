@@ -73,7 +73,7 @@ void proc_map_dump(const char *name, tai_proc_map_t *map, int lock) {
   tai_patch_t *patch;
 
   TEST_MSG("Dumping map...");
-  if (lock) sceKernelLockMutexForKernel(map->lock, 1, NULL);
+  if (lock) ksceKernelLockMutex(map->lock, 1, NULL);
   for (int i = 0; i < map->nbuckets; i++) {
     for (proc = map->buckets[i]; proc != NULL; proc = proc->next) {
       TEST_MSG("Proc Item: pid = %d", proc->pid);
@@ -83,7 +83,7 @@ void proc_map_dump(const char *name, tai_proc_map_t *map, int lock) {
     }
   }
   TEST_MSG("Finished dumping map.");
-  if (lock) sceKernelUnlockMutexForKernel(map->lock, 1);
+  if (lock) ksceKernelUnlockMutex(map->lock, 1);
 }
 
 /** Number of blocks to insert. Must be prime. */

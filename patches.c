@@ -94,8 +94,8 @@ int patches_init(void) {
   memset(&opt, 0, sizeof(opt));
   opt.size = sizeof(opt);
   opt.uselock = 1;
-  g_patch_pool = sceKernelMemPoolCreate("tai_patches", PATCHES_POOL_SIZE, &opt);
-  LOG("sceKernelMemPoolCreate(tai_patches): 0x%08X", g_patch_pool);
+  g_patch_pool = ksceKernelMemPoolCreate("tai_patches", PATCHES_POOL_SIZE, &opt);
+  LOG("ksceKernelMemPoolCreate(tai_patches): 0x%08X", g_patch_pool);
   if (g_patch_pool < 0) {
     return g_patch_pool;
   }
@@ -104,13 +104,13 @@ int patches_init(void) {
     LOG("Failed to create proc map.");
     return TAI_ERROR_SYSTEM;
   }
-  g_hooks_lock = sceKernelCreateMutexForKernel("tai_hooks_lock", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
-  LOG("sceKernelCreateMutexForKernel(tai_hooks_lock): 0x%08X", g_hooks_lock);
+  g_hooks_lock = ksceKernelCreateMutex("tai_hooks_lock", SCE_KERNEL_MUTEX_ATTR_RECURSIVE, 0, NULL);
+  LOG("ksceKernelCreateMutex(tai_hooks_lock): 0x%08X", g_hooks_lock);
   if (g_hooks_lock < 0) {
     return g_hooks_lock;
   }
-  ret = sceKernelCreateClass(&g_taihen_class, "taiHENClass", sceKernelGetUidClass(), sizeof(tai_patch_t), init_patch, free_patch);
-  LOG("sceKernelCreateClass(taiHENClass): 0x%08X", ret);
+  ret = ksceKernelCreateClass(&g_taihen_class, "taiHENClass", ksceKernelGetUidClass(), sizeof(tai_patch_t), init_patch, free_patch);
+  LOG("ksceKernelCreateClass(taiHENClass): 0x%08X", ret);
   if (ret < 0) {
     return ret;
   }
@@ -125,8 +125,8 @@ int patches_init(void) {
 void patches_deinit(void) {
   LOG("Cleaning up patches subsystem.");
   // TODO: Find out how to clean up class
-  sceKernelDeleteMutexForKernel(g_hooks_lock);
-  sceKernelMemPoolDestroy(g_patch_pool);
+  ksceKernelDeleteMutex(g_hooks_lock);
+  ksceKernelMemPoolDestroy(g_patch_pool);
   proc_map_free(g_map);
   g_map = NULL;
   g_patch_pool = 0;
@@ -180,24 +180,24 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
   LOG("cache flush: vma %p, vma_align %p, len %x", vma, vma_align, len);
 
   if (pid == KERNEL_PID) {
-    sceKernelCpuDcacheFlush((void *)vma_align, len);
-    sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
+    ksceKernelCpuDcacheFlush((void *)vma_align, len);
+    ksceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
   } else {
     // TODO: Take care of SHARED_PID
-    flags = sceKernelCpuDisableInterrupts();
-    sceKernelCpuSaveContext(my_context);
-    ret = sceKernelGetPidContext(pid, &other_context);
+    flags = ksceKernelCpuDisableInterrupts();
+    ksceKernelCpuSaveContext(my_context);
+    ret = ksceKernelGetPidContext(pid, &other_context);
     if (ret >= 0) {
-      sceKernelCpuRestoreContext(other_context);
+      ksceKernelCpuRestoreContext(other_context);
       asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
-      sceKernelCpuDcacheFlush((void *)vma_align, len);
-      sceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
+      ksceKernelCpuDcacheFlush((void *)vma_align, len);
+      ksceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
       hex_dump(vma_align, (char *)vma_align, len);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
-    sceKernelCpuRestoreContext(my_context);
-    sceKernelCpuEnableInterrupts(flags);
+    ksceKernelCpuRestoreContext(my_context);
+    ksceKernelCpuEnableInterrupts(flags);
     LOG("sceKernelSwitchVmaForPid(%d): 0x%08X\n", pid, ret);
   }
   asm volatile ("isb" ::: "memory");
@@ -237,18 +237,18 @@ static int do_hooking(void *args) {
   if (uargs->pid == KERNEL_PID) {
     ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, SUBSTITUTE_RELAXED);
   } else {
-    flags = sceKernelCpuDisableInterrupts();
-    sceKernelCpuSaveContext(my_context);
-    ret = sceKernelGetPidContext(uargs->pid, &other_context);
+    flags = ksceKernelCpuDisableInterrupts();
+    ksceKernelCpuSaveContext(my_context);
+    ret = ksceKernelGetPidContext(uargs->pid, &other_context);
     if (ret >= 0) {
-      sceKernelCpuRestoreContext(other_context);
+      ksceKernelCpuRestoreContext(other_context);
       asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
       ret = substitute_hook_functions(uargs->hook, 1, uargs->saved, SUBSTITUTE_RELAXED);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
-    sceKernelCpuRestoreContext(my_context);
-    sceKernelCpuEnableInterrupts(flags);
+    ksceKernelCpuRestoreContext(my_context);
+    ksceKernelCpuEnableInterrupts(flags);
   }
   return ret;
 }
@@ -297,7 +297,7 @@ static int tai_hook_function(struct slab_chain *slab, void *target_func, const v
   uargs.pid = slab->pid;
   uargs.hook = &hook;
   uargs.saved = (struct substitute_function_hook_record **)saved;
-  ret = sceKernelRunWithStack(0x4000, do_hooking, &uargs);
+  ret = ksceKernelRunWithStack(0x4000, do_hooking, &uargs);
   LOG("Done hooking");
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
@@ -316,7 +316,7 @@ static int tai_hook_function(struct slab_chain *slab, void *target_func, const v
 static int tai_unhook_function(void *saved) {
   int ret;
   LOG("Calling substitute_free_hooks");
-  ret = sceKernelRunWithStack(0x4000, do_unhooking, saved);
+  ret = ksceKernelRunWithStack(0x4000, do_unhooking, saved);
   if (ret != SUBSTITUTE_OK) {
     LOG("libsubstitute error: %s", substitute_strerror(ret));
     return TAI_ERROR_HOOK_ERROR;
@@ -341,11 +341,11 @@ static int tai_unhook_function(void *saved) {
 static int tai_force_memcpy(SceUID dst_pid, void *dst, const void *src, size_t size) {
   int ret;
   if (dst_pid == KERNEL_PID) {
-      ret = sceKernelCpuUnrestrictedMemcpy(dst, src, size);
-      LOG("sceKernelCpuUnrestrictedMemcpy(%p, %p, 0x%08X): 0x%08X", dst, src, size, ret);
+      ret = ksceKernelCpuUnrestrictedMemcpy(dst, src, size);
+      LOG("ksceKernelCpuUnrestrictedMemcpy(%p, %p, 0x%08X): 0x%08X", dst, src, size, ret);
   } else {
-      ret = sceKernelRxMemcpyKernelToUserForPid(dst_pid, (uintptr_t)dst, src, size);
-      LOG("sceKernelRxMemcpyKernelToUserForPid(%x, %p, %p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
+      ret = ksceKernelRxMemcpyKernelToUserForPid(dst_pid, (uintptr_t)dst, src, size);
+      LOG("ksceKernelRxMemcpyKernelToUserForPid(%x, %p, %p, 0x%08X): 0x%08X", dst_pid, dst, src, size, ret);
   }
   cache_flush(dst_pid, (uintptr_t)dst, size);
   return ret;
@@ -367,8 +367,8 @@ int tai_memcpy_to_kernel(SceUID src_pid, void *dst, const char *src, size_t size
     memcpy(dst, src, size);
     LOG("memcpy(%p, %p, 0x%08X)", dst, src, size);
   } else {
-    ret = sceKernelMemcpyUserToKernelForPid(src_pid, dst, (uintptr_t)src, size);
-    LOG("sceKernelMemcpyUserToKernelForPid(%x, %p, %p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
+    ret = ksceKernelMemcpyUserToKernelForPid(src_pid, dst, (uintptr_t)src, size);
+    LOG("ksceKernelMemcpyUserToKernelForPid(%x, %p, %p, 0x%08X): 0x%08X", src_pid, dst, src, size, ret);
   }
   return 0;
 }
@@ -390,7 +390,7 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   int ret;
 
   LOG("Adding hook %p to chain %p", item, hooks);
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   if (hooks->head == NULL) { // first hook for this list
     ret = tai_hook_function(item->patch->slab, hooks->func, item->u.func, &hooks->old, &hooks->saved);
     if (ret >= 0) {
@@ -415,7 +415,7 @@ static int hooks_add_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
     cache_flush(item->patch->pid, head->u.next, sizeof(tai_hook_t));
     ret = 1;
   }
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
 
   return ret;
 }
@@ -440,7 +440,7 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
   int ret;
 
   LOG("Removing hook %p for %p", item, hooks);
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   if (hooks->head == item) { // first hook for this list
     // we must remove the patch
     tai_unhook_function(hooks->saved);
@@ -481,7 +481,7 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
       }
     }
   }
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
   return ret;
 }
 
@@ -514,19 +514,19 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
 
   hook = NULL;
   if (pid == KERNEL_PID) {
-    ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
+    ret = ksceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook", NULL, (SceObjectBase **)&patch);
   } else {
     memset(&opt, 0, sizeof(opt));
     opt.flags = 8;
     opt.pid = pid;
-    ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook_user", &opt, (SceObjectBase **)&patch);
+    ret = ksceKernelCreateUidObj(&g_taihen_class, "tai_patch_hook_user", &opt, (SceObjectBase **)&patch);
   }
-  LOG("sceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
+  LOG("ksceKernelCreateUidObj(tai_patch_hook): 0x%08X, %p", ret, patch);
   if (ret < 0) {
     return ret;
   }
 
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   patch->type = HOOKS;
   patch->uid = ret;
   patch->pid = pid;
@@ -537,8 +537,8 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
   patch->data.hooks.saved = NULL;
   patch->data.hooks.head = NULL;
   if (proc_map_try_insert(g_map, patch, &tmp) < 1) {
-    ret = sceKernelDeleteUid(patch->uid);
-    LOG("sceKernelDeleteUid(old): 0x%08X", ret);
+    ret = ksceKernelDeleteUid(patch->uid);
+    LOG("ksceKernelDeleteUid(old): 0x%08X", ret);
     if (tmp == NULL || tmp->type != HOOKS) {
       // error
       LOG("this hook overlaps an existing hook");
@@ -565,7 +565,7 @@ SceUID tai_hook_func_abs(tai_hook_ref_t *p_hook, SceUID pid, void *dest_func, co
     slab_free(patch->slab, hook);
     hook = NULL;
     proc_map_remove(g_map, patch);
-    sceKernelDeleteUid(patch->uid);
+    ksceKernelDeleteUid(patch->uid);
     patch = NULL;
   } else if (ret >= 0) {
     ret = patch->uid;
@@ -579,7 +579,7 @@ err:
     slab_free(patch->slab, hook);
   }
 
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
 
   return ret;
 }
@@ -598,12 +598,12 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   struct slab_chain *slab;
   int ret;
 
-  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (SceObjectBase **)&patch);
-  LOG("sceKernelGetObjForUid(%x): 0x%08X", uid, ret);
+  ret = ksceKernelGetObjForUid(uid, &g_taihen_class, (SceObjectBase **)&patch);
+  LOG("ksceKernelGetObjForUid(%x): 0x%08X", uid, ret);
   if (ret < 0) {
     return ret;
   }
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   slab = patch->slab;
   for (cur = &patch->data.hooks.head; *cur != NULL; cur = &(*cur)->next) {
     if (slab_getmirror(slab, *cur) == hook_ref) {
@@ -616,7 +616,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
       if (patch->data.hooks.head == NULL) {
         LOG("patch is now empty, freeing it");
         proc_map_remove(g_map, patch);
-        sceKernelDeleteUid(patch->uid);
+        ksceKernelDeleteUid(patch->uid);
       }
       ret = TAI_SUCCESS;
       goto end;
@@ -625,7 +625,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   LOG("Cannot find hook for uid %x ref %p", uid, hook_ref);
   ret = TAI_ERROR_NOT_FOUND;
 end:
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
 
   return ret;
 }
@@ -651,28 +651,28 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   // TODO: Check that dest is not inside our slab structure... that could corrupt kernel code
 
   LOG("Injecting %p with %p for size 0x%08X at pid %x", dest, src, size, pid);
-  ret = sceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (SceObjectBase **)&patch);
-  LOG("sceKernelCreateUidObj(tai_patch_inject): 0x%08X, %p", ret, patch);
+  ret = ksceKernelCreateUidObj(&g_taihen_class, "tai_patch_inject", NULL, (SceObjectBase **)&patch);
+  LOG("ksceKernelCreateUidObj(tai_patch_inject): 0x%08X, %p", ret, patch);
   if (ret < 0) {
     return ret;
   }
 
-  saved = sceKernelMemPoolAlloc(g_patch_pool, size);
-  LOG("sceKernelMemPoolAlloc(g_patch_pool, 0x%08X): %p", size, saved);
+  saved = ksceKernelMemPoolAlloc(g_patch_pool, size);
+  LOG("ksceKernelMemPoolAlloc(g_patch_pool, 0x%08X): %p", size, saved);
   if (saved == NULL) {
-    sceKernelDeleteUid(ret);
+    ksceKernelDeleteUid(ret);
     return TAI_ERROR_MEMORY;
   }
 
   // try to save old data
   if (tai_memcpy_to_kernel(pid, saved, dest, size) < 0) {
     LOG("Invalid address for memcpy");
-    sceKernelDeleteUid(ret);
-    sceKernelMemPoolFree(g_patch_pool, saved);
+    ksceKernelDeleteUid(ret);
+    ksceKernelMemPoolFree(g_patch_pool, saved);
     return TAI_ERROR_INVALID_ARGS;
   }
 
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   patch->type = INJECTION;
   patch->uid = ret;
   patch->pid = pid;
@@ -689,13 +689,13 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   }
 
   if (ret < 0) {
-    sceKernelDeleteUid(patch->uid);
-    sceKernelMemPoolFree(g_patch_pool, saved);
+    ksceKernelDeleteUid(patch->uid);
+    ksceKernelMemPoolFree(g_patch_pool, saved);
   } else {
     ret = patch->uid;
   }
 
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
 
   return ret;
 }
@@ -716,8 +716,8 @@ int tai_inject_release(SceUID uid) {
   int ret;
   SceUID pid;
 
-  ret = sceKernelGetObjForUid(uid, &g_taihen_class, (SceObjectBase **)&patch);
-  LOG("sceKernelGetObjForUid(%x): 0x%08X", uid, ret);
+  ret = ksceKernelGetObjForUid(uid, &g_taihen_class, (SceObjectBase **)&patch);
+  LOG("ksceKernelGetObjForUid(%x): 0x%08X", uid, ret);
   if (ret < 0) {
     return ret;
   }
@@ -727,7 +727,7 @@ int tai_inject_release(SceUID uid) {
   }
   inject = &patch->data.inject;
   LOG("Releasing injection %p for patch %p", inject, patch);
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   pid = patch->pid;
   dest = (void *)patch->addr;
   saved = inject->saved;
@@ -737,10 +737,10 @@ int tai_inject_release(SceUID uid) {
     ret = TAI_ERROR_SYSTEM;
   } else {
     ret = tai_force_memcpy(pid, dest, saved, size);
-    sceKernelMemPoolFree(g_patch_pool, saved);
-    sceKernelDeleteUid(patch->uid);
+    ksceKernelMemPoolFree(g_patch_pool, saved);
+    ksceKernelDeleteUid(patch->uid);
   }
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
 
   return ret;
 }
@@ -765,22 +765,22 @@ int tai_inject_release(SceUID uid) {
 int tai_try_cleanup_process(SceUID pid) {
   tai_patch_t *patch, *next;
   LOG("Calling patches cleanup for pid %x", pid);
-  sceKernelLockMutexForKernel(g_hooks_lock, 1, NULL);
+  ksceKernelLockMutex(g_hooks_lock, 1, NULL);
   if (proc_map_remove_all_pid(g_map, pid, &patch) > 0) {
     while (patch != NULL) {
       next = patch->next;
       if (patch->type == INJECTION) {
         LOG("freeing injection saved data");
-        sceKernelMemPoolFree(g_patch_pool, patch->data.inject.saved);
+        ksceKernelMemPoolFree(g_patch_pool, patch->data.inject.saved);
       } else if (patch->type == HOOKS) {
         LOG("freeing hook saved data");
         free(patch->data.hooks.saved);
       }
       LOG("deleting patch: %x", patch->uid);
-      sceKernelDeleteUid(patch->uid);
+      ksceKernelDeleteUid(patch->uid);
       patch = next;
     }
   }
-  sceKernelUnlockMutexForKernel(g_hooks_lock, 1);
+  ksceKernelUnlockMutex(g_hooks_lock, 1);
   return 0;
 }
