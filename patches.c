@@ -88,14 +88,14 @@ static int free_patch(void *dat) {
  * @return     Zero on success, < 0 on error
  */
 int patches_init(void) {
-  SceKernelMemPoolCreateOpt opt;
+  SceKernelHeapCreateOpt opt;
   int ret;
 
   memset(&opt, 0, sizeof(opt));
   opt.size = sizeof(opt);
   opt.uselock = 1;
-  g_patch_pool = ksceKernelMemPoolCreate("tai_patches", PATCHES_POOL_SIZE, &opt);
-  LOG("ksceKernelMemPoolCreate(tai_patches): 0x%08X", g_patch_pool);
+  g_patch_pool = ksceKernelCreateHeap("tai_patches", PATCHES_POOL_SIZE, &opt);
+  LOG("ksceKernelCreateHeap(tai_patches): 0x%08X", g_patch_pool);
   if (g_patch_pool < 0) {
     return g_patch_pool;
   }
@@ -126,7 +126,7 @@ void patches_deinit(void) {
   LOG("Cleaning up patches subsystem.");
   // TODO: Find out how to clean up class
   ksceKernelDeleteMutex(g_hooks_lock);
-  ksceKernelMemPoolDestroy(g_patch_pool);
+  ksceKernelDeleteHeap(g_patch_pool);
   proc_map_free(g_map);
   g_map = NULL;
   g_patch_pool = 0;
@@ -657,8 +657,8 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
     return ret;
   }
 
-  saved = ksceKernelMemPoolAlloc(g_patch_pool, size);
-  LOG("ksceKernelMemPoolAlloc(g_patch_pool, 0x%08X): %p", size, saved);
+  saved = ksceKernelAllocHeapMemory(g_patch_pool, size);
+  LOG("ksceKernelAllocHeapMemory(g_patch_pool, 0x%08X): %p", size, saved);
   if (saved == NULL) {
     ksceKernelDeleteUid(ret);
     return TAI_ERROR_MEMORY;
@@ -668,7 +668,7 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
   if (tai_memcpy_to_kernel(pid, saved, dest, size) < 0) {
     LOG("Invalid address for memcpy");
     ksceKernelDeleteUid(ret);
-    ksceKernelMemPoolFree(g_patch_pool, saved);
+    ksceKernelFreeHeapMemory(g_patch_pool, saved);
     return TAI_ERROR_INVALID_ARGS;
   }
 
@@ -690,7 +690,7 @@ SceUID tai_inject_abs(SceUID pid, void *dest, const void *src, size_t size) {
 
   if (ret < 0) {
     ksceKernelDeleteUid(patch->uid);
-    ksceKernelMemPoolFree(g_patch_pool, saved);
+    ksceKernelFreeHeapMemory(g_patch_pool, saved);
   } else {
     ret = patch->uid;
   }
@@ -737,7 +737,7 @@ int tai_inject_release(SceUID uid) {
     ret = TAI_ERROR_SYSTEM;
   } else {
     ret = tai_force_memcpy(pid, dest, saved, size);
-    ksceKernelMemPoolFree(g_patch_pool, saved);
+    ksceKernelFreeHeapMemory(g_patch_pool, saved);
     ksceKernelDeleteUid(patch->uid);
   }
   ksceKernelUnlockMutex(g_hooks_lock, 1);
@@ -771,7 +771,7 @@ int tai_try_cleanup_process(SceUID pid) {
       next = patch->next;
       if (patch->type == INJECTION) {
         LOG("freeing injection saved data");
-        ksceKernelMemPoolFree(g_patch_pool, patch->data.inject.saved);
+        ksceKernelFreeHeapMemory(g_patch_pool, patch->data.inject.saved);
       } else if (patch->type == HOOKS) {
         LOG("freeing hook saved data");
         free(patch->data.hooks.saved);

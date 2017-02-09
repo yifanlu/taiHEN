@@ -22,7 +22,7 @@ extern SceUID g_patch_pool;
  */
 void *malloc(size_t size) {
   void *ptr;
-  ptr = ksceKernelMemPoolAlloc(g_patch_pool, size + sizeof(size_t));
+  ptr = ksceKernelAllocHeapMemory(g_patch_pool, size + sizeof(size_t));
   if (ptr) {
     *(size_t *)ptr = size;
     ptr = (char *)ptr + sizeof(size_t);
@@ -36,7 +36,7 @@ void *malloc(size_t size) {
  * @param      ptr   The pointer
  */
 void free(void *ptr) {
-  ksceKernelMemPoolFree(g_patch_pool, (char *)ptr - sizeof(size_t));
+  ksceKernelFreeHeapMemory(g_patch_pool, (char *)ptr - sizeof(size_t));
 }
 
 /**

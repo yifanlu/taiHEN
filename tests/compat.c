@@ -30,19 +30,19 @@ pthread_mutex_t lock_lock = PTHREAD_MUTEX_INITIALIZER;
 
 const size_t g_exe_slab_item_size = sizeof(tai_hook_t);
 
-SceUID ksceKernelMemPoolCreate(const char *name, SceSize size, SceKernelMemPoolCreateOpt *opt) {
+SceUID ksceKernelCreateHeap(const char *name, SceSize size, SceKernelHeapCreateOpt *opt) {
   return 1;
 }
 
-int ksceKernelMemPoolDestroy(SceUID pool) {
+int ksceKernelDeleteHeap(SceUID pool) {
   return 0;
 }
 
-void *ksceKernelMemPoolAlloc(SceUID pool, SceSize size) {
+void *ksceKernelAllocHeapMemory(SceUID pool, SceSize size) {
   return malloc(size);
 }
 
-void ksceKernelMemPoolFree(SceUID pool, void *ptr) {
+void ksceKernelFreeHeapMemory(SceUID pool, void *ptr) {
   return free(ptr);
 }
 
