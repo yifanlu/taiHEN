@@ -180,8 +180,8 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
   LOG("cache flush: vma %p, vma_align %p, len %x", vma, vma_align, len);
 
   if (pid == KERNEL_PID) {
-    ksceKernelCpuDcacheFlush((void *)vma_align, len);
-    ksceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
+    ksceKernelCpuDcacheWritebackInvalidateRange((void *)vma_align, len);
+    ksceKernelCpuIcacheAndL2WritebackInvalidateRange((void *)vma_align, len);
   } else {
     // TODO: Take care of SHARED_PID
     flags = ksceKernelCpuDisableInterrupts();
@@ -191,8 +191,8 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
       ksceKernelCpuRestoreContext(other_context);
       asm volatile ("mrc p15, 0, %0, c3, c0, 0" : "=r" (dacr));
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (0x15450FC3));
-      ksceKernelCpuDcacheFlush((void *)vma_align, len);
-      ksceKernelCpuIcacheAndL2Flush((void *)vma_align, len);
+      ksceKernelCpuDcacheWritebackInvalidateRange((void *)vma_align, len);
+      ksceKernelCpuIcacheAndL2WritebackInvalidateRange((void *)vma_align, len);
       hex_dump(vma_align, (char *)vma_align, len);
       asm volatile ("mcr p15, 0, %0, c3, c0, 0" :: "r" (dacr));
     }
