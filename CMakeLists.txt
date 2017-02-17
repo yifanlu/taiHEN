@@ -63,7 +63,6 @@ target_link_libraries(taihen
   SceCpuForKernel_stub
   SceCpuForDriver_stub
   SceSysrootForKernel_stub
-  SceThreadmgrForKernel_stub
   SceThreadmgrForDriver_stub
   SceModulemgrForKernel_stub
   SceModulemgrForDriver_stub
