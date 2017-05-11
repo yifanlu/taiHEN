@@ -306,7 +306,7 @@ int module_start(SceSize argc, const void *args) {
 // cleanup
 int module_stop(SceSize argc, const void *args) {
   // don't forget to clean up
-  taiHookReleaseForKernel(KERNEL_PID, unload_allowed_uid, unload_allowed_hook);
+  taiHookReleaseForKernel(unload_allowed_uid, unload_allowed_hook);
   // do other things here...
   return SCE_KERNEL_STOP_SUCCESS;
 }
