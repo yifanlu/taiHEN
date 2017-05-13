@@ -108,8 +108,8 @@ static tai_hook_ref_t g_package_check_hook;
 /** Hook reference to check in `sceNpDrmPackageCheck` */
 static tai_hook_ref_t g_package_check_2_hook;
 
-/** Hook reference to `load_user_libs` */
-static tai_hook_ref_t g_load_user_libs_hook;
+/** Hook reference to `start_preloaded_modules */
+static tai_hook_ref_t g_start_preloaded_modules_hook;
 
 /** Hook reference to `nid_poison` */
 static tai_hook_ref_t g_nid_poison_hook;
@@ -314,37 +314,6 @@ static int package_check_2_patched(void) {
 }
 
 /**
- * @brief      Patch for loading default suprxes for an application
- *
- * @param[in]  pid    The process being started
- * @param      args   The arguments
- * @param[in]  flags  The flags
- *
- * @return     Zero on success, < 0 on error
- */
-static int load_user_libs_patched(SceUID pid, void *args, int flags) {
-  tai_plugin_load_t param;
-  int ret;
-  SceUID mod;
-  char titleid[32];
-
-  ret = TAI_CONTINUE(int, g_load_user_libs_hook, pid, args, flags);
-
-  ksceKernelGetProcessTitleId(pid, titleid, 32);
-  LOG("title started: %s, pid: %x", titleid, pid);
-
-  if (g_config) {
-    param.pid = pid;
-    param.flags = 0x8000; // queue for load
-    taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
-  } else {
-    LOG("config not loaded, skipping plugin load");
-  }
-
-  return ret;
-}
-
-/**
  * @brief      Patch to disable NID poisoning
  * 
  * This function is actually a memset of 32-bit width.
@@ -377,6 +346,37 @@ static int unload_process_patched(SceUID pid) {
   LOG("cleanup: %x", ret);
   ret = TAI_CONTINUE(int, g_unload_process_hook, pid);
   LOG("process unloaded: %x", ret);
+
+  return ret;
+}
+
+/**
+ * @brief      Patch for loading a process
+ *
+ *             This event happens after the default list of modules are loaded
+ *             for a process. We used to hook at that point, but because of a
+ *             SCE bug, we cannot have > 15 preloaded modules. Instead now we
+ *             hook at the point those preloaded modules start.
+ *
+ * @param[in]  pid   The process being started
+ *
+ * @return     Zero on success, < 0 on error
+ */
+static int start_preloaded_modules_patched(SceUID pid) {
+  int ret;
+  char titleid[32];
+
+  LOG("starting all default modules for %x...", pid);
+  ret = TAI_CONTINUE(int, g_start_preloaded_modules_hook, pid);
+
+  ksceKernelGetProcessTitleId(pid, titleid, 32);
+  LOG("title started: %s, pid: %x, loading plugins...", titleid, pid);
+
+  if (g_config) {
+    taihen_config_parse(g_config, titleid, hen_load_plugin, &pid);
+  } else {
+    LOG("config not loaded, skipping plugin load");
+  }
 
   return ret;
 }
@@ -480,7 +480,7 @@ int hen_free_config(void) {
  * @param[in]  param  The parameters
  */
 void hen_load_plugin(const char *path, void *param) {
-  tai_plugin_load_t *load = (tai_plugin_load_t *)param;
+  SceUID pid = *(SceUID *)param;
   int ret;
   int result;
 
@@ -489,13 +489,8 @@ void hen_load_plugin(const char *path, void *param) {
     return;
   }
 
-  LOG("pid:%x loading module %s (flags:%x)", load->pid, path, load->flags);
-  if ((load->flags & 0x8000) == 0x8000) {
-    ret = ksceKernelLoadModuleForPid(load->pid, path, load->flags, NULL);
-    result = ret;
-  } else {
-    ret = ksceKernelLoadStartModuleForPid(load->pid, path, 0, NULL, load->flags, NULL, &result);
-  }
+  LOG("pid:%x loading module %s", pid, path);
+  ret = ksceKernelLoadStartModuleForPid(pid, path, 0, NULL, 0, NULL, &result);
   LOG("load result: %x", ret);
 }
 
@@ -571,13 +566,13 @@ int hen_add_patches(void) {
   LOG("package_check_2 added");
   if (g_hooks[7] < 0) goto fail;
   g_hooks[8] = taiHookFunctionExportForKernel(KERNEL_PID, 
-                                              &g_load_user_libs_hook, 
+                                              &g_start_preloaded_modules_hook, 
                                               "SceKernelModulemgr", 
                                               0xC445FA63, // SceModulemgrForKernel
-                                              0x3AD26B43,
-                                              load_user_libs_patched);
+                                              0x432DCC7A,
+                                              start_preloaded_modules_patched);
   if (g_hooks[8] < 0) goto fail;
-  LOG("load_user_libs added");
+  LOG("start_preloaded_modules_patched added");
   g_hooks[9] = taiHookFunctionImportForKernel(KERNEL_PID, 
                                               &g_nid_poison_hook, 
                                               "SceKernelModulemgr", 
@@ -622,7 +617,7 @@ fail:
     taiHookReleaseForKernel(g_hooks[7], g_package_check_2_hook);
   }
   if (g_hooks[8] >= 0) {
-    taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
+    taiHookReleaseForKernel(g_hooks[8], g_start_preloaded_modules_hook);
   }
   if (g_hooks[9] >= 0) {
     taiHookReleaseForKernel(g_hooks[9], g_nid_poison_hook);
@@ -649,7 +644,7 @@ int hen_remove_patches(void) {
   ret |= taiHookReleaseForKernel(g_hooks[5], g_rif_get_info_hook);
   ret |= taiHookReleaseForKernel(g_hooks[6], g_package_check_hook);
   ret |= taiHookReleaseForKernel(g_hooks[7], g_package_check_2_hook);
-  ret |= taiHookReleaseForKernel(g_hooks[8], g_load_user_libs_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[8], g_start_preloaded_modules_hook);
   ret |= taiHookReleaseForKernel(g_hooks[9], g_nid_poison_hook);
   ret |= taiHookReleaseForKernel(g_hooks[10], g_unload_process_hook);
   return ret;
