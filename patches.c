@@ -616,6 +616,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
       if (patch->data.hooks.head == NULL) {
         LOG("patch is now empty, freeing it");
         proc_map_remove(g_map, patch);
+        ksceKernelUidRelease(uid);
         ksceKernelDeleteUid(patch->uid);
       }
       ret = TAI_SUCCESS;
@@ -624,6 +625,7 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
   }
   LOG("Cannot find hook for uid %x ref %p", uid, hook_ref);
   ret = TAI_ERROR_NOT_FOUND;
+  ksceKernelUidRelease(uid);
 end:
   ksceKernelUnlockMutex(g_hooks_lock, 1);
 
@@ -723,6 +725,7 @@ int tai_inject_release(SceUID uid) {
   }
   if (patch->type != INJECTION || patch->uid != uid) {
     LOG("internal error: trying to free an invalid injection");
+    ksceKernelUidRelease(uid);
     return TAI_ERROR_SYSTEM;
   }
   inject = &patch->data.inject;
@@ -735,9 +738,11 @@ int tai_inject_release(SceUID uid) {
   if (!proc_map_remove(g_map, patch)) {
     LOG("internal error, cannot remove patch from proc_map");
     ret = TAI_ERROR_SYSTEM;
+    ksceKernelUidRelease(patch->uid);
   } else {
     ret = tai_force_memcpy(pid, dest, saved, size);
     ksceKernelFreeHeapMemory(g_patch_pool, saved);
+    ksceKernelUidRelease(patch->uid);
     ksceKernelDeleteUid(patch->uid);
   }
   ksceKernelUnlockMutex(g_hooks_lock, 1);
