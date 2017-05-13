@@ -219,8 +219,8 @@ static int find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size_t 
  *             module. If `name` is not NULL then it will be used to lookup the
  *             loaded module. If NID is not `TAI_IGNORE_MODULE_NID`, then it
  *             will be used in the lookup too. If `name` is NULL and NID is
- *             `TAI_IGNORE_MODULE_NID` then if there is only one main module, it
- *             will be returned.
+ *             `TAI_IGNORE_MODULE_NID` then the first module loaded for the
+ *             process will be returned.
  *
  * @param[in]  pid   The pid
  * @param[in]  name  The name to lookup. Can be NULL.
@@ -229,8 +229,10 @@ static int find_int_for_user(SceUID pid, uintptr_t src, uint32_t needle, size_t 
  *
  * @return     Zero on success, < 0 on error
  *             - TAI_ERROR_INVALID_MODULE if both `name` and NID are undefined
- *               and there are multiple main modules. KERNEL_PID will always
- *               return this error.
+ *               and `pid` is KERNEL_PID.
+ *             - TAI_ERROR_MODULE_OVERFLOW if there are more than
+ *               `MOD_LIST_SIZE` modules loaded for the process. This is a
+ *               system error and should be reported.
  */
 int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_module_info_t *info) {
   SceUID modlist[MOD_LIST_SIZE];
@@ -241,32 +243,33 @@ int module_get_by_name_nid(SceUID pid, const char *name, uint32_t nid, tai_modul
 
   get_cur = (name == NULL && nid == TAI_IGNORE_MODULE_NID);
   count = MOD_LIST_SIZE;
-  ret = ksceKernelGetModuleList(pid, get_cur ? 1 : 0xff, 1, modlist, &count);
+  ret = ksceKernelGetModuleList(pid, 0xff, 1, modlist, &count);
   LOG("ksceKernelGetModuleList(%x): 0x%08X, count: %d", pid, ret, count);
   if (ret < 0) {
     return ret;
+  } else if (count == MOD_LIST_SIZE) {
+    return TAI_ERROR_MODULE_OVERFLOW;
   }
-  if (get_cur && count > 1) {
-    LOG("Cannot use TAI_MAIN_MODULE since there are multiple main modules");
-    return TAI_ERROR_INVALID_MODULE;
-  }
-  for (int i = count-1; i >= 0; i--) {
+  for (int i = (count - 1); i >= 0; i--) {
     ret = ksceKernelGetModuleInternal(modlist[i], &sceinfo);
     //LOG("ksceKernelGetModuleInternal(%x): 0x%08X", modlist[i], ret);
     if (ret < 0) {
       LOG("Error getting info for mod: %x, ret: %x", modlist[i], ret);
-      continue;
+      return ret;
     }
-    if (sce_to_tai_module_info(pid, sceinfo, info) < 0) {
-      continue;
+    if ((ret = sce_to_tai_module_info(pid, sceinfo, info)) < 0) {
+      return ret;
     }
-    if (name != NULL && strncmp(name, info->name, 27) == 0) {
-      if (nid == TAI_IGNORE_MODULE_NID || info->modid == nid) {
-        LOG("Found module %s, NID:0x%08X", name, info->modid);
+    if (get_cur) {
+      LOG("Found first module %s, NID:0x%08X", info->name, info->module_nid);
+      return TAI_SUCCESS;
+    } else if (name != NULL && strncmp(name, info->name, 27) == 0) {
+      if (nid == TAI_IGNORE_MODULE_NID || info->module_nid == nid) {
+        LOG("Found module %s, NID:0x%08X", name, info->module_nid);
         return TAI_SUCCESS;
       }
-    } else if (name == NULL && (get_cur || info->modid == nid)) {
-      LOG("Found module %s, NID:0x%08X", info->name, info->modid);
+    } else if (name == NULL && info->module_nid == nid) {
+      LOG("Found module %s, NID:0x%08X", info->name, info->module_nid);
       return TAI_SUCCESS;
     }
   }
