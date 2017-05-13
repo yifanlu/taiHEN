@@ -88,7 +88,7 @@ typedef struct sce_module_info {
   uint32_t extab_end;     // 58
 } sce_module_info_t; // 5c?
 
-#define MOD_LIST_SIZE 0x80
+#define MOD_LIST_SIZE (256)
 
 /** The currently running FW version. */
 static uint32_t fw_version = 0;
