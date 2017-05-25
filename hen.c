@@ -400,7 +400,11 @@ int hen_load_config(void) {
   fd = ksceIoOpen(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
   if (fd < 0) {
     LOG("failed to open config %s", TAIHEN_CONFIG_FILE);
-    return fd;
+    LOG("opening recovery config %s", TAIHEN_RECOVERY_CONFIG_FILE);
+    fd = ksceIoOpen(TAIHEN_RECOVERY_CONFIG_FILE, SCE_O_RDONLY, 0);
+    if (fd < 0) {
+      return fd;
+    }
   }
 
   len = ksceIoLseek(fd, 0, SCE_SEEK_END);
