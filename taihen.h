@@ -590,6 +590,16 @@ HELPER int taiStopUnloadModuleForPid(SceUID pid, SceUID modid, int args, void *a
 /** @} */
 
 /**
+ * @name NID Lookup
+ * Function NID Lookup Interface
+ */
+/** @{ */
+
+int taiGetModuleExportFunc(const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func);
+
+/** @} */
+
+/**
  * @name Peek/Poke
  * Read/write kernel memory (no MMU bypass)
  */

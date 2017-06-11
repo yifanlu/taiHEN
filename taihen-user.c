@@ -872,6 +872,37 @@ int taiStopUnloadModuleForPidForUser(SceUID modid, tai_module_args_t *args, void
 }
 
 /**
+ * @brief      Gets an exported function address for a module of the calling process
+ *
+ * @param[in]  modname  The name of module to lookup
+ * @param[in]  libnid   NID of the exporting library. Can be `TAI_ANY_LIBRARY`.
+ * @param[in]  funcnid  NID of the exported function
+ * @param[out] func     Output address of the function
+ *
+ * @return     Zero on success, < 0 on error
+ */
+int taiGetModuleExportFunc(const char *modname, uint32_t libnid, uint32_t funcnid, uintptr_t *func) {
+  char k_module[MAX_NAME_LEN];
+  uintptr_t k_func;
+  uint32_t state;
+  SceUID pid;
+  int ret;
+
+  ENTER_SYSCALL(state);
+  pid = ksceKernelGetProcessId();
+  if (ksceKernelStrncpyUserToKernel(k_module, (uintptr_t)modname, MAX_NAME_LEN) < MAX_NAME_LEN) {
+    ret = module_get_export_func(pid, k_module, libnid, funcnid, &k_func);
+    if (ret == 0) {
+      ksceKernelMemcpyKernelToUser((uintptr_t)func, &k_func, sizeof(k_func));
+    }
+  } else {
+    ret = TAI_ERROR_USER_MEMORY;
+  }
+  EXIT_SYSCALL(state);
+  return ret;
+}
+
+/**
  * @brief      Copies data from user to kernel
  *
  * @param      kernel_dst  The kernel address
