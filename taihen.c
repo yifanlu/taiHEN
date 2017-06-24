@@ -6,6 +6,7 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 #include <psp2kern/types.h>
+#include <psp2kern/ctrl.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <taihen/parser.h>
 #include "error.h"
@@ -293,6 +294,7 @@ int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) 
  * @return     Success always
  */
 int module_start(SceSize argc, const void *args) {
+  SceCtrlData ctrl;
   int ret;
   LOG("starting taihen...");
   ret = proc_map_init();
@@ -310,12 +312,18 @@ int module_start(SceSize argc, const void *args) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
-  ret = hen_load_config();
-  if (ret < 0) {
-    LOG("HEN config load failed: %x", ret);
-    return SCE_KERNEL_START_FAILED;
+  ksceCtrlPeekBufferPositive(0, &ctrl, 1);
+  LOG("buttons held: 0x%08X", ctrl.buttons);
+  if (!(ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1))) {
+    ret = hen_load_config();
+    if (ret < 0) {
+      LOG("HEN config load failed: %x", ret);
+      return SCE_KERNEL_START_FAILED;
+    }
+    taiLoadPluginsForTitleForKernel(KERNEL_PID, "KERNEL", 0);
+  } else {
+    LOG("skipping plugin loading");
   }
-  taiLoadPluginsForTitleForKernel(KERNEL_PID, "KERNEL", 0);
   return SCE_KERNEL_START_SUCCESS;
 }
 

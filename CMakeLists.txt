@@ -69,6 +69,7 @@ target_link_libraries(taihen
   SceIofilemgrForDriver_stub
   SceSblACMgrForDriver_stub
   SceDebugForDriver_stub
+  SceCtrlForDriver_stub
 )
 
 vita_create_self(taihen.skprx taihen
