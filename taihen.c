@@ -288,6 +288,9 @@ int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) 
  *             the kernel environment to be clean, which means that no outside
  *             hooks and patches which may interfere with taiHEN.
  *
+ *             If the user hold the L button while starting taiHEN, kernel
+ *             plugins will be skipped.
+ *
  * @param[in]  argc  Size of arguments (unused)
  * @param[in]  args  The arguments (unused)
  *

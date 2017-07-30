@@ -5,6 +5,7 @@
  * This software may be modified and distributed under the terms
  * of the MIT license.  See the LICENSE file for details.
  */
+#include <psp2kern/ctrl.h>
 #include <psp2kern/types.h>
 #include <psp2kern/io/fcntl.h>
 #include <psp2kern/kernel/modulemgr.h>
@@ -358,16 +359,27 @@ static int unload_process_patched(SceUID pid) {
  *             SCE bug, we cannot have > 15 preloaded modules. Instead now we
  *             hook at the point those preloaded modules start.
  *
+ *             If the user hold the L button while the application is loading,
+ *             plugins will be skipped.
+ *
  * @param[in]  pid   The process being started
  *
  * @return     Zero on success, < 0 on error
  */
 static int start_preloaded_modules_patched(SceUID pid) {
+  SceCtrlData ctrl;
   int ret;
   char titleid[32];
 
   LOG("starting all default modules for %x...", pid);
   ret = TAI_CONTINUE(int, g_start_preloaded_modules_hook, pid);
+
+  ksceCtrlPeekBufferPositive(0, &ctrl, 1);
+  LOG("buttons held: 0x%08X", ctrl.buttons);
+  if (ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1)) {
+    LOG("skipping plugin loading");
+    return ret;
+  }
 
   ksceKernelGetProcessTitleId(pid, titleid, 32);
   LOG("title started: %s, pid: %x, loading plugins...", titleid, pid);
