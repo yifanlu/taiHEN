@@ -20,9 +20,13 @@
 /** Fallback if the configuration file is not found. */
 #define TAIHEN_RECOVERY_CONFIG_FILE "ur0:tai/config.txt"
 
+int plugin_init(void);
+void plugin_deinit(void);
+
 int plugin_load_config(void);
 int plugin_free_config(void);
 int plugin_load_all(SceUID pid, const char *titleid);
+int plugin_delayed_load_config(int load_kernel);
 
 /** @} */
 

@@ -258,7 +258,7 @@ int taiInjectReleaseForKernel(SceUID tai_uid) {
 /**
  * @brief      Parses the taiHEN config and loads all plugins for a titleid to a
  *             process
- *             
+ *
  *             `flags` are ignored!
  *
  * @param[in]  pid      The pid to load to
@@ -270,6 +270,36 @@ int taiInjectReleaseForKernel(SceUID tai_uid) {
  */
 int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) {
   return plugin_load_all(pid, titleid);
+}
+
+/**
+ * @brief      Reloads config.txt from the default path and optionally loads
+ *             kernel plugins.
+ *
+ *             If `schedule` is set, then if called from a plugin `module_start`
+ *             handler, it will schedule a config reload (and optionally load
+ *             kernel plugins) after the current config parsing is completed. If
+ *             `load_kernel` is set, then load kernel plugins defined in
+ *             `*KERNEL` from the config file as well after config is reloaded
+ *             successfully.
+ *
+ * @param[in]  schedule     If blocking, schedule reload until after load is
+ *                          complete.
+ * @param[in]  load_kernel  Load all kernel plugins defined in config.
+ *
+ * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_BLOCKING if attempted to call from plugin start and
+ *               `schedule` _is not set_.
+ */
+int taiReloadConfigForKernel(int schedule, int load_kernel) {
+  int ret;
+
+  ret = plugin_load_config();
+  if (ret == TAI_ERROR_BLOCKING && schedule) {
+    plugin_delayed_load_config(load_kernel);
+    ret = TAI_SUCCESS;
+  }
+  return ret;
 }
 
 /**
@@ -299,6 +329,11 @@ int module_start(SceSize argc, const void *args) {
   ret = patches_init();
   if (ret < 0) {
     LOG("patches init failed: %x", ret);
+    return SCE_KERNEL_START_FAILED;
+  }
+  ret = plugin_init();
+  if (ret < 0) {
+    LOG("plugin init failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
   ret = hen_add_patches();
@@ -343,6 +378,7 @@ void _start() __attribute__ ((weak, alias ("module_start")));
 int module_stop(SceSize argc, const void *args) {
   // TODO: release everything
   hen_remove_patches();
+  plugin_deinit();
   patches_deinit();
   proc_map_deinit();
   return SCE_KERNEL_STOP_SUCCESS;

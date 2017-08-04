@@ -48,6 +48,7 @@ taihen:
         - taiInjectDataForKernel
         - taiInjectReleaseForKernel
         - taiLoadPluginsForTitleForKernel
+        - taiReloadConfigForKernel
     taihenModuleUtils:
       functions:
         - module_get_by_name_nid

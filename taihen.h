@@ -419,6 +419,7 @@ HELPER SceUID taiInjectData(SceUID modid, int segidx, uint32_t offset, const voi
  */
 /** @{ */
 int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags);
+int taiReloadConfigForKernel(int schedule, int load_kernel);
 /** @} */
 
 /**

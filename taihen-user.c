@@ -969,6 +969,7 @@ int taiMemcpyKernelToUser(void *user_dst, const void *kernel_src, size_t len) {
  *
  * @return     Zero on success, < 0 on error
  *             - TAI_ERROR_NOT_ALLOWED if caller does not have permission
+ *             - TAI_ERROR_BLOCKING if attempted to call recursively
  */
 int taiReloadConfig(void) {
   uint32_t state;
@@ -976,7 +977,7 @@ int taiReloadConfig(void) {
 
   ENTER_SYSCALL(state);
   if (ksceSblACMgrIsShell(0)) {
-    ret = plugin_load_config();
+    ret = taiReloadConfigForKernel(0, 0);
   } else {
     ret = TAI_ERROR_NOT_ALLOWED;
   }
