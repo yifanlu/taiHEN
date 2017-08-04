@@ -124,7 +124,7 @@ int plugin_free_config(void) {
  * @param[in]  path   The path to load
  * @param[in]  param  The parameters
  */
-void plugin_load(const char *path, void *param) {
+static void plugin_load(const char *path, void *param) {
   SceUID pid = *(SceUID *)param;
   int ret;
   int result;
@@ -137,4 +137,24 @@ void plugin_load(const char *path, void *param) {
   LOG("pid:%x loading module %s", pid, path);
   ret = ksceKernelLoadStartModuleForPid(pid, path, 0, NULL, 0, NULL, &result);
   LOG("load result: %x", ret);
+}
+
+/**
+ * @brief      Parses the taiHEN config and loads all plugins for a titleid to a
+ *             process
+ *
+ * @param[in]  pid      The pid to load to
+ * @param[in]  titleid  The title to read from the config
+ *
+ * @return     Zero on success, < 0 on error
+ *             - TAI_ERROR_SYSTEM if the config file is invalid
+ */
+int plugin_load_all(SceUID pid, const char *titleid) {
+  if (g_config) {
+    taihen_config_parse(g_config, titleid, plugin_load, &pid);
+    return TAI_SUCCESS;
+  } else {
+    LOG("config not loaded");
+    return TAI_ERROR_SYSTEM;
+  }
 }

@@ -13,9 +13,9 @@
 #include <psp2kern/kernel/threadmgr.h>
 #include <psp2/kernel/error.h>
 #include "error.h"
-#include "hen.h"
 #include "module.h"
 #include "patches.h"
+#include "plugin.h"
 #include "taihen_internal.h"
 
 /** Limit for strings passed to kernel */

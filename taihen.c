@@ -20,9 +20,6 @@
 /** For ordering log entries */
 unsigned char log_ctr = 0;
 
-/** From `hen.c` **/
-extern const char *g_config;
-
 /**
  * @brief      Add a hook given an absolute address
  *
@@ -272,13 +269,7 @@ int taiInjectReleaseForKernel(SceUID tai_uid) {
  *             - TAI_ERROR_SYSTEM if the config file is invalid
  */
 int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) {
-  if (g_config) {
-    taihen_config_parse(g_config, titleid, plugin_load, &pid);
-    return TAI_SUCCESS;
-  } else {
-    LOG("config not loaded");
-    return TAI_ERROR_SYSTEM;
-  }
+  return plugin_load_all(pid, titleid);
 }
 
 /**
@@ -323,7 +314,7 @@ int module_start(SceSize argc, const void *args) {
       LOG("HEN config load failed: %x", ret);
       return SCE_KERNEL_START_FAILED;
     }
-    taiLoadPluginsForTitleForKernel(KERNEL_PID, "KERNEL", 0);
+    plugin_load_all(KERNEL_PID, "KERNEL");
   } else {
     LOG("skipping plugin loading");
   }

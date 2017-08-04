@@ -7,8 +7,8 @@
  */
 #include <psp2kern/types.h>
 #include <psp2kern/kernel/cpu.h>
-#include <psp2kern/kernel/sysmem.h>
 #include <psp2kern/kernel/modulemgr.h>
+#include <psp2kern/kernel/sysmem.h>
 #include <string.h>
 #include "error.h"
 #include "taihen_internal.h"
