@@ -13,6 +13,7 @@
 #include "hen.h"
 #include "module.h"
 #include "patches.h"
+#include "plugin.h"
 #include "proc_map.h"
 #include "taihen_internal.h"
 
@@ -260,20 +261,19 @@ int taiInjectReleaseForKernel(SceUID tai_uid) {
 /**
  * @brief      Parses the taiHEN config and loads all plugins for a titleid to a
  *             process
+ *             
+ *             `flags` are ignored!
  *
  * @param[in]  pid      The pid to load to
  * @param[in]  titleid  The title to read from the config
- * @param[in]  flags    The flags
+ * @param[in]  flags    Ignored.
  *
  * @return     Zero on success, < 0 on error
  *             - TAI_ERROR_SYSTEM if the config file is invalid
  */
 int taiLoadPluginsForTitleForKernel(SceUID pid, const char *titleid, int flags) {
-  tai_plugin_load_t param;
   if (g_config) {
-    param.pid = pid;
-    param.flags = flags;
-    taihen_config_parse(g_config, titleid, hen_load_plugin, &param);
+    taihen_config_parse(g_config, titleid, plugin_load, &pid);
     return TAI_SUCCESS;
   } else {
     LOG("config not loaded");
@@ -318,7 +318,7 @@ int module_start(SceSize argc, const void *args) {
   ksceCtrlPeekBufferPositive(0, &ctrl, 1);
   LOG("buttons held: 0x%08X", ctrl.buttons);
   if (!(ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1))) {
-    ret = hen_load_config();
+    ret = plugin_load_config();
     if (ret < 0) {
       LOG("HEN config load failed: %x", ret);
       return SCE_KERNEL_START_FAILED;

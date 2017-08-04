@@ -182,6 +182,7 @@ void cache_flush(SceUID pid, uintptr_t vma, size_t len) {
   if (pid == KERNEL_PID) {
     ksceKernelCpuDcacheWritebackInvalidateRange((void *)vma_align, len);
     ksceKernelCpuIcacheAndL2WritebackInvalidateRange((void *)vma_align, len);
+    hex_dump(vma_align, (char *)vma_align, len);
   } else {
     // TODO: Take care of SHARED_PID
     flags = ksceKernelCpuDisableInterrupts();

@@ -7,11 +7,9 @@
  */
 #include <psp2kern/ctrl.h>
 #include <psp2kern/types.h>
-#include <psp2kern/io/fcntl.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <string.h>
-#include <taihen/parser.h>
 #include "error.h"
 #include "hen.h"
 #include "module.h"
@@ -120,12 +118,6 @@ static tai_hook_ref_t g_unload_process_hook;
 
 /** References to the hooks */
 static SceUID g_hooks[11];
-
-/** Memory reference to config read buffer */
-static SceUID g_config_blk;
-
-/** Buffer for the config data */
-char *g_config = NULL;
 
 /** Is the current decryption a homebrew? */
 static int g_is_homebrew;
@@ -384,130 +376,9 @@ static int start_preloaded_modules_patched(SceUID pid) {
   ksceKernelGetProcessTitleId(pid, titleid, 32);
   LOG("title started: %s, pid: %x, loading plugins...", titleid, pid);
 
-  if (g_config) {
-    taihen_config_parse(g_config, titleid, hen_load_plugin, &pid);
-  } else {
-    LOG("config not loaded, skipping plugin load");
-  }
+  taiLoadPluginsForTitleForKernel(pid, titleid, 0);
 
   return ret;
-}
-
-/**
- * @brief      Load tai config file
- *
- *             Allocates memory if a config has not been loaded before.
- *             Otherwise, the memory will be reused.
- *
- * @return     Zero on success, < 0 on error
- */
-int hen_load_config(void) {
-  SceUID fd;
-  SceOff len;
-  int ret;
-  char *config;
-  int rd, total;
-
-  LOG("opening config %s", TAIHEN_CONFIG_FILE);
-  fd = ksceIoOpen(TAIHEN_CONFIG_FILE, SCE_O_RDONLY, 0);
-  if (fd < 0) {
-    LOG("failed to open config %s", TAIHEN_CONFIG_FILE);
-    LOG("opening recovery config %s", TAIHEN_RECOVERY_CONFIG_FILE);
-    fd = ksceIoOpen(TAIHEN_RECOVERY_CONFIG_FILE, SCE_O_RDONLY, 0);
-    if (fd < 0) {
-      return fd;
-    }
-  }
-
-  len = ksceIoLseek(fd, 0, SCE_SEEK_END);
-  if (len < 0) {
-    LOG("failed to seek config");
-    ksceIoClose(fd);
-    return TAI_ERROR_SYSTEM;
-  }
-
-  ksceIoLseek(fd, 0, SCE_SEEK_SET);
-
-  if (!g_config) {
-    LOG("allocating %d bytes for config", (len + 0xfff) & ~0xfff);
-    g_config_blk = ksceKernelAllocMemBlock("tai_config", SCE_KERNEL_MEMBLOCK_TYPE_KERNEL_RW, (len + 0xfff) & ~0xfff, NULL);
-    if (g_config_blk < 0) {
-      LOG("failed to allocate memory: %x", g_config_blk);
-      ksceIoClose(fd);
-      return g_config_blk;
-    }
-
-    ret = ksceKernelGetMemBlockBase(g_config_blk, (void **)&config);
-    if (ret < 0) {
-      LOG("failed to get base for %x: %x", g_config_blk, ret);
-      ksceIoClose(fd);
-      return ret;
-    }
-  } else {
-    config = g_config;
-  }
-
-  LOG("reading config to memory");
-  rd = total = 0;
-  while (total < len) {
-    rd = ksceIoRead(fd, config+total, len-total);
-    if (rd < 0) {
-      LOG("failed to read config: rd %x, total %x, len %x", rd, total, len);
-      ret = rd;
-      break;
-    }
-    total += rd;
-  }
-
-  ksceIoClose(fd);
-  if (ret < 0) {
-    ksceKernelFreeMemBlock(g_config_blk);
-    return ret;
-  }
-
-  if ((ret = taihen_config_validate(config)) != 0) {
-    LOG("config parsing failed: %x", ret);
-    ksceKernelFreeMemBlock(g_config_blk);
-    return ret;
-  }
-
-  g_config = config;
-  return TAI_SUCCESS;
-}
-
-/**
- * @brief      Frees tai config file
- *
- * @return     Zero on success
- */
-int hen_free_config(void) {
-  if (g_config) {
-    ksceKernelFreeMemBlock(g_config_blk);
-  }
-  return 0;
-}
-
-/**
- * @brief      Callback to config parser to load a plugin
- *
- *             If no config is loaded, will return without doing anything.
- *
- * @param[in]  path   The path to load
- * @param[in]  param  The parameters
- */
-void hen_load_plugin(const char *path, void *param) {
-  SceUID pid = *(SceUID *)param;
-  int ret;
-  int result;
-
-  if (!g_config) {
-    LOG("no config loaded! skipping plugin load");
-    return;
-  }
-
-  LOG("pid:%x loading module %s", pid, path);
-  ret = ksceKernelLoadStartModuleForPid(pid, path, 0, NULL, 0, NULL, &result);
-  LOG("load result: %x", ret);
 }
 
 /**

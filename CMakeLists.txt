@@ -41,6 +41,7 @@ add_executable(taihen
   hen.c
   module.c
   patches.c
+  plugin.c
   proc_map.c
   taihen.c
   taihen-user.c
