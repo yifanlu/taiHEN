@@ -7,7 +7,9 @@
  */
 #include <psp2kern/types.h>
 #include <psp2kern/ctrl.h>
+#include <psp2kern/sblaimgr.h>
 #include <psp2kern/kernel/modulemgr.h>
+#include <psp2kern/kernel/threadmgr.h>
 #include <taihen/parser.h>
 #include "error.h"
 #include "hen.h"
@@ -340,6 +342,10 @@ int module_start(SceSize argc, const void *args) {
   if (ret < 0) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
+  }
+  if (ksceSblAimgrIsDolce()) {
+    LOG("VitaTV detected, waiting a couple of seconds for controller to sync...");
+    ksceKernelDelayThread(300000); // 3 seconds
   }
   ksceCtrlPeekBufferPositive(0, &ctrl, 1);
   LOG("buttons held: 0x%08X", ctrl.buttons);

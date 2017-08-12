@@ -69,6 +69,7 @@ target_link_libraries(taihen
   SceModulemgrForDriver_stub
   SceIofilemgrForDriver_stub
   SceSblACMgrForDriver_stub
+  SceSblAIMgrForDriver_stub
   SceDebugForDriver_stub
   SceCtrlForDriver_stub
 )
