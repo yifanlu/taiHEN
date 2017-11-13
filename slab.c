@@ -45,7 +45,7 @@ const size_t slab_pagesize = 0x1000;
 
 /**
  * @brief      Allocates a raw chunk of memory
- * 
+ *
  * Returns a pointer that's kernel writable and another one that's executable.
  *
  * @param[in]  pid       PID to allocate memory for
@@ -109,7 +109,7 @@ static SceUID sce_exe_alloc(SceUID pid, void **ptr, uintptr_t *exe_addr, SceUID 
     memset(&opt, 0, sizeof(opt));
     opt.size = sizeof(opt);
     opt.attr = 0x1000040;
-    opt.mirror_blkid = *exe_res;
+    opt.mirror_blockid = *exe_res;
     res = ksceKernelAllocMemBlock("taimirror", SCE_KERNEL_MEMBLOCK_TYPE_RW_UNK0, 0, &opt);
     LOG("ksceKernelAllocMemBlock(taimirror): 0x%08X", res);
     if (res < 0) {
@@ -247,7 +247,7 @@ void *slab_alloc(struct slab_chain *const sch, uintptr_t *exe_addr)
         /* no empty or partial slabs available, create a new one */
         SceUID write_res, exe_res;
         uintptr_t exe_data;
-        if ((write_res = sce_exe_alloc(sch->pid, (void **)&sch->partial, &exe_data, 
+        if ((write_res = sce_exe_alloc(sch->pid, (void **)&sch->partial, &exe_data,
                           &exe_res, sch->slabsize, sch->pages_per_alloc)) < 0) {
             *exe_addr = 0;
             return sch->partial = NULL;
