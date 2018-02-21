@@ -343,10 +343,6 @@ int module_start(SceSize argc, const void *args) {
     LOG("HEN patches failed: %x", ret);
     return SCE_KERNEL_START_FAILED;
   }
-  if (ksceSblAimgrIsDolce()) {
-    LOG("VitaTV detected, waiting a couple of seconds for controller to sync...");
-    ksceKernelDelayThread(300000); // 3 seconds
-  }
   ksceCtrlPeekBufferPositive(0, &ctrl, 1);
   LOG("buttons held: 0x%08X", ctrl.buttons);
   if (!(ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1))) {
