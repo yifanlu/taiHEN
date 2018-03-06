@@ -352,7 +352,7 @@ static int unload_process_patched(SceUID pid) {
  *             hook at the point those preloaded modules start.
  *
  *             If the user hold the L button while starting taiHEN or rebuilt database,
- *             kernel plugins will be skipped.
+ *             plugins will be skipped.
  *
  * @param[in]  pid   The process being started
  *
