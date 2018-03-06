@@ -7,6 +7,7 @@
  */
 #include <psp2kern/ctrl.h>
 #include <psp2kern/types.h>
+#include <psp2kern/io/stat.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <string.h>
 #include "error.h"
@@ -350,8 +351,8 @@ static int unload_process_patched(SceUID pid) {
  *             SCE bug, we cannot have > 15 preloaded modules. Instead now we
  *             hook at the point those preloaded modules start.
  *
- *             If the user hold the L button while the application is loading,
- *             plugins will be skipped.
+ *             If the user hold the L button while starting taiHEN or rebuilt database,
+ *             kernel plugins will be skipped.
  *
  * @param[in]  pid   The process being started
  *
@@ -359,6 +360,7 @@ static int unload_process_patched(SceUID pid) {
  */
 static int start_preloaded_modules_patched(SceUID pid) {
   SceCtrlData ctrl;
+  SceIoStat stat;
   int ret;
   char titleid[32];
 
@@ -367,7 +369,8 @@ static int start_preloaded_modules_patched(SceUID pid) {
 
   ksceCtrlPeekBufferPositive(0, &ctrl, 1);
   LOG("buttons held: 0x%08X", ctrl.buttons);
-  if (ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1)) {
+  if (ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1) ||
+      ksceIoGetstat("ur0:shell/db/dbr.db-err", &stat) >= 0) {
     LOG("skipping plugin loading");
     return ret;
   }
