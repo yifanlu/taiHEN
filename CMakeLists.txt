@@ -59,13 +59,13 @@ target_link_libraries(taihen
   taihenparser
   gcc
   SceSysmemForDriver_stub
-  SceSysmemForKernel_stub
+  SceSysmemForKernel_367_stub
   SceSysclibForDriver_stub
-  SceCpuForKernel_stub
+  SceCpuForKernel_367_stub
   SceCpuForDriver_stub
   SceSysrootForKernel_stub
   SceThreadmgrForDriver_stub
-  SceModulemgrForKernel_stub
+  SceModulemgrForKernel_367_stub
   SceModulemgrForDriver_stub
   SceIofilemgrForDriver_stub
   SceSblACMgrForDriver_stub
