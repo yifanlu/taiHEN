@@ -7,6 +7,7 @@
  */
 #include <psp2kern/ctrl.h>
 #include <psp2kern/types.h>
+#include <psp2kern/io/stat.h>
 #include <psp2kern/kernel/sysmem.h>
 #include <string.h>
 #include "error.h"
@@ -115,8 +116,11 @@ static tai_hook_ref_t g_nid_poison_hook;
 /** Hook reference to `unload_process` */
 static tai_hook_ref_t g_unload_process_hook;
 
+/** Hook reference to `is_cex` */
+static tai_hook_ref_t g_is_cex_hook;
+
 /** References to the hooks */
-static SceUID g_hooks[11];
+static SceUID g_hooks[12];
 
 /** Is the current decryption a homebrew? */
 static int g_is_homebrew;
@@ -306,6 +310,16 @@ static int package_check_2_patched(void) {
 }
 
 /**
+ * @brief      Patch to bypass 0x8080004C error on 3.60+
+ *
+ * @return     1 if CEX, 0 otherwise
+ */
+static int is_cex_patched(void) {
+  TAI_CONTINUE(int, g_is_cex_hook);
+  return 0;
+}
+
+/**
  * @brief      Patch to disable NID poisoning
  * 
  * This function is actually a memset of 32-bit width.
@@ -350,7 +364,7 @@ static int unload_process_patched(SceUID pid) {
  *             SCE bug, we cannot have > 15 preloaded modules. Instead now we
  *             hook at the point those preloaded modules start.
  *
- *             If the user hold the L button while the application is loading,
+ *             If the user hold the L button while starting taiHEN or rebuilt database,
  *             plugins will be skipped.
  *
  * @param[in]  pid   The process being started
@@ -359,6 +373,7 @@ static int unload_process_patched(SceUID pid) {
  */
 static int start_preloaded_modules_patched(SceUID pid) {
   SceCtrlData ctrl;
+  SceIoStat stat;
   int ret;
   char titleid[32];
 
@@ -367,7 +382,8 @@ static int start_preloaded_modules_patched(SceUID pid) {
 
   ksceCtrlPeekBufferPositive(0, &ctrl, 1);
   LOG("buttons held: 0x%08X", ctrl.buttons);
-  if (ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1)) {
+  if (ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1) ||
+      ksceIoGetstat("ur0:shell/db/dbr.db-err", &stat) >= 0) {
     LOG("skipping plugin loading");
     return ret;
   }
@@ -457,6 +473,14 @@ int hen_add_patches(void) {
                                               0xC445FA63, // SceModulemgrForKernel
                                               0x432DCC7A,
                                               start_preloaded_modules_patched);
+  if (g_hooks[8] < 0) {
+    g_hooks[8] = taiHookFunctionExportForKernel(KERNEL_PID, 
+                                                &g_start_preloaded_modules_hook, 
+                                                "SceKernelModulemgr", 
+                                                0x92C9FFC2, // SceModulemgrForKernel
+                                                0x998C7AE9,
+                                                start_preloaded_modules_patched);
+  }
   if (g_hooks[8] < 0) goto fail;
   LOG("start_preloaded_modules_patched added");
   g_hooks[9] = taiHookFunctionImportForKernel(KERNEL_PID, 
@@ -465,6 +489,14 @@ int hen_add_patches(void) {
                                               0x63A519E5, // SceSysmemForKernel
                                               0xECF9435A, 
                                               nid_poison_patched);
+  if (g_hooks[9] < 0) {
+    g_hooks[9] = taiHookFunctionImportForKernel(KERNEL_PID, 
+                                                &g_nid_poison_hook, 
+                                                "SceKernelModulemgr", 
+                                                0x02451F0F, // SceSysmemForKernel
+                                                0xFCB5745A, 
+                                                nid_poison_patched);
+  }
   if (g_hooks[9] < 0) goto fail;
   LOG("nid_poison_patched added");
   g_hooks[10] = taiHookFunctionImportForKernel(KERNEL_PID, 
@@ -473,8 +505,24 @@ int hen_add_patches(void) {
                                               0xC445FA63, // SceModulemgrForKernel
                                               0x0E33258E, 
                                               unload_process_patched);
+  if (g_hooks[10] < 0) {
+    g_hooks[10] = taiHookFunctionImportForKernel(KERNEL_PID, 
+                                                &g_unload_process_hook, 
+                                                "SceProcessmgr", 
+                                                0x92C9FFC2, // SceModulemgrForKernel
+                                                0xE71530D7, 
+                                                unload_process_patched);
+  }
   if (g_hooks[10] < 0) goto fail;
   LOG("unload_process_patched added");
+  g_hooks[11] = taiHookFunctionImportForKernel(KERNEL_PID, 
+                                              &g_is_cex_hook, 
+                                              "SceAppMgr", 
+                                              0xFD00C69A, // SceSblAIMgrForDriver
+                                              0xD78B04A2, 
+                                              is_cex_patched);
+  if (g_hooks[11] < 0) goto fail;
+  LOG("is_cex_patched added");
 
   return TAI_SUCCESS;
 fail:
@@ -511,6 +559,9 @@ fail:
   if (g_hooks[10] >= 0) {
     taiHookReleaseForKernel(g_hooks[10], g_unload_process_hook);
   }
+  if (g_hooks[11] >= 0) {
+    taiHookReleaseForKernel(g_hooks[11], g_is_cex_hook);
+  }
   return TAI_ERROR_SYSTEM;
 }
 
@@ -533,5 +584,6 @@ int hen_remove_patches(void) {
   ret |= taiHookReleaseForKernel(g_hooks[8], g_start_preloaded_modules_hook);
   ret |= taiHookReleaseForKernel(g_hooks[9], g_nid_poison_hook);
   ret |= taiHookReleaseForKernel(g_hooks[10], g_unload_process_hook);
+  ret |= taiHookReleaseForKernel(g_hooks[11], g_is_cex_hook);
   return ret;
 }

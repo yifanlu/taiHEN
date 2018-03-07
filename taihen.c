@@ -8,6 +8,7 @@
 #include <psp2kern/types.h>
 #include <psp2kern/ctrl.h>
 #include <psp2kern/sblaimgr.h>
+#include <psp2kern/io/stat.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/kernel/threadmgr.h>
 #include <taihen/parser.h>
@@ -311,8 +312,8 @@ int taiReloadConfigForKernel(int schedule, int load_kernel) {
  *             the kernel environment to be clean, which means that no outside
  *             hooks and patches which may interfere with taiHEN.
  *
- *             If the user hold the L button while starting taiHEN, kernel
- *             plugins will be skipped.
+ *             If the user hold the L button while starting taiHEN or rebuilt database,
+ *             kernel plugins will be skipped.
  *
  * @param[in]  argc  Size of arguments (unused)
  * @param[in]  args  The arguments (unused)
@@ -321,6 +322,7 @@ int taiReloadConfigForKernel(int schedule, int load_kernel) {
  */
 int module_start(SceSize argc, const void *args) {
   SceCtrlData ctrl;
+  SceIoStat stat;
   int ret;
   LOG("starting taihen...");
   ret = proc_map_init();
@@ -345,7 +347,8 @@ int module_start(SceSize argc, const void *args) {
   }
   ksceCtrlPeekBufferPositive(0, &ctrl, 1);
   LOG("buttons held: 0x%08X", ctrl.buttons);
-  if (!(ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1))) {
+  if (!(ctrl.buttons & (SCE_CTRL_LTRIGGER | SCE_CTRL_L1)) &&
+      ksceIoGetstat("ur0:shell/db/dbr.db-err", &stat) < 0) {
     ret = plugin_load_config();
     if (ret < 0) {
       LOG("HEN config load failed: %x", ret);
