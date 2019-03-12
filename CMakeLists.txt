@@ -58,8 +58,8 @@ add_executable(taihen
 target_link_libraries(taihen
   taihenparser
   gcc
-  SceSysmemForDriver_stub
   SceSysmemForKernel_stub
+  SceSysmemForDriver_stub
   SceSysclibForDriver_stub
   SceCpuForKernel_stub
   SceCpuForDriver_stub
