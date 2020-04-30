@@ -343,13 +343,10 @@ HELPER SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int se
  * @return     Return value from the hook chain
  */
 #define TAI_CONTINUE(type, hook, ...) ({ \
-  struct _tai_hook_user *cur, *next; \
-  cur = (struct _tai_hook_user *)(hook); \
-  next = (struct _tai_hook_user *)cur->next; \
-  (next == NULL) ? \
-    ((type(*)())cur->old)(__VA_ARGS__) \
+  (((struct _tai_hook_user *)hook)->next) ? \
+    ((type(*)())((struct _tai_hook_user *)((struct _tai_hook_user *)hook)->next)->func)(__VA_ARGS__) \
   : \
-    ((type(*)())next->func)(__VA_ARGS__) \
+    ((type(*)())((struct _tai_hook_user *)hook)->old)(__VA_ARGS__) \
   ; \
 })
 
