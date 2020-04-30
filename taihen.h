@@ -352,6 +352,23 @@ HELPER SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int se
     ((type(*)())next->func)(__VA_ARGS__) \
   ; \
 })
+
+/**
+ * @brief      Calls the next function in the chain
+ *             with static type checking
+ *
+ * @param      this_func  The enclosing function
+ * @param      hook  The hook continuing the call
+ *
+ * @return     Return value from the hook chain
+ */
+#define TAI_NEXT(this_func, hook, ...) ({ \
+  (((struct _tai_hook_user *)hook)->next) ? \
+    ((typeof(&this_func))((struct _tai_hook_user *)((struct _tai_hook_user *)hook)->next)->func)(__VA_ARGS__) \
+  : \
+    ((typeof(&this_func))((struct _tai_hook_user *)hook)->old)(__VA_ARGS__) \
+  ; \
+})
 #else // __GNUC__
 #error Non-GCC compatible compilers are currently unsupported
 #endif // __GNUC__
