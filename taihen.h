@@ -361,9 +361,9 @@ HELPER SceUID taiHookFunctionOffset(tai_hook_ref_t *p_hook, SceUID modid, int se
  */
 #define TAI_NEXT(this_func, hook, ...) ({ \
   (((struct _tai_hook_user *)hook)->next) ? \
-    ((typeof(&this_func))((struct _tai_hook_user *)((struct _tai_hook_user *)hook)->next)->func)(__VA_ARGS__) \
+    ((__typeof__(&this_func))((struct _tai_hook_user *)((struct _tai_hook_user *)hook)->next)->func)(__VA_ARGS__) \
   : \
-    ((typeof(&this_func))((struct _tai_hook_user *)hook)->old)(__VA_ARGS__) \
+    ((__typeof__(&this_func))((struct _tai_hook_user *)hook)->old)(__VA_ARGS__) \
   ; \
 })
 #else // __GNUC__
