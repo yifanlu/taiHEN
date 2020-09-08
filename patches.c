@@ -474,8 +474,8 @@ static int hooks_remove_hook(tai_hook_list_t *hooks, tai_hook_t *item) {
           ret = 0;
           break;
         } else {
-          cur = &(*cur)->next;
           cur_user = &(*cur)->u.next;
+          cur = &(*cur)->next;
         }
       } else {
         break;
@@ -611,7 +611,6 @@ int tai_hook_release(SceUID uid, tai_hook_ref_t hook_ref) {
       hook = *cur;
       LOG("Found hook %p for ref %p", hook, hook_ref);
       ret = hooks_remove_hook(&patch->data.hooks, hook);
-      *cur = hook->next;
       LOG("freeing hook");
       slab_free(slab, hook);
       if (patch->data.hooks.head == NULL) {
